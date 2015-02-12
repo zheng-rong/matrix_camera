@@ -35,10 +35,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/arkin/ros_code/matrixvision_camera/mv_camera
+CMAKE_SOURCE_DIR = /home/arkin/ros_code/matrix_camera/mv_camera
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/arkin/ros_code/matrixvision_camera/mv_camera/build
+CMAKE_BINARY_DIR = /home/arkin/ros_code/matrix_camera/mv_camera/build
 
 # Utility rule file for clean_test_results.
 
@@ -46,7 +46,7 @@ CMAKE_BINARY_DIR = /home/arkin/ros_code/matrixvision_camera/mv_camera/build
 include CMakeFiles/clean_test_results.dir/progress.make
 
 CMakeFiles/clean_test_results:
-	/usr/bin/cmake -E remove_directory /home/arkin/ros_code/matrixvision_camera/mv_camera/build/test_results
+	/usr/bin/cmake -E remove_directory /home/arkin/ros_code/matrix_camera/mv_camera/build/test_results
 
 clean_test_results: CMakeFiles/clean_test_results
 clean_test_results: CMakeFiles/clean_test_results.dir/build.make
@@ -61,6 +61,6 @@ CMakeFiles/clean_test_results.dir/clean:
 .PHONY : CMakeFiles/clean_test_results.dir/clean
 
 CMakeFiles/clean_test_results.dir/depend:
-	cd /home/arkin/ros_code/matrixvision_camera/mv_camera/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/arkin/ros_code/matrixvision_camera/mv_camera /home/arkin/ros_code/matrixvision_camera/mv_camera /home/arkin/ros_code/matrixvision_camera/mv_camera/build /home/arkin/ros_code/matrixvision_camera/mv_camera/build /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles/clean_test_results.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/arkin/ros_code/matrix_camera/mv_camera/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/arkin/ros_code/matrix_camera/mv_camera /home/arkin/ros_code/matrix_camera/mv_camera /home/arkin/ros_code/matrix_camera/mv_camera/build /home/arkin/ros_code/matrix_camera/mv_camera/build /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles/clean_test_results.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/clean_test_results.dir/depend
 

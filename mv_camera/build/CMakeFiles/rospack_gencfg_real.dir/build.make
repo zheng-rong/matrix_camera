@@ -35,10 +35,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/arkin/ros_code/matrixvision_camera/mv_camera
+CMAKE_SOURCE_DIR = /home/arkin/ros_code/matrix_camera/mv_camera
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/arkin/ros_code/matrixvision_camera/mv_camera/build
+CMAKE_BINARY_DIR = /home/arkin/ros_code/matrix_camera/mv_camera/build
 
 # Utility rule file for rospack_gencfg_real.
 
@@ -60,6 +60,6 @@ CMakeFiles/rospack_gencfg_real.dir/clean:
 .PHONY : CMakeFiles/rospack_gencfg_real.dir/clean
 
 CMakeFiles/rospack_gencfg_real.dir/depend:
-	cd /home/arkin/ros_code/matrixvision_camera/mv_camera/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/arkin/ros_code/matrixvision_camera/mv_camera /home/arkin/ros_code/matrixvision_camera/mv_camera /home/arkin/ros_code/matrixvision_camera/mv_camera/build /home/arkin/ros_code/matrixvision_camera/mv_camera/build /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles/rospack_gencfg_real.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/arkin/ros_code/matrix_camera/mv_camera/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/arkin/ros_code/matrix_camera/mv_camera /home/arkin/ros_code/matrix_camera/mv_camera /home/arkin/ros_code/matrix_camera/mv_camera/build /home/arkin/ros_code/matrix_camera/mv_camera/build /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles/rospack_gencfg_real.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/rospack_gencfg_real.dir/depend
 

@@ -109,7 +109,7 @@ int main(int argc, char **argv)
     value = "Off";
     callService(client_mono, identifier, value);
 
-
+/*
     // Set the left camera to master mode
     identifier = "Camera/FlashMode";
     value = "Digout0";
@@ -118,22 +118,19 @@ int main(int argc, char **argv)
     identifier = "Camera/FlashType";
     value = "Standard";
     callService(client_mono, identifier, value);
+*/
 
-/*
-    // Set the right camera to slave mode
+
+    // Set the mono camera to slave mode
     identifier = "Camera/TriggerMode";
     value = "OnHighLevel";
-    queryService(client_left, identifier, value);
-    callService(client_left, identifier, value);
-
-    queryService(client_right, identifier, value);
-    callService(client_right, identifier, value);
+    queryService(client_mono, identifier, value);
+    callService(client_mono, identifier, value);
 
     identifier = "Camera/TriggerSource";
     value = "DigIn0";
-    callService(client_right, identifier, value);  
-    callService(client_left, identifier, value);
-*/
+    callService(client_mono, identifier, value);  
+
 
     return 0;
 

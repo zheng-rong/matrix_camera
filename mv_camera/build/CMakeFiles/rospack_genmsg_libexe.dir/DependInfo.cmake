@@ -5,7 +5,7 @@ SET(CMAKE_DEPENDS_LANGUAGES
 
 # Preprocessor definitions for this target.
 SET(CMAKE_TARGET_DEFINITIONS
-  "GENICAM_CACHE_V2_3='\"/home/arkin/ros_code/matrixvision_camera/mv_camera/genicam_cache\"'"
+  "GENICAM_CACHE_V2_3='\"/home/arkin/ros_code/matrix_camera/mv_camera/genicam_cache\"'"
   "ROS_PACKAGE_NAME=\"mv_camera\""
   )
 
@@ -15,10 +15,12 @@ SET(CMAKE_TARGET_LINKED_INFO_FILES
 
 # The include file search paths:
 SET(CMAKE_C_TARGET_INCLUDE_PATH
-  "/usr/include/opencv"
+  "/usr/local/include/opencv"
+  "/usr/local/include"
   "../include"
   "/home/arkin/ros_code/matrixvision_camera/mv_driver/mvIMPACT_acquire"
   "/opt/ros/indigo/include"
+  "/usr/include/opencv"
   "../srv_gen/cpp/include"
   "../msg_gen/cpp/include"
   "../cfg/cpp"

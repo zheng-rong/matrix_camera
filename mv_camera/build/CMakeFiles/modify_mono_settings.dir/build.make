@@ -35,10 +35,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/arkin/ros_code/matrixvision_camera/mv_camera
+CMAKE_SOURCE_DIR = /home/arkin/ros_code/matrix_camera/mv_camera
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/arkin/ros_code/matrixvision_camera/mv_camera/build
+CMAKE_BINARY_DIR = /home/arkin/ros_code/matrix_camera/mv_camera/build
 
 # Include any dependencies generated for this target.
 include CMakeFiles/modify_mono_settings.dir/depend.make
@@ -114,18 +114,18 @@ CMakeFiles/modify_mono_settings.dir/src/modify_mono_settings.cpp.o: /opt/ros/ind
 CMakeFiles/modify_mono_settings.dir/src/modify_mono_settings.cpp.o: /opt/ros/indigo/share/tf2_py/package.xml
 CMakeFiles/modify_mono_settings.dir/src/modify_mono_settings.cpp.o: /opt/ros/indigo/share/tf2_ros/package.xml
 CMakeFiles/modify_mono_settings.dir/src/modify_mono_settings.cpp.o: /opt/ros/indigo/share/tf/package.xml
-CMakeFiles/modify_mono_settings.dir/src/modify_mono_settings.cpp.o: /home/arkin/ros_code/matrixvision_camera/mv_driver/manifest.xml
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles $(CMAKE_PROGRESS_1)
+CMakeFiles/modify_mono_settings.dir/src/modify_mono_settings.cpp.o: /home/arkin/ros_code/matrix_camera/mv_driver/manifest.xml
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles $(CMAKE_PROGRESS_1)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/modify_mono_settings.dir/src/modify_mono_settings.cpp.o"
-	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/modify_mono_settings.dir/src/modify_mono_settings.cpp.o -c /home/arkin/ros_code/matrixvision_camera/mv_camera/src/modify_mono_settings.cpp
+	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/modify_mono_settings.dir/src/modify_mono_settings.cpp.o -c /home/arkin/ros_code/matrix_camera/mv_camera/src/modify_mono_settings.cpp
 
 CMakeFiles/modify_mono_settings.dir/src/modify_mono_settings.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/modify_mono_settings.dir/src/modify_mono_settings.cpp.i"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E /home/arkin/ros_code/matrixvision_camera/mv_camera/src/modify_mono_settings.cpp > CMakeFiles/modify_mono_settings.dir/src/modify_mono_settings.cpp.i
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E /home/arkin/ros_code/matrix_camera/mv_camera/src/modify_mono_settings.cpp > CMakeFiles/modify_mono_settings.dir/src/modify_mono_settings.cpp.i
 
 CMakeFiles/modify_mono_settings.dir/src/modify_mono_settings.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/modify_mono_settings.dir/src/modify_mono_settings.cpp.s"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S /home/arkin/ros_code/matrixvision_camera/mv_camera/src/modify_mono_settings.cpp -o CMakeFiles/modify_mono_settings.dir/src/modify_mono_settings.cpp.s
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S /home/arkin/ros_code/matrix_camera/mv_camera/src/modify_mono_settings.cpp -o CMakeFiles/modify_mono_settings.dir/src/modify_mono_settings.cpp.s
 
 CMakeFiles/modify_mono_settings.dir/src/modify_mono_settings.cpp.o.requires:
 .PHONY : CMakeFiles/modify_mono_settings.dir/src/modify_mono_settings.cpp.o.requires
@@ -161,6 +161,6 @@ CMakeFiles/modify_mono_settings.dir/clean:
 .PHONY : CMakeFiles/modify_mono_settings.dir/clean
 
 CMakeFiles/modify_mono_settings.dir/depend:
-	cd /home/arkin/ros_code/matrixvision_camera/mv_camera/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/arkin/ros_code/matrixvision_camera/mv_camera /home/arkin/ros_code/matrixvision_camera/mv_camera /home/arkin/ros_code/matrixvision_camera/mv_camera/build /home/arkin/ros_code/matrixvision_camera/mv_camera/build /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles/modify_mono_settings.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/arkin/ros_code/matrix_camera/mv_camera/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/arkin/ros_code/matrix_camera/mv_camera /home/arkin/ros_code/matrix_camera/mv_camera /home/arkin/ros_code/matrix_camera/mv_camera/build /home/arkin/ros_code/matrix_camera/mv_camera/build /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles/modify_mono_settings.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/modify_mono_settings.dir/depend
 

@@ -48,7 +48,7 @@ ros/assert.h
 ros/service_traits.h
 ../srv_gen/cpp/include/mv_camera/ros/service_traits.h
 
-/home/arkin/ros_code/matrixvision_camera/mv_camera/src/dev_mv_camera.h
+/home/arkin/ros_code/matrix_camera/mv_camera/src/dev_mv_camera.h
 mvIMPACT_CPP/mvIMPACT_acquire.h
 -
 sensor_msgs/Image.h
@@ -58,9 +58,9 @@ sensor_msgs/CameraInfo.h
 boost/shared_ptr.hpp
 -
 mv_camera/MVCameraConfig.h
-/home/arkin/ros_code/matrixvision_camera/mv_camera/src/mv_camera/MVCameraConfig.h
+/home/arkin/ros_code/matrix_camera/mv_camera/src/mv_camera/MVCameraConfig.h
 
-/home/arkin/ros_code/matrixvision_camera/mv_camera/src/driver_mv_camera.h
+/home/arkin/ros_code/matrix_camera/mv_camera/src/driver_mv_camera.h
 boost/thread/mutex.hpp
 -
 ros/ros.h
@@ -78,17 +78,17 @@ sensor_msgs/CameraInfo.h
 string
 -
 dev_mv_camera.h
-/home/arkin/ros_code/matrixvision_camera/mv_camera/src/dev_mv_camera.h
+/home/arkin/ros_code/matrix_camera/mv_camera/src/dev_mv_camera.h
 mv_camera/MVCameraConfig.h
 -
 mv_camera/PropertyMap.h
 -
 
-/home/arkin/ros_code/matrixvision_camera/mv_camera/src/mv_camera_node.cpp
+/home/arkin/ros_code/matrix_camera/mv_camera/src/mv_camera_node.cpp
 signal.h
 -
 driver_mv_camera.h
-/home/arkin/ros_code/matrixvision_camera/mv_camera/src/driver_mv_camera.h
+/home/arkin/ros_code/matrix_camera/mv_camera/src/driver_mv_camera.h
 
 /home/arkin/ros_code/matrixvision_camera/mv_driver/mvIMPACT_acquire/DriverBase/Include/mvDriverBaseEnums.h
 mvVersionInfo.h

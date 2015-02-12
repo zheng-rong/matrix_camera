@@ -35,10 +35,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/arkin/ros_code/matrixvision_camera/mv_camera
+CMAKE_SOURCE_DIR = /home/arkin/ros_code/matrix_camera/mv_camera
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/arkin/ros_code/matrixvision_camera/mv_camera/build
+CMAKE_BINARY_DIR = /home/arkin/ros_code/matrix_camera/mv_camera/build
 
 # Include any dependencies generated for this target.
 include CMakeFiles/stereo_time_reporter.dir/depend.make
@@ -114,18 +114,18 @@ CMakeFiles/stereo_time_reporter.dir/src/stereo_time_reporter.cpp.o: /opt/ros/ind
 CMakeFiles/stereo_time_reporter.dir/src/stereo_time_reporter.cpp.o: /opt/ros/indigo/share/tf2_py/package.xml
 CMakeFiles/stereo_time_reporter.dir/src/stereo_time_reporter.cpp.o: /opt/ros/indigo/share/tf2_ros/package.xml
 CMakeFiles/stereo_time_reporter.dir/src/stereo_time_reporter.cpp.o: /opt/ros/indigo/share/tf/package.xml
-CMakeFiles/stereo_time_reporter.dir/src/stereo_time_reporter.cpp.o: /home/arkin/ros_code/matrixvision_camera/mv_driver/manifest.xml
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles $(CMAKE_PROGRESS_1)
+CMakeFiles/stereo_time_reporter.dir/src/stereo_time_reporter.cpp.o: /home/arkin/ros_code/matrix_camera/mv_driver/manifest.xml
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles $(CMAKE_PROGRESS_1)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/stereo_time_reporter.dir/src/stereo_time_reporter.cpp.o"
-	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/stereo_time_reporter.dir/src/stereo_time_reporter.cpp.o -c /home/arkin/ros_code/matrixvision_camera/mv_camera/src/stereo_time_reporter.cpp
+	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/stereo_time_reporter.dir/src/stereo_time_reporter.cpp.o -c /home/arkin/ros_code/matrix_camera/mv_camera/src/stereo_time_reporter.cpp
 
 CMakeFiles/stereo_time_reporter.dir/src/stereo_time_reporter.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/stereo_time_reporter.dir/src/stereo_time_reporter.cpp.i"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E /home/arkin/ros_code/matrixvision_camera/mv_camera/src/stereo_time_reporter.cpp > CMakeFiles/stereo_time_reporter.dir/src/stereo_time_reporter.cpp.i
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E /home/arkin/ros_code/matrix_camera/mv_camera/src/stereo_time_reporter.cpp > CMakeFiles/stereo_time_reporter.dir/src/stereo_time_reporter.cpp.i
 
 CMakeFiles/stereo_time_reporter.dir/src/stereo_time_reporter.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/stereo_time_reporter.dir/src/stereo_time_reporter.cpp.s"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S /home/arkin/ros_code/matrixvision_camera/mv_camera/src/stereo_time_reporter.cpp -o CMakeFiles/stereo_time_reporter.dir/src/stereo_time_reporter.cpp.s
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S /home/arkin/ros_code/matrix_camera/mv_camera/src/stereo_time_reporter.cpp -o CMakeFiles/stereo_time_reporter.dir/src/stereo_time_reporter.cpp.s
 
 CMakeFiles/stereo_time_reporter.dir/src/stereo_time_reporter.cpp.o.requires:
 .PHONY : CMakeFiles/stereo_time_reporter.dir/src/stereo_time_reporter.cpp.o.requires
@@ -161,6 +161,6 @@ CMakeFiles/stereo_time_reporter.dir/clean:
 .PHONY : CMakeFiles/stereo_time_reporter.dir/clean
 
 CMakeFiles/stereo_time_reporter.dir/depend:
-	cd /home/arkin/ros_code/matrixvision_camera/mv_camera/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/arkin/ros_code/matrixvision_camera/mv_camera /home/arkin/ros_code/matrixvision_camera/mv_camera /home/arkin/ros_code/matrixvision_camera/mv_camera/build /home/arkin/ros_code/matrixvision_camera/mv_camera/build /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles/stereo_time_reporter.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/arkin/ros_code/matrix_camera/mv_camera/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/arkin/ros_code/matrix_camera/mv_camera /home/arkin/ros_code/matrix_camera/mv_camera /home/arkin/ros_code/matrix_camera/mv_camera/build /home/arkin/ros_code/matrix_camera/mv_camera/build /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles/stereo_time_reporter.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/stereo_time_reporter.dir/depend
 

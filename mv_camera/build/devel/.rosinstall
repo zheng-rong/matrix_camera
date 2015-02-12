@@ -1,2 +1,2 @@
 - setup-file:
-    local-name: /home/arkin/ros_code/matrixvision_camera/mv_camera/build/devel/setup.sh
+    local-name: /home/arkin/ros_code/matrix_camera/mv_camera/build/devel/setup.sh

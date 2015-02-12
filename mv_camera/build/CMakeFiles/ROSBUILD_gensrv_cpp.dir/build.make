@@ -35,10 +35,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/arkin/ros_code/matrixvision_camera/mv_camera
+CMAKE_SOURCE_DIR = /home/arkin/ros_code/matrix_camera/mv_camera
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/arkin/ros_code/matrixvision_camera/mv_camera/build
+CMAKE_BINARY_DIR = /home/arkin/ros_code/matrix_camera/mv_camera/build
 
 # Utility rule file for ROSBUILD_gensrv_cpp.
 
@@ -114,10 +114,10 @@ CMakeFiles/ROSBUILD_gensrv_cpp: ../srv_gen/cpp/include/mv_camera/PropertyMap.h
 ../srv_gen/cpp/include/mv_camera/PropertyMap.h: /opt/ros/indigo/share/tf2_py/package.xml
 ../srv_gen/cpp/include/mv_camera/PropertyMap.h: /opt/ros/indigo/share/tf2_ros/package.xml
 ../srv_gen/cpp/include/mv_camera/PropertyMap.h: /opt/ros/indigo/share/tf/package.xml
-../srv_gen/cpp/include/mv_camera/PropertyMap.h: /home/arkin/ros_code/matrixvision_camera/mv_driver/manifest.xml
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles $(CMAKE_PROGRESS_1)
+../srv_gen/cpp/include/mv_camera/PropertyMap.h: /home/arkin/ros_code/matrix_camera/mv_driver/manifest.xml
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles $(CMAKE_PROGRESS_1)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold "Generating ../srv_gen/cpp/include/mv_camera/PropertyMap.h"
-	/opt/ros/indigo/share/roscpp/rosbuild/scripts/gensrv_cpp.py /home/arkin/ros_code/matrixvision_camera/mv_camera/srv/PropertyMap.srv
+	/opt/ros/indigo/share/roscpp/rosbuild/scripts/gensrv_cpp.py /home/arkin/ros_code/matrix_camera/mv_camera/srv/PropertyMap.srv
 
 ROSBUILD_gensrv_cpp: CMakeFiles/ROSBUILD_gensrv_cpp
 ROSBUILD_gensrv_cpp: ../srv_gen/cpp/include/mv_camera/PropertyMap.h
@@ -133,6 +133,6 @@ CMakeFiles/ROSBUILD_gensrv_cpp.dir/clean:
 .PHONY : CMakeFiles/ROSBUILD_gensrv_cpp.dir/clean
 
 CMakeFiles/ROSBUILD_gensrv_cpp.dir/depend:
-	cd /home/arkin/ros_code/matrixvision_camera/mv_camera/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/arkin/ros_code/matrixvision_camera/mv_camera /home/arkin/ros_code/matrixvision_camera/mv_camera /home/arkin/ros_code/matrixvision_camera/mv_camera/build /home/arkin/ros_code/matrixvision_camera/mv_camera/build /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles/ROSBUILD_gensrv_cpp.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/arkin/ros_code/matrix_camera/mv_camera/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/arkin/ros_code/matrix_camera/mv_camera /home/arkin/ros_code/matrix_camera/mv_camera /home/arkin/ros_code/matrix_camera/mv_camera/build /home/arkin/ros_code/matrix_camera/mv_camera/build /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles/ROSBUILD_gensrv_cpp.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/ROSBUILD_gensrv_cpp.dir/depend
 

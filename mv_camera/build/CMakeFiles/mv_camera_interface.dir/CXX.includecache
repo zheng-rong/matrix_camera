@@ -30,9 +30,9 @@ ros/assert.h
 ros/service_traits.h
 ../srv_gen/cpp/include/mv_camera/ros/service_traits.h
 
-/home/arkin/ros_code/matrixvision_camera/mv_camera/src/driver_interface_node.cpp
+/home/arkin/ros_code/matrix_camera/mv_camera/src/driver_interface_node.cpp
 ros/ros.h
-/home/arkin/ros_code/matrixvision_camera/mv_camera/src/ros/ros.h
+/home/arkin/ros_code/matrix_camera/mv_camera/src/ros/ros.h
 cstdlib
 -
 string

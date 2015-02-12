@@ -48,19 +48,19 @@ ros/assert.h
 ros/service_traits.h
 ../srv_gen/cpp/include/mv_camera/ros/service_traits.h
 
-/home/arkin/ros_code/matrixvision_camera/mv_camera/src/dev_mv_camera.cpp
+/home/arkin/ros_code/matrix_camera/mv_camera/src/dev_mv_camera.cpp
 stdint.h
 -
 sensor_msgs/image_encodings.h
 -
 dev_mv_camera.h
-/home/arkin/ros_code/matrixvision_camera/mv_camera/src/dev_mv_camera.h
+/home/arkin/ros_code/matrix_camera/mv_camera/src/dev_mv_camera.h
 features.h
-/home/arkin/ros_code/matrixvision_camera/mv_camera/src/features.h
+/home/arkin/ros_code/matrix_camera/mv_camera/src/features.h
 formats.h
-/home/arkin/ros_code/matrixvision_camera/mv_camera/src/formats.h
+/home/arkin/ros_code/matrix_camera/mv_camera/src/formats.h
 
-/home/arkin/ros_code/matrixvision_camera/mv_camera/src/dev_mv_camera.h
+/home/arkin/ros_code/matrix_camera/mv_camera/src/dev_mv_camera.h
 mvIMPACT_CPP/mvIMPACT_acquire.h
 -
 sensor_msgs/Image.h
@@ -70,9 +70,9 @@ sensor_msgs/CameraInfo.h
 boost/shared_ptr.hpp
 -
 mv_camera/MVCameraConfig.h
-/home/arkin/ros_code/matrixvision_camera/mv_camera/src/mv_camera/MVCameraConfig.h
+/home/arkin/ros_code/matrix_camera/mv_camera/src/mv_camera/MVCameraConfig.h
 
-/home/arkin/ros_code/matrixvision_camera/mv_camera/src/driver_mv_camera.cpp
+/home/arkin/ros_code/matrix_camera/mv_camera/src/driver_mv_camera.cpp
 boost/format.hpp
 -
 driver_base/SensorLevels.h
@@ -80,13 +80,13 @@ driver_base/SensorLevels.h
 tf/transform_listener.h
 -
 driver_mv_camera.h
-/home/arkin/ros_code/matrixvision_camera/mv_camera/src/driver_mv_camera.h
+/home/arkin/ros_code/matrix_camera/mv_camera/src/driver_mv_camera.h
 features.h
-/home/arkin/ros_code/matrixvision_camera/mv_camera/src/features.h
+/home/arkin/ros_code/matrix_camera/mv_camera/src/features.h
 boost/lexical_cast.hpp
 -
 
-/home/arkin/ros_code/matrixvision_camera/mv_camera/src/driver_mv_camera.h
+/home/arkin/ros_code/matrix_camera/mv_camera/src/driver_mv_camera.h
 boost/thread/mutex.hpp
 -
 ros/ros.h
@@ -104,31 +104,31 @@ sensor_msgs/CameraInfo.h
 string
 -
 dev_mv_camera.h
-/home/arkin/ros_code/matrixvision_camera/mv_camera/src/dev_mv_camera.h
+/home/arkin/ros_code/matrix_camera/mv_camera/src/dev_mv_camera.h
 mv_camera/MVCameraConfig.h
 -
 mv_camera/PropertyMap.h
 -
 
-/home/arkin/ros_code/matrixvision_camera/mv_camera/src/features.cpp
+/home/arkin/ros_code/matrix_camera/mv_camera/src/features.cpp
 limits
 -
 cmath
 -
 features.h
-/home/arkin/ros_code/matrixvision_camera/mv_camera/src/features.h
+/home/arkin/ros_code/matrix_camera/mv_camera/src/features.h
 formats.h
-/home/arkin/ros_code/matrixvision_camera/mv_camera/src/formats.h
+/home/arkin/ros_code/matrix_camera/mv_camera/src/formats.h
 mvIMPACT_CPP/mvIMPACT_acquire.h
 -
 
-/home/arkin/ros_code/matrixvision_camera/mv_camera/src/features.h
+/home/arkin/ros_code/matrix_camera/mv_camera/src/features.h
 mvIMPACT_CPP/mvIMPACT_acquire.h
 -
 mv_camera/MVCameraConfig.h
-/home/arkin/ros_code/matrixvision_camera/mv_camera/src/mv_camera/MVCameraConfig.h
+/home/arkin/ros_code/matrix_camera/mv_camera/src/mv_camera/MVCameraConfig.h
 
-/home/arkin/ros_code/matrixvision_camera/mv_camera/src/formats.h
+/home/arkin/ros_code/matrix_camera/mv_camera/src/formats.h
 string
 -
 mvIMPACT_CPP/mvIMPACT_acquire.h

@@ -3,10 +3,10 @@
 
 CMakeFiles/mv_camera_driver.dir/src/dev_mv_camera.cpp.o
  ../cfg/cpp/mv_camera/MVCameraConfig.h
- /home/arkin/ros_code/matrixvision_camera/mv_camera/src/dev_mv_camera.cpp
- /home/arkin/ros_code/matrixvision_camera/mv_camera/src/dev_mv_camera.h
- /home/arkin/ros_code/matrixvision_camera/mv_camera/src/features.h
- /home/arkin/ros_code/matrixvision_camera/mv_camera/src/formats.h
+ /home/arkin/ros_code/matrix_camera/mv_camera/src/dev_mv_camera.cpp
+ /home/arkin/ros_code/matrix_camera/mv_camera/src/dev_mv_camera.h
+ /home/arkin/ros_code/matrix_camera/mv_camera/src/features.h
+ /home/arkin/ros_code/matrix_camera/mv_camera/src/formats.h
  /home/arkin/ros_code/matrixvision_camera/mv_driver/mvIMPACT_acquire/DriverBase/Include/mvDriverBaseEnums.h
  /home/arkin/ros_code/matrixvision_camera/mv_driver/mvIMPACT_acquire/DriverBase/Include/mvVersionInfo.h
  /home/arkin/ros_code/matrixvision_camera/mv_driver/mvIMPACT_acquire/mvDeviceManager/Include/mvDeviceManager.h
@@ -79,10 +79,10 @@ CMakeFiles/mv_camera_driver.dir/src/dev_mv_camera.cpp.o
 CMakeFiles/mv_camera_driver.dir/src/driver_mv_camera.cpp.o
  ../cfg/cpp/mv_camera/MVCameraConfig.h
  ../srv_gen/cpp/include/mv_camera/PropertyMap.h
- /home/arkin/ros_code/matrixvision_camera/mv_camera/src/dev_mv_camera.h
- /home/arkin/ros_code/matrixvision_camera/mv_camera/src/driver_mv_camera.cpp
- /home/arkin/ros_code/matrixvision_camera/mv_camera/src/driver_mv_camera.h
- /home/arkin/ros_code/matrixvision_camera/mv_camera/src/features.h
+ /home/arkin/ros_code/matrix_camera/mv_camera/src/dev_mv_camera.h
+ /home/arkin/ros_code/matrix_camera/mv_camera/src/driver_mv_camera.cpp
+ /home/arkin/ros_code/matrix_camera/mv_camera/src/driver_mv_camera.h
+ /home/arkin/ros_code/matrix_camera/mv_camera/src/features.h
  /home/arkin/ros_code/matrixvision_camera/mv_driver/mvIMPACT_acquire/DriverBase/Include/mvDriverBaseEnums.h
  /home/arkin/ros_code/matrixvision_camera/mv_driver/mvIMPACT_acquire/DriverBase/Include/mvVersionInfo.h
  /home/arkin/ros_code/matrixvision_camera/mv_driver/mvIMPACT_acquire/mvDeviceManager/Include/mvDeviceManager.h
@@ -228,9 +228,9 @@ CMakeFiles/mv_camera_driver.dir/src/driver_mv_camera.cpp.o
  /opt/ros/indigo/include/tf2_ros/transform_listener.h
 CMakeFiles/mv_camera_driver.dir/src/features.cpp.o
  ../cfg/cpp/mv_camera/MVCameraConfig.h
- /home/arkin/ros_code/matrixvision_camera/mv_camera/src/features.cpp
- /home/arkin/ros_code/matrixvision_camera/mv_camera/src/features.h
- /home/arkin/ros_code/matrixvision_camera/mv_camera/src/formats.h
+ /home/arkin/ros_code/matrix_camera/mv_camera/src/features.cpp
+ /home/arkin/ros_code/matrix_camera/mv_camera/src/features.h
+ /home/arkin/ros_code/matrix_camera/mv_camera/src/formats.h
  /home/arkin/ros_code/matrixvision_camera/mv_driver/mvIMPACT_acquire/DriverBase/Include/mvDriverBaseEnums.h
  /home/arkin/ros_code/matrixvision_camera/mv_driver/mvIMPACT_acquire/DriverBase/Include/mvVersionInfo.h
  /home/arkin/ros_code/matrixvision_camera/mv_driver/mvIMPACT_acquire/mvDeviceManager/Include/mvDeviceManager.h
@@ -296,8 +296,8 @@ CMakeFiles/mv_camera_driver.dir/src/features.cpp.o
  /opt/ros/indigo/include/ros/wall_timer_options.h
  /opt/ros/indigo/include/rosconsole/macros_generated.h
 CMakeFiles/mv_camera_driver.dir/src/formats.cpp.o
- /home/arkin/ros_code/matrixvision_camera/mv_camera/src/formats.cpp
- /home/arkin/ros_code/matrixvision_camera/mv_camera/src/formats.h
+ /home/arkin/ros_code/matrix_camera/mv_camera/src/formats.cpp
+ /home/arkin/ros_code/matrix_camera/mv_camera/src/formats.h
  /home/arkin/ros_code/matrixvision_camera/mv_driver/mvIMPACT_acquire/DriverBase/Include/mvDriverBaseEnums.h
  /home/arkin/ros_code/matrixvision_camera/mv_driver/mvIMPACT_acquire/DriverBase/Include/mvVersionInfo.h
  /home/arkin/ros_code/matrixvision_camera/mv_driver/mvIMPACT_acquire/mvDeviceManager/Include/mvDeviceManager.h

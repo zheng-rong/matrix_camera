@@ -47,10 +47,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/arkin/ros_code/matrixvision_camera/mv_camera
+CMAKE_SOURCE_DIR = /home/arkin/ros_code/matrix_camera/mv_camera
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/arkin/ros_code/matrixvision_camera/mv_camera/build
+CMAKE_BINARY_DIR = /home/arkin/ros_code/matrix_camera/mv_camera/build
 
 #=============================================================================
 # Target rules for target CMakeFiles/ROSBUILD_gencfg_cpp.dir
@@ -59,15 +59,15 @@ CMAKE_BINARY_DIR = /home/arkin/ros_code/matrixvision_camera/mv_camera/build
 CMakeFiles/ROSBUILD_gencfg_cpp.dir/all:
 	$(MAKE) -f CMakeFiles/ROSBUILD_gencfg_cpp.dir/build.make CMakeFiles/ROSBUILD_gencfg_cpp.dir/depend
 	$(MAKE) -f CMakeFiles/ROSBUILD_gencfg_cpp.dir/build.make CMakeFiles/ROSBUILD_gencfg_cpp.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles  1
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles  1
 	@echo "Built target ROSBUILD_gencfg_cpp"
 .PHONY : CMakeFiles/ROSBUILD_gencfg_cpp.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/ROSBUILD_gencfg_cpp.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 1
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 1
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/ROSBUILD_gencfg_cpp.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/ROSBUILD_gencfg_cpp.dir/rule
 
 # Convenience name for target.
@@ -90,15 +90,15 @@ clean: CMakeFiles/ROSBUILD_gencfg_cpp.dir/clean
 CMakeFiles/ROSBUILD_genmsg_cpp.dir/all: CMakeFiles/rosbuild_premsgsrvgen.dir/all
 	$(MAKE) -f CMakeFiles/ROSBUILD_genmsg_cpp.dir/build.make CMakeFiles/ROSBUILD_genmsg_cpp.dir/depend
 	$(MAKE) -f CMakeFiles/ROSBUILD_genmsg_cpp.dir/build.make CMakeFiles/ROSBUILD_genmsg_cpp.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 
 	@echo "Built target ROSBUILD_genmsg_cpp"
 .PHONY : CMakeFiles/ROSBUILD_genmsg_cpp.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/ROSBUILD_genmsg_cpp.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/ROSBUILD_genmsg_cpp.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/ROSBUILD_genmsg_cpp.dir/rule
 
 # Convenience name for target.
@@ -121,15 +121,15 @@ clean: CMakeFiles/ROSBUILD_genmsg_cpp.dir/clean
 CMakeFiles/ROSBUILD_genmsg_lisp.dir/all: CMakeFiles/rosbuild_premsgsrvgen.dir/all
 	$(MAKE) -f CMakeFiles/ROSBUILD_genmsg_lisp.dir/build.make CMakeFiles/ROSBUILD_genmsg_lisp.dir/depend
 	$(MAKE) -f CMakeFiles/ROSBUILD_genmsg_lisp.dir/build.make CMakeFiles/ROSBUILD_genmsg_lisp.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 
 	@echo "Built target ROSBUILD_genmsg_lisp"
 .PHONY : CMakeFiles/ROSBUILD_genmsg_lisp.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/ROSBUILD_genmsg_lisp.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/ROSBUILD_genmsg_lisp.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/ROSBUILD_genmsg_lisp.dir/rule
 
 # Convenience name for target.
@@ -152,15 +152,15 @@ clean: CMakeFiles/ROSBUILD_genmsg_lisp.dir/clean
 CMakeFiles/ROSBUILD_gensrv_cpp.dir/all: CMakeFiles/rosbuild_premsgsrvgen.dir/all
 	$(MAKE) -f CMakeFiles/ROSBUILD_gensrv_cpp.dir/build.make CMakeFiles/ROSBUILD_gensrv_cpp.dir/depend
 	$(MAKE) -f CMakeFiles/ROSBUILD_gensrv_cpp.dir/build.make CMakeFiles/ROSBUILD_gensrv_cpp.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles  2
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles  2
 	@echo "Built target ROSBUILD_gensrv_cpp"
 .PHONY : CMakeFiles/ROSBUILD_gensrv_cpp.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/ROSBUILD_gensrv_cpp.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 1
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 1
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/ROSBUILD_gensrv_cpp.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/ROSBUILD_gensrv_cpp.dir/rule
 
 # Convenience name for target.
@@ -183,15 +183,15 @@ clean: CMakeFiles/ROSBUILD_gensrv_cpp.dir/clean
 CMakeFiles/ROSBUILD_gensrv_lisp.dir/all: CMakeFiles/rosbuild_premsgsrvgen.dir/all
 	$(MAKE) -f CMakeFiles/ROSBUILD_gensrv_lisp.dir/build.make CMakeFiles/ROSBUILD_gensrv_lisp.dir/depend
 	$(MAKE) -f CMakeFiles/ROSBUILD_gensrv_lisp.dir/build.make CMakeFiles/ROSBUILD_gensrv_lisp.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles  3
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles  3
 	@echo "Built target ROSBUILD_gensrv_lisp"
 .PHONY : CMakeFiles/ROSBUILD_gensrv_lisp.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/ROSBUILD_gensrv_lisp.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 1
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 1
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/ROSBUILD_gensrv_lisp.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/ROSBUILD_gensrv_lisp.dir/rule
 
 # Convenience name for target.
@@ -214,15 +214,15 @@ clean: CMakeFiles/ROSBUILD_gensrv_lisp.dir/clean
 CMakeFiles/ROSBUILD_gensrv_py.dir/all: CMakeFiles/rosbuild_premsgsrvgen.dir/all
 	$(MAKE) -f CMakeFiles/ROSBUILD_gensrv_py.dir/build.make CMakeFiles/ROSBUILD_gensrv_py.dir/depend
 	$(MAKE) -f CMakeFiles/ROSBUILD_gensrv_py.dir/build.make CMakeFiles/ROSBUILD_gensrv_py.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles  4 5
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles  4 5
 	@echo "Built target ROSBUILD_gensrv_py"
 .PHONY : CMakeFiles/ROSBUILD_gensrv_py.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/ROSBUILD_gensrv_py.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 2
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/ROSBUILD_gensrv_py.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/ROSBUILD_gensrv_py.dir/rule
 
 # Convenience name for target.
@@ -245,15 +245,15 @@ clean: CMakeFiles/ROSBUILD_gensrv_py.dir/clean
 CMakeFiles/_catkin_empty_exported_target.dir/all:
 	$(MAKE) -f CMakeFiles/_catkin_empty_exported_target.dir/build.make CMakeFiles/_catkin_empty_exported_target.dir/depend
 	$(MAKE) -f CMakeFiles/_catkin_empty_exported_target.dir/build.make CMakeFiles/_catkin_empty_exported_target.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 
 	@echo "Built target _catkin_empty_exported_target"
 .PHONY : CMakeFiles/_catkin_empty_exported_target.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/_catkin_empty_exported_target.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/_catkin_empty_exported_target.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/_catkin_empty_exported_target.dir/rule
 
 # Convenience name for target.
@@ -276,15 +276,15 @@ clean: CMakeFiles/_catkin_empty_exported_target.dir/clean
 CMakeFiles/clean_test_results.dir/all:
 	$(MAKE) -f CMakeFiles/clean_test_results.dir/build.make CMakeFiles/clean_test_results.dir/depend
 	$(MAKE) -f CMakeFiles/clean_test_results.dir/build.make CMakeFiles/clean_test_results.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 
 	@echo "Built target clean_test_results"
 .PHONY : CMakeFiles/clean_test_results.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/clean_test_results.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/clean_test_results.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/clean_test_results.dir/rule
 
 # Convenience name for target.
@@ -307,15 +307,15 @@ clean: CMakeFiles/clean_test_results.dir/clean
 CMakeFiles/doxygen.dir/all:
 	$(MAKE) -f CMakeFiles/doxygen.dir/build.make CMakeFiles/doxygen.dir/depend
 	$(MAKE) -f CMakeFiles/doxygen.dir/build.make CMakeFiles/doxygen.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 
 	@echo "Built target doxygen"
 .PHONY : CMakeFiles/doxygen.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/doxygen.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/doxygen.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/doxygen.dir/rule
 
 # Convenience name for target.
@@ -338,7 +338,7 @@ clean: CMakeFiles/doxygen.dir/clean
 CMakeFiles/modify_camera_settings.dir/all: CMakeFiles/rosbuild_precompile.dir/all
 	$(MAKE) -f CMakeFiles/modify_camera_settings.dir/build.make CMakeFiles/modify_camera_settings.dir/depend
 	$(MAKE) -f CMakeFiles/modify_camera_settings.dir/build.make CMakeFiles/modify_camera_settings.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles  8
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles  8
 	@echo "Built target modify_camera_settings"
 .PHONY : CMakeFiles/modify_camera_settings.dir/all
 
@@ -348,9 +348,9 @@ all: CMakeFiles/modify_camera_settings.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/modify_camera_settings.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 6
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 6
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/modify_camera_settings.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/modify_camera_settings.dir/rule
 
 # Convenience name for target.
@@ -373,7 +373,7 @@ clean: CMakeFiles/modify_camera_settings.dir/clean
 CMakeFiles/modify_mono_settings.dir/all: CMakeFiles/rosbuild_precompile.dir/all
 	$(MAKE) -f CMakeFiles/modify_mono_settings.dir/build.make CMakeFiles/modify_mono_settings.dir/depend
 	$(MAKE) -f CMakeFiles/modify_mono_settings.dir/build.make CMakeFiles/modify_mono_settings.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles  9
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles  9
 	@echo "Built target modify_mono_settings"
 .PHONY : CMakeFiles/modify_mono_settings.dir/all
 
@@ -383,9 +383,9 @@ all: CMakeFiles/modify_mono_settings.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/modify_mono_settings.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 6
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 6
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/modify_mono_settings.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/modify_mono_settings.dir/rule
 
 # Convenience name for target.
@@ -408,7 +408,7 @@ clean: CMakeFiles/modify_mono_settings.dir/clean
 CMakeFiles/mv_camera_driver.dir/all: CMakeFiles/rosbuild_precompile.dir/all
 	$(MAKE) -f CMakeFiles/mv_camera_driver.dir/build.make CMakeFiles/mv_camera_driver.dir/depend
 	$(MAKE) -f CMakeFiles/mv_camera_driver.dir/build.make CMakeFiles/mv_camera_driver.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles  10 11 12 13
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles  10 11 12 13
 	@echo "Built target mv_camera_driver"
 .PHONY : CMakeFiles/mv_camera_driver.dir/all
 
@@ -418,9 +418,9 @@ all: CMakeFiles/mv_camera_driver.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/mv_camera_driver.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 9
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 9
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/mv_camera_driver.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/mv_camera_driver.dir/rule
 
 # Convenience name for target.
@@ -443,7 +443,7 @@ clean: CMakeFiles/mv_camera_driver.dir/clean
 CMakeFiles/mv_camera_interface.dir/all: CMakeFiles/rosbuild_precompile.dir/all
 	$(MAKE) -f CMakeFiles/mv_camera_interface.dir/build.make CMakeFiles/mv_camera_interface.dir/depend
 	$(MAKE) -f CMakeFiles/mv_camera_interface.dir/build.make CMakeFiles/mv_camera_interface.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles  14
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles  14
 	@echo "Built target mv_camera_interface"
 .PHONY : CMakeFiles/mv_camera_interface.dir/all
 
@@ -453,9 +453,9 @@ all: CMakeFiles/mv_camera_interface.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/mv_camera_interface.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 6
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 6
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/mv_camera_interface.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/mv_camera_interface.dir/rule
 
 # Convenience name for target.
@@ -479,7 +479,7 @@ CMakeFiles/mv_camera_node.dir/all: CMakeFiles/rosbuild_precompile.dir/all
 CMakeFiles/mv_camera_node.dir/all: CMakeFiles/mv_camera_driver.dir/all
 	$(MAKE) -f CMakeFiles/mv_camera_node.dir/build.make CMakeFiles/mv_camera_node.dir/depend
 	$(MAKE) -f CMakeFiles/mv_camera_node.dir/build.make CMakeFiles/mv_camera_node.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles  15
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles  15
 	@echo "Built target mv_camera_node"
 .PHONY : CMakeFiles/mv_camera_node.dir/all
 
@@ -489,9 +489,9 @@ all: CMakeFiles/mv_camera_node.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/mv_camera_node.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 10
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 10
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/mv_camera_node.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/mv_camera_node.dir/rule
 
 # Convenience name for target.
@@ -515,7 +515,7 @@ CMakeFiles/mv_camera_nodelet.dir/all: CMakeFiles/rosbuild_precompile.dir/all
 CMakeFiles/mv_camera_nodelet.dir/all: CMakeFiles/mv_camera_driver.dir/all
 	$(MAKE) -f CMakeFiles/mv_camera_nodelet.dir/build.make CMakeFiles/mv_camera_nodelet.dir/depend
 	$(MAKE) -f CMakeFiles/mv_camera_nodelet.dir/build.make CMakeFiles/mv_camera_nodelet.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles  16
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles  16
 	@echo "Built target mv_camera_nodelet"
 .PHONY : CMakeFiles/mv_camera_nodelet.dir/all
 
@@ -525,9 +525,9 @@ all: CMakeFiles/mv_camera_nodelet.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/mv_camera_nodelet.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 10
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 10
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/mv_camera_nodelet.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/mv_camera_nodelet.dir/rule
 
 # Convenience name for target.
@@ -550,15 +550,15 @@ clean: CMakeFiles/mv_camera_nodelet.dir/clean
 CMakeFiles/rosbuild_clean-test-results.dir/all:
 	$(MAKE) -f CMakeFiles/rosbuild_clean-test-results.dir/build.make CMakeFiles/rosbuild_clean-test-results.dir/depend
 	$(MAKE) -f CMakeFiles/rosbuild_clean-test-results.dir/build.make CMakeFiles/rosbuild_clean-test-results.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 
 	@echo "Built target rosbuild_clean-test-results"
 .PHONY : CMakeFiles/rosbuild_clean-test-results.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/rosbuild_clean-test-results.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/rosbuild_clean-test-results.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/rosbuild_clean-test-results.dir/rule
 
 # Convenience name for target.
@@ -583,15 +583,15 @@ CMakeFiles/rosbuild_precompile.dir/all: CMakeFiles/rospack_gensrv.dir/all
 CMakeFiles/rosbuild_precompile.dir/all: CMakeFiles/rospack_genmsg_libexe.dir/all
 	$(MAKE) -f CMakeFiles/rosbuild_precompile.dir/build.make CMakeFiles/rosbuild_precompile.dir/depend
 	$(MAKE) -f CMakeFiles/rosbuild_precompile.dir/build.make CMakeFiles/rosbuild_precompile.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 
 	@echo "Built target rosbuild_precompile"
 .PHONY : CMakeFiles/rosbuild_precompile.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/rosbuild_precompile.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 5
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 5
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/rosbuild_precompile.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/rosbuild_precompile.dir/rule
 
 # Convenience name for target.
@@ -614,15 +614,15 @@ clean: CMakeFiles/rosbuild_precompile.dir/clean
 CMakeFiles/rosbuild_premsgsrvgen.dir/all:
 	$(MAKE) -f CMakeFiles/rosbuild_premsgsrvgen.dir/build.make CMakeFiles/rosbuild_premsgsrvgen.dir/depend
 	$(MAKE) -f CMakeFiles/rosbuild_premsgsrvgen.dir/build.make CMakeFiles/rosbuild_premsgsrvgen.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 
 	@echo "Built target rosbuild_premsgsrvgen"
 .PHONY : CMakeFiles/rosbuild_premsgsrvgen.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/rosbuild_premsgsrvgen.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/rosbuild_premsgsrvgen.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/rosbuild_premsgsrvgen.dir/rule
 
 # Convenience name for target.
@@ -645,7 +645,7 @@ clean: CMakeFiles/rosbuild_premsgsrvgen.dir/clean
 CMakeFiles/rospack_gencfg.dir/all: CMakeFiles/ROSBUILD_gencfg_cpp.dir/all
 	$(MAKE) -f CMakeFiles/rospack_gencfg.dir/build.make CMakeFiles/rospack_gencfg.dir/depend
 	$(MAKE) -f CMakeFiles/rospack_gencfg.dir/build.make CMakeFiles/rospack_gencfg.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 
 	@echo "Built target rospack_gencfg"
 .PHONY : CMakeFiles/rospack_gencfg.dir/all
 
@@ -655,9 +655,9 @@ all: CMakeFiles/rospack_gencfg.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/rospack_gencfg.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 1
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 1
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/rospack_gencfg.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/rospack_gencfg.dir/rule
 
 # Convenience name for target.
@@ -680,7 +680,7 @@ clean: CMakeFiles/rospack_gencfg.dir/clean
 CMakeFiles/rospack_gencfg_real.dir/all: CMakeFiles/rospack_gencfg.dir/all
 	$(MAKE) -f CMakeFiles/rospack_gencfg_real.dir/build.make CMakeFiles/rospack_gencfg_real.dir/depend
 	$(MAKE) -f CMakeFiles/rospack_gencfg_real.dir/build.make CMakeFiles/rospack_gencfg_real.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 
 	@echo "Built target rospack_gencfg_real"
 .PHONY : CMakeFiles/rospack_gencfg_real.dir/all
 
@@ -690,9 +690,9 @@ all: CMakeFiles/rospack_gencfg_real.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/rospack_gencfg_real.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 1
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 1
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/rospack_gencfg_real.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/rospack_gencfg_real.dir/rule
 
 # Convenience name for target.
@@ -712,19 +712,19 @@ clean: CMakeFiles/rospack_gencfg_real.dir/clean
 # Target rules for target CMakeFiles/rospack_genmsg.dir
 
 # All Build rule for target.
-CMakeFiles/rospack_genmsg.dir/all: CMakeFiles/ROSBUILD_genmsg_cpp.dir/all
 CMakeFiles/rospack_genmsg.dir/all: CMakeFiles/ROSBUILD_genmsg_lisp.dir/all
+CMakeFiles/rospack_genmsg.dir/all: CMakeFiles/ROSBUILD_genmsg_cpp.dir/all
 	$(MAKE) -f CMakeFiles/rospack_genmsg.dir/build.make CMakeFiles/rospack_genmsg.dir/depend
 	$(MAKE) -f CMakeFiles/rospack_genmsg.dir/build.make CMakeFiles/rospack_genmsg.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 
 	@echo "Built target rospack_genmsg"
 .PHONY : CMakeFiles/rospack_genmsg.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/rospack_genmsg.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/rospack_genmsg.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/rospack_genmsg.dir/rule
 
 # Convenience name for target.
@@ -747,7 +747,7 @@ clean: CMakeFiles/rospack_genmsg.dir/clean
 CMakeFiles/rospack_genmsg_all.dir/all: CMakeFiles/rospack_genmsg.dir/all
 	$(MAKE) -f CMakeFiles/rospack_genmsg_all.dir/build.make CMakeFiles/rospack_genmsg_all.dir/depend
 	$(MAKE) -f CMakeFiles/rospack_genmsg_all.dir/build.make CMakeFiles/rospack_genmsg_all.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 
 	@echo "Built target rospack_genmsg_all"
 .PHONY : CMakeFiles/rospack_genmsg_all.dir/all
 
@@ -757,9 +757,9 @@ all: CMakeFiles/rospack_genmsg_all.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/rospack_genmsg_all.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/rospack_genmsg_all.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/rospack_genmsg_all.dir/rule
 
 # Convenience name for target.
@@ -782,15 +782,15 @@ clean: CMakeFiles/rospack_genmsg_all.dir/clean
 CMakeFiles/rospack_genmsg_libexe.dir/all: CMakeFiles/rospack_gencfg.dir/all
 	$(MAKE) -f CMakeFiles/rospack_genmsg_libexe.dir/build.make CMakeFiles/rospack_genmsg_libexe.dir/depend
 	$(MAKE) -f CMakeFiles/rospack_genmsg_libexe.dir/build.make CMakeFiles/rospack_genmsg_libexe.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 
 	@echo "Built target rospack_genmsg_libexe"
 .PHONY : CMakeFiles/rospack_genmsg_libexe.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/rospack_genmsg_libexe.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 1
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 1
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/rospack_genmsg_libexe.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/rospack_genmsg_libexe.dir/rule
 
 # Convenience name for target.
@@ -815,15 +815,15 @@ CMakeFiles/rospack_gensrv.dir/all: CMakeFiles/ROSBUILD_gensrv_py.dir/all
 CMakeFiles/rospack_gensrv.dir/all: CMakeFiles/ROSBUILD_gensrv_lisp.dir/all
 	$(MAKE) -f CMakeFiles/rospack_gensrv.dir/build.make CMakeFiles/rospack_gensrv.dir/depend
 	$(MAKE) -f CMakeFiles/rospack_gensrv.dir/build.make CMakeFiles/rospack_gensrv.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 
 	@echo "Built target rospack_gensrv"
 .PHONY : CMakeFiles/rospack_gensrv.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/rospack_gensrv.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 4
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 4
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/rospack_gensrv.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/rospack_gensrv.dir/rule
 
 # Convenience name for target.
@@ -846,7 +846,7 @@ clean: CMakeFiles/rospack_gensrv.dir/clean
 CMakeFiles/rospack_gensrv_all.dir/all: CMakeFiles/rospack_gensrv.dir/all
 	$(MAKE) -f CMakeFiles/rospack_gensrv_all.dir/build.make CMakeFiles/rospack_gensrv_all.dir/depend
 	$(MAKE) -f CMakeFiles/rospack_gensrv_all.dir/build.make CMakeFiles/rospack_gensrv_all.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 
 	@echo "Built target rospack_gensrv_all"
 .PHONY : CMakeFiles/rospack_gensrv_all.dir/all
 
@@ -856,9 +856,9 @@ all: CMakeFiles/rospack_gensrv_all.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/rospack_gensrv_all.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 4
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 4
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/rospack_gensrv_all.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/rospack_gensrv_all.dir/rule
 
 # Convenience name for target.
@@ -881,15 +881,15 @@ clean: CMakeFiles/rospack_gensrv_all.dir/clean
 CMakeFiles/run_tests.dir/all:
 	$(MAKE) -f CMakeFiles/run_tests.dir/build.make CMakeFiles/run_tests.dir/depend
 	$(MAKE) -f CMakeFiles/run_tests.dir/build.make CMakeFiles/run_tests.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 
 	@echo "Built target run_tests"
 .PHONY : CMakeFiles/run_tests.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/run_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/run_tests.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/run_tests.dir/rule
 
 # Convenience name for target.
@@ -912,7 +912,7 @@ clean: CMakeFiles/run_tests.dir/clean
 CMakeFiles/stereo_time_reporter.dir/all: CMakeFiles/rosbuild_precompile.dir/all
 	$(MAKE) -f CMakeFiles/stereo_time_reporter.dir/build.make CMakeFiles/stereo_time_reporter.dir/depend
 	$(MAKE) -f CMakeFiles/stereo_time_reporter.dir/build.make CMakeFiles/stereo_time_reporter.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles  17
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles  17
 	@echo "Built target stereo_time_reporter"
 .PHONY : CMakeFiles/stereo_time_reporter.dir/all
 
@@ -922,9 +922,9 @@ all: CMakeFiles/stereo_time_reporter.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/stereo_time_reporter.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 6
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 6
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/stereo_time_reporter.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/stereo_time_reporter.dir/rule
 
 # Convenience name for target.
@@ -947,15 +947,15 @@ clean: CMakeFiles/stereo_time_reporter.dir/clean
 CMakeFiles/test.dir/all: CMakeFiles/tests.dir/all
 	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/depend
 	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 
 	@echo "Built target test"
 .PHONY : CMakeFiles/test.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/test.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/test.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/test.dir/rule
 
 # Convenience name for target.
@@ -978,15 +978,15 @@ clean: CMakeFiles/test.dir/clean
 CMakeFiles/test-future.dir/all:
 	$(MAKE) -f CMakeFiles/test-future.dir/build.make CMakeFiles/test-future.dir/depend
 	$(MAKE) -f CMakeFiles/test-future.dir/build.make CMakeFiles/test-future.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 
 	@echo "Built target test-future"
 .PHONY : CMakeFiles/test-future.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/test-future.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/test-future.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/test-future.dir/rule
 
 # Convenience name for target.
@@ -1009,15 +1009,15 @@ clean: CMakeFiles/test-future.dir/clean
 CMakeFiles/test-results.dir/all: CMakeFiles/test-results-run.dir/all
 	$(MAKE) -f CMakeFiles/test-results.dir/build.make CMakeFiles/test-results.dir/depend
 	$(MAKE) -f CMakeFiles/test-results.dir/build.make CMakeFiles/test-results.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 
 	@echo "Built target test-results"
 .PHONY : CMakeFiles/test-results.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/test-results.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/test-results.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/test-results.dir/rule
 
 # Convenience name for target.
@@ -1040,15 +1040,15 @@ clean: CMakeFiles/test-results.dir/clean
 CMakeFiles/test-results-run.dir/all:
 	$(MAKE) -f CMakeFiles/test-results-run.dir/build.make CMakeFiles/test-results-run.dir/depend
 	$(MAKE) -f CMakeFiles/test-results-run.dir/build.make CMakeFiles/test-results-run.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 
 	@echo "Built target test-results-run"
 .PHONY : CMakeFiles/test-results-run.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/test-results-run.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/test-results-run.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/test-results-run.dir/rule
 
 # Convenience name for target.
@@ -1071,15 +1071,15 @@ clean: CMakeFiles/test-results-run.dir/clean
 CMakeFiles/tests.dir/all: CMakeFiles/rosbuild_clean-test-results.dir/all
 	$(MAKE) -f CMakeFiles/tests.dir/build.make CMakeFiles/tests.dir/depend
 	$(MAKE) -f CMakeFiles/tests.dir/build.make CMakeFiles/tests.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 
 	@echo "Built target tests"
 .PHONY : CMakeFiles/tests.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/tests.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/tests.dir/rule
 
 # Convenience name for target.
@@ -1102,7 +1102,7 @@ clean: CMakeFiles/tests.dir/clean
 CMakeFiles/time_align_gpio_image.dir/all: CMakeFiles/rosbuild_precompile.dir/all
 	$(MAKE) -f CMakeFiles/time_align_gpio_image.dir/build.make CMakeFiles/time_align_gpio_image.dir/depend
 	$(MAKE) -f CMakeFiles/time_align_gpio_image.dir/build.make CMakeFiles/time_align_gpio_image.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles  18
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles  18
 	@echo "Built target time_align_gpio_image"
 .PHONY : CMakeFiles/time_align_gpio_image.dir/all
 
@@ -1112,9 +1112,9 @@ all: CMakeFiles/time_align_gpio_image.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/time_align_gpio_image.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 6
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 6
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/time_align_gpio_image.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : CMakeFiles/time_align_gpio_image.dir/rule
 
 # Convenience name for target.
@@ -1153,15 +1153,15 @@ gtest/preinstall:
 gtest/CMakeFiles/gtest.dir/all:
 	$(MAKE) -f gtest/CMakeFiles/gtest.dir/build.make gtest/CMakeFiles/gtest.dir/depend
 	$(MAKE) -f gtest/CMakeFiles/gtest.dir/build.make gtest/CMakeFiles/gtest.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles  6
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles  6
 	@echo "Built target gtest"
 .PHONY : gtest/CMakeFiles/gtest.dir/all
 
 # Build rule for subdir invocation for target.
 gtest/CMakeFiles/gtest.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 1
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 1
 	$(MAKE) -f CMakeFiles/Makefile2 gtest/CMakeFiles/gtest.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : gtest/CMakeFiles/gtest.dir/rule
 
 # Convenience name for target.
@@ -1184,15 +1184,15 @@ clean: gtest/CMakeFiles/gtest.dir/clean
 gtest/CMakeFiles/gtest_main.dir/all: gtest/CMakeFiles/gtest.dir/all
 	$(MAKE) -f gtest/CMakeFiles/gtest_main.dir/build.make gtest/CMakeFiles/gtest_main.dir/depend
 	$(MAKE) -f gtest/CMakeFiles/gtest_main.dir/build.make gtest/CMakeFiles/gtest_main.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles  7
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles  7
 	@echo "Built target gtest_main"
 .PHONY : gtest/CMakeFiles/gtest_main.dir/all
 
 # Build rule for subdir invocation for target.
 gtest/CMakeFiles/gtest_main.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 2
 	$(MAKE) -f CMakeFiles/Makefile2 gtest/CMakeFiles/gtest_main.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles 0
 .PHONY : gtest/CMakeFiles/gtest_main.dir/rule
 
 # Convenience name for target.

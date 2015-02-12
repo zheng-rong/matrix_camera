@@ -4,9 +4,9 @@
 CMakeFiles/mv_camera_node.dir/src/mv_camera_node.cpp.o
  ../cfg/cpp/mv_camera/MVCameraConfig.h
  ../srv_gen/cpp/include/mv_camera/PropertyMap.h
- /home/arkin/ros_code/matrixvision_camera/mv_camera/src/dev_mv_camera.h
- /home/arkin/ros_code/matrixvision_camera/mv_camera/src/driver_mv_camera.h
- /home/arkin/ros_code/matrixvision_camera/mv_camera/src/mv_camera_node.cpp
+ /home/arkin/ros_code/matrix_camera/mv_camera/src/dev_mv_camera.h
+ /home/arkin/ros_code/matrix_camera/mv_camera/src/driver_mv_camera.h
+ /home/arkin/ros_code/matrix_camera/mv_camera/src/mv_camera_node.cpp
  /home/arkin/ros_code/matrixvision_camera/mv_driver/mvIMPACT_acquire/DriverBase/Include/mvDriverBaseEnums.h
  /home/arkin/ros_code/matrixvision_camera/mv_driver/mvIMPACT_acquire/DriverBase/Include/mvVersionInfo.h
  /home/arkin/ros_code/matrixvision_camera/mv_driver/mvIMPACT_acquire/mvDeviceManager/Include/mvDeviceManager.h

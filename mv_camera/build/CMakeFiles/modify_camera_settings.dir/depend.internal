@@ -3,7 +3,7 @@
 
 CMakeFiles/modify_camera_settings.dir/src/modify_camera_settings.cpp.o
  ../srv_gen/cpp/include/mv_camera/PropertyMap.h
- /home/arkin/ros_code/matrixvision_camera/mv_camera/src/modify_camera_settings.cpp
+ /home/arkin/ros_code/matrix_camera/mv_camera/src/modify_camera_settings.cpp
  /home/arkin/ros_code/matrixvision_camera/mv_driver/mvIMPACT_acquire/DriverBase/Include/mvDriverBaseEnums.h
  /home/arkin/ros_code/matrixvision_camera/mv_driver/mvIMPACT_acquire/DriverBase/Include/mvVersionInfo.h
  /home/arkin/ros_code/matrixvision_camera/mv_driver/mvIMPACT_acquire/mvDeviceManager/Include/mvDeviceManager.h

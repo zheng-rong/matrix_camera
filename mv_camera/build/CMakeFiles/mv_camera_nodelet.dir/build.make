@@ -35,10 +35,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/arkin/ros_code/matrixvision_camera/mv_camera
+CMAKE_SOURCE_DIR = /home/arkin/ros_code/matrix_camera/mv_camera
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/arkin/ros_code/matrixvision_camera/mv_camera/build
+CMAKE_BINARY_DIR = /home/arkin/ros_code/matrix_camera/mv_camera/build
 
 # Include any dependencies generated for this target.
 include CMakeFiles/mv_camera_nodelet.dir/depend.make
@@ -114,18 +114,18 @@ CMakeFiles/mv_camera_nodelet.dir/src/mv_camera_nodelet.cpp.o: /opt/ros/indigo/sh
 CMakeFiles/mv_camera_nodelet.dir/src/mv_camera_nodelet.cpp.o: /opt/ros/indigo/share/tf2_py/package.xml
 CMakeFiles/mv_camera_nodelet.dir/src/mv_camera_nodelet.cpp.o: /opt/ros/indigo/share/tf2_ros/package.xml
 CMakeFiles/mv_camera_nodelet.dir/src/mv_camera_nodelet.cpp.o: /opt/ros/indigo/share/tf/package.xml
-CMakeFiles/mv_camera_nodelet.dir/src/mv_camera_nodelet.cpp.o: /home/arkin/ros_code/matrixvision_camera/mv_driver/manifest.xml
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles $(CMAKE_PROGRESS_1)
+CMakeFiles/mv_camera_nodelet.dir/src/mv_camera_nodelet.cpp.o: /home/arkin/ros_code/matrix_camera/mv_driver/manifest.xml
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles $(CMAKE_PROGRESS_1)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/mv_camera_nodelet.dir/src/mv_camera_nodelet.cpp.o"
-	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/mv_camera_nodelet.dir/src/mv_camera_nodelet.cpp.o -c /home/arkin/ros_code/matrixvision_camera/mv_camera/src/mv_camera_nodelet.cpp
+	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/mv_camera_nodelet.dir/src/mv_camera_nodelet.cpp.o -c /home/arkin/ros_code/matrix_camera/mv_camera/src/mv_camera_nodelet.cpp
 
 CMakeFiles/mv_camera_nodelet.dir/src/mv_camera_nodelet.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/mv_camera_nodelet.dir/src/mv_camera_nodelet.cpp.i"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E /home/arkin/ros_code/matrixvision_camera/mv_camera/src/mv_camera_nodelet.cpp > CMakeFiles/mv_camera_nodelet.dir/src/mv_camera_nodelet.cpp.i
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E /home/arkin/ros_code/matrix_camera/mv_camera/src/mv_camera_nodelet.cpp > CMakeFiles/mv_camera_nodelet.dir/src/mv_camera_nodelet.cpp.i
 
 CMakeFiles/mv_camera_nodelet.dir/src/mv_camera_nodelet.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/mv_camera_nodelet.dir/src/mv_camera_nodelet.cpp.s"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S /home/arkin/ros_code/matrixvision_camera/mv_camera/src/mv_camera_nodelet.cpp -o CMakeFiles/mv_camera_nodelet.dir/src/mv_camera_nodelet.cpp.s
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S /home/arkin/ros_code/matrix_camera/mv_camera/src/mv_camera_nodelet.cpp -o CMakeFiles/mv_camera_nodelet.dir/src/mv_camera_nodelet.cpp.s
 
 CMakeFiles/mv_camera_nodelet.dir/src/mv_camera_nodelet.cpp.o.requires:
 .PHONY : CMakeFiles/mv_camera_nodelet.dir/src/mv_camera_nodelet.cpp.o.requires
@@ -162,6 +162,6 @@ CMakeFiles/mv_camera_nodelet.dir/clean:
 .PHONY : CMakeFiles/mv_camera_nodelet.dir/clean
 
 CMakeFiles/mv_camera_nodelet.dir/depend:
-	cd /home/arkin/ros_code/matrixvision_camera/mv_camera/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/arkin/ros_code/matrixvision_camera/mv_camera /home/arkin/ros_code/matrixvision_camera/mv_camera /home/arkin/ros_code/matrixvision_camera/mv_camera/build /home/arkin/ros_code/matrixvision_camera/mv_camera/build /home/arkin/ros_code/matrixvision_camera/mv_camera/build/CMakeFiles/mv_camera_nodelet.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/arkin/ros_code/matrix_camera/mv_camera/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/arkin/ros_code/matrix_camera/mv_camera /home/arkin/ros_code/matrix_camera/mv_camera /home/arkin/ros_code/matrix_camera/mv_camera/build /home/arkin/ros_code/matrix_camera/mv_camera/build /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles/mv_camera_nodelet.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/mv_camera_nodelet.dir/depend
 
