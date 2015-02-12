@@ -1,0 +1,106 @@
+#include <iostream>
+#include <ros/ros.h>
+#include <image_transport/image_transport.h>
+
+using namespace std;
+
+bool left_image_ready = false;
+bool right_image_ready = false;
+bool gpio_time_ready = false;
+
+// temp buff used to store the msg
+sensor_msgs::Image left_image_msg;
+sensor_msgs::Image right_image_msg;
+quadrotor_msgs::GPIOTime gpio_time_msg;
+
+vector<sensor_msgs/Image> left_image_buff(0);
+vector<sensor_msgs/Image> right_image_buff(0);
+vector<quadrotor_msgs/GPIOTime> gpio_time_buff(0);
+
+unsigned int updated_image_num = 0;
+
+void gpio_time_callback(const quadrotor_msgs::GPIOTime::ConstPtr& time)
+{
+    // find out the valid gpio-time message with corresponding ref1&ref2 time
+    // the threshould is set to 1ms
+    if(fabs(time->ref1.stamp.toSec() - time->ref2.stamp.toSec())<1e-3)    
+    {
+        gpio_time_ready = true;
+        gpio_time_msg = *time;
+
+        if(left_image_ready)
+        {
+            //check the ROS time of gpio-time-msg and image-msg, difference should be very small
+            //the threshould is set to 25ms, so the max frame rate can be 40Hz
+            if(fabs(gpio_time_msg.header.stamp.toSec() - left_image_msg.header.stamp.toSec())<2.5e-2)
+            {
+                // then the time stamps of image can be changed to gpio-time
+                left_image_msg.header.stamp = gpio_time_msg.ref1.stamp;
+                // publish left image msg
+                // TBD
+                updated_image_num++;
+            }
+            else
+            {
+
+            }
+        }
+        
+        if(right_image_ready)
+        {
+            if(fabs(gpio_time_msg.header.stamp.toSec() - right_image_msg.header.stamp.toSec())<2.5e-2) 
+            {
+                right_image_msg.header.stamp = gpio_time_msg.ref2.stamp;                                               
+                //publish
+                //TBD
+                updated_image_num++;
+                
+            }
+            else
+            {
+
+            }
+  
+        }
+        
+        if(updated_image_num == 2)
+        {
+            gpio_time_ready = false;
+            updated_image_num = 0;
+        }
+    }
+}
+
+void left_image_callback(const sensor_msgs::ImageConstPtr& image)
+{
+    left_image_msg = *image;
+    left_image_ready = true;
+    
+    if(gpio_time_ready)
+    {
+        
+    }
+}
+
+void right_image_callback(const sensor_msgs::ImageConstPtr& image)
+{
+
+}
+
+
+
+int main(int argc, char **argv)
+{
+    ros::init(argc, argv, "time_align_gpio_image");
+    ros::NodeHandle nh;
+
+    image_transport::ImageTransport it(nh);
+    image_transport::Subscriber sub_left = it.subscribe("/stereo/left/image_raw", 1, left_image_callback);
+    image_transport::Subscriber sub_right = it.subscribe("/stereo/right/image_raw", 1, right_image_callback);
+
+    ros::Subscriber sub_time = nh.subscribe("/mavlink/gpio_time", 1, gpio_time_callback);
+
+    ros::spin();
+
+    return 0;
+}

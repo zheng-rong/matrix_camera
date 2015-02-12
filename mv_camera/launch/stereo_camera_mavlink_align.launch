@@ -1,0 +1,81 @@
+<launch>
+
+<arg name="vehicle" default="mini"/>
+    
+<group ns="$(arg vehicle)">
+
+    <group ns="stereo">
+
+        <!-- left camera -->
+
+        <node
+                pkg="mv_camera" 
+                type="mv_camera_node" 
+                name="left_camera_node" 
+                output="screen">
+        <param name="guid" value="MV_CAMERA_25000815" />
+        <param name="frame_rate" value="4" />
+        <param name="use_ros_time" value="true" />
+        <remap from="camera" to="left" />
+        </node>
+
+        <!-- right camera -->
+
+        <node   
+                pkg="mv_camera" 
+                type="mv_camera_node" 
+                name="right_camera_node" 
+                output="screen">
+        <param name="guid" value="MV_CAMERA_25000813" />
+        <param name="frame_rate" value="4" />
+        <param name="use_ros_time" value="true" />
+        <remap from="camera" to="right" />
+        </node>
+
+    </group>
+
+    <!-- configure the cameras -->
+
+    <node   
+            pkg="mv_camera" 
+            name="cam_configurer"
+            type="modify_camera_settings" 
+            output="screen"/>
+
+    
+    <!-- time_alignment -->
+
+    <node
+            pkg="mv_camera"
+            name="time_alignment"
+            type="time_align_gpio_image"
+            output="screen"/>
+
+
+</group>
+
+
+    <!-- cmu-mavlink talk with px4 -->
+
+    <node   pkg="cmu_mavlink"
+            name="mavlink"
+            type="cmu_mavlink"
+            output="screen">
+    <param name="serial/port" value="/dev/ttyUSB0"/>
+    <param name="serial/baud" value="230400"/>
+    <param name="frame_id/fixed" value="world"/>
+    <param name="frame_id/imu" value="/imu"/>
+    <param name="cmd_timeout_dt" value="0.2"/>
+    <param name="rate/cmd" value="100.0"/>
+    <remap from="~att" to="/$(arg vehicle)/imu"/>
+    <remap from="~pd_cmd" to="/$(arg vehicle)/pd_cmd"/>
+    <remap from="~voltage" to="/$(arg vehicle)/voltage"/>
+    <remap from="~rc_scaled" to="/$(arg vehicle)/rc_scaled"/>
+    </node>
+
+   
+
+
+
+
+</launch> 

@@ -1,0 +1,49 @@
+<launch>
+
+  <arg name="bagfile" default="cam_data"/>
+
+  <group ns="stereo">
+
+  <!-- left camera -->
+
+    <node pkg="mv_camera" type="mv_camera_node" name="left_camera_node" output="screen">
+      <param name="guid" value="MV_CAMERA_25000828" />
+      <param name="frame_rate" value="20" />
+      <param name="use_ros_time" value="true" />
+      <remap from="camera" to="left" />
+    </node>
+
+  <!-- right camera -->
+
+    <node pkg="mv_camera" type="mv_camera_node" name="right_camera_node" output="screen">
+      <param name="guid" value="MV_CAMERA_25000789" />
+      <param name="frame_rate" value="20" />
+      <param name="use_ros_time" value="true" />
+      <remap from="camera" to="right" />
+    </node>
+
+  </group>
+
+ <node pkg="cmu_mavlink"
+    name="mavlink"
+    type="cmu_mavlink"
+    output="screen">
+    <param name="serial/port" value="/dev/ttyUSB3"/>
+    <param name="serial/baud" value="230400"/>
+    <param name="frame_id/fixed" value="world"/>
+    <param name="frame_id/imu" value="imu"/>
+  </node>
+
+  <node name="cam_configurer" pkg="mv_camera" type="modify_camera_settings" output="screen"/>
+
+  <!--node pkg="rosbag"
+        type="record"
+        name="record"
+        output="screen"
+        args="-O $(find mv_camera)/data/$(arg bagfile)
+          /stereo/left/image_rect
+          /stereo/right/image_rect
+          /mavlink/imu"
+          /-->
+
+</launch>

@@ -1,0 +1,27 @@
+<launch>
+
+    <group ns="stereo">
+
+    <!-- left camera -->
+
+        <node pkg="mv_camera" type="mv_camera_node" name="left_camera_node" output="screen">
+            <param name="guid" value="MV_CAMERA_25000844" />
+            <!--param name="frame_rate" value="20" /-->
+            <param name="use_ros_time" value="true" />
+            <remap from="camera" to="left" />
+        </node>
+
+    <!-- right camera -->
+
+        <node pkg="mv_camera" type="mv_camera_node" name="right_camera_node" output="screen">
+            <param name="guid" value="MV_CAMERA_25000833" />
+            <!--param name="frame_rate" value="20" /-->
+            <param name="use_ros_time" value="true" />
+            <remap from="camera" to="right" />
+        </node>
+
+    </group>
+
+    <node name="cam_configurer" pkg="mv_camera" type="modify_camera_settings" output="screen"/>
+
+</launch>
