@@ -11,7 +11,7 @@ try:
     from catkin.environment_cache import generate_environment_script
 except ImportError:
     # search for catkin package in all workspaces and prepend to path
-    for workspace in "/home/arkin/ros_code/sandbox/stereo_visual_odometry/dry/install_isolated;/home/arkin/ros_code/sandbox/stereo_visual_odometry/wet/devel;/opt/ros/indigo".split(';'):
+    for workspace in "/home/arkin/ros_code/sandbox/stereo_visual_odometry/dry/install_isolated;/home/arkin/ros_code/sandbox/stereo_visual_odometry/wet/devel;/home/arkin/ros_code/sandbox/mono_visual_odometry/wet/devel;/opt/ros/indigo".split(';'):
         python_path = os.path.join(workspace, 'lib/python2.7/dist-packages')
         if os.path.isdir(os.path.join(python_path, 'catkin')):
             sys.path.insert(0, python_path)

@@ -254,7 +254,7 @@ bool MVCameraDriver::pollPropertyMapCallback(PropertyMap::Request &req, Property
   else if (cmd == PropertyMap::Request::GET_PROPERTY_INFO)
   { // identifier contains the string identifier of the property
 
-    ROS_INFO("sending property details");
+    //ROS_INFO("sending property details");
 
     // search for the requested property
 

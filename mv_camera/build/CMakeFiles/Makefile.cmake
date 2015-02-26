@@ -174,6 +174,7 @@ SET(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/rospack_gensrv_all.dir/DependInfo.cmake"
   "CMakeFiles/run_tests.dir/DependInfo.cmake"
   "CMakeFiles/stereo_time_reporter.dir/DependInfo.cmake"
+  "CMakeFiles/sync_mono_imu.dir/DependInfo.cmake"
   "CMakeFiles/test.dir/DependInfo.cmake"
   "CMakeFiles/test-future.dir/DependInfo.cmake"
   "CMakeFiles/test-results.dir/DependInfo.cmake"

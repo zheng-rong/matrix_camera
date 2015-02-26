@@ -54,6 +54,8 @@ bool queryService(ros::ServiceClient& client, string& identifier, string& value)
     }
 }
 
+
+
 int main(int argc, char **argv)
 {
 
@@ -77,6 +79,8 @@ int main(int argc, char **argv)
     /**********************************************************************
      *                           Modify Settings
      * *******************************************************************/
+
+
     // Set the Binning mode to reduce the image to one quarter
     identifier = "Camera/BinningMode";
     value = "BinningHV";

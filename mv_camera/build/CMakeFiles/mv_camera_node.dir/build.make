@@ -150,6 +150,7 @@ mv_camera_node_EXTERNAL_OBJECTS =
 ../bin/mv_camera_node: ../lib/libmv_camera_driver.so
 ../bin/mv_camera_node: ../lib/libmv_camera_driver.so
 ../bin/mv_camera_node: ../lib/libmv_camera_driver.so
+../bin/mv_camera_node: ../lib/libmv_camera_driver.so
 ../bin/mv_camera_node: CMakeFiles/mv_camera_node.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --red --bold "Linking CXX executable ../bin/mv_camera_node"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/mv_camera_node.dir/link.txt --verbose=$(VERBOSE)

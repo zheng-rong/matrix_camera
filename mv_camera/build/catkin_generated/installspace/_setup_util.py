@@ -259,7 +259,7 @@ if __name__ == '__main__':
             sys.exit(1)
 
         # environment at generation time
-        CMAKE_PREFIX_PATH = '/home/arkin/ros_code/sandbox/stereo_visual_odometry/dry/install_isolated;/home/arkin/ros_code/sandbox/stereo_visual_odometry/wet/devel;/opt/ros/indigo'.split(';')
+        CMAKE_PREFIX_PATH = '/home/arkin/ros_code/sandbox/stereo_visual_odometry/dry/install_isolated;/home/arkin/ros_code/sandbox/stereo_visual_odometry/wet/devel;/home/arkin/ros_code/sandbox/mono_visual_odometry/wet/devel;/opt/ros/indigo'.split(';')
         # prepend current workspace if not already part of CPP
         base_path = os.path.dirname(__file__)
         if base_path not in CMAKE_PREFIX_PATH:

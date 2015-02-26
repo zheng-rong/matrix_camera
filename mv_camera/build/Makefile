@@ -491,6 +491,19 @@ stereo_time_reporter/fast:
 .PHONY : stereo_time_reporter/fast
 
 #=============================================================================
+# Target rules for targets named sync_mono_imu
+
+# Build rule for target.
+sync_mono_imu: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 sync_mono_imu
+.PHONY : sync_mono_imu
+
+# fast build rule for target.
+sync_mono_imu/fast:
+	$(MAKE) -f CMakeFiles/sync_mono_imu.dir/build.make CMakeFiles/sync_mono_imu.dir/build
+.PHONY : sync_mono_imu/fast
+
+#=============================================================================
 # Target rules for targets named test
 
 # Build rule for target.
@@ -834,6 +847,30 @@ src/stereo_time_reporter.cpp.s:
 	$(MAKE) -f CMakeFiles/stereo_time_reporter.dir/build.make CMakeFiles/stereo_time_reporter.dir/src/stereo_time_reporter.cpp.s
 .PHONY : src/stereo_time_reporter.cpp.s
 
+src/sync_mono_imu.o: src/sync_mono_imu.cpp.o
+.PHONY : src/sync_mono_imu.o
+
+# target to build an object file
+src/sync_mono_imu.cpp.o:
+	$(MAKE) -f CMakeFiles/sync_mono_imu.dir/build.make CMakeFiles/sync_mono_imu.dir/src/sync_mono_imu.cpp.o
+.PHONY : src/sync_mono_imu.cpp.o
+
+src/sync_mono_imu.i: src/sync_mono_imu.cpp.i
+.PHONY : src/sync_mono_imu.i
+
+# target to preprocess a source file
+src/sync_mono_imu.cpp.i:
+	$(MAKE) -f CMakeFiles/sync_mono_imu.dir/build.make CMakeFiles/sync_mono_imu.dir/src/sync_mono_imu.cpp.i
+.PHONY : src/sync_mono_imu.cpp.i
+
+src/sync_mono_imu.s: src/sync_mono_imu.cpp.s
+.PHONY : src/sync_mono_imu.s
+
+# target to generate assembly for a file
+src/sync_mono_imu.cpp.s:
+	$(MAKE) -f CMakeFiles/sync_mono_imu.dir/build.make CMakeFiles/sync_mono_imu.dir/src/sync_mono_imu.cpp.s
+.PHONY : src/sync_mono_imu.cpp.s
+
 src/time_align_gpio_image.o: src/time_align_gpio_image.cpp.o
 .PHONY : src/time_align_gpio_image.o
 
@@ -897,6 +934,7 @@ help:
 	@echo "... rospack_gensrv_all"
 	@echo "... run_tests"
 	@echo "... stereo_time_reporter"
+	@echo "... sync_mono_imu"
 	@echo "... test"
 	@echo "... test-future"
 	@echo "... test-results"
@@ -935,6 +973,9 @@ help:
 	@echo "... src/stereo_time_reporter.o"
 	@echo "... src/stereo_time_reporter.i"
 	@echo "... src/stereo_time_reporter.s"
+	@echo "... src/sync_mono_imu.o"
+	@echo "... src/sync_mono_imu.i"
+	@echo "... src/sync_mono_imu.s"
 	@echo "... src/time_align_gpio_image.o"
 	@echo "... src/time_align_gpio_image.i"
 	@echo "... src/time_align_gpio_image.s"

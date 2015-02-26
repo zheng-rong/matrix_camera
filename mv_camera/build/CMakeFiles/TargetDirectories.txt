@@ -27,6 +27,7 @@
 /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles/rospack_gensrv_all.dir
 /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles/run_tests.dir
 /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles/stereo_time_reporter.dir
+/home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles/sync_mono_imu.dir
 /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles/test.dir
 /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles/test-future.dir
 /home/arkin/ros_code/matrix_camera/mv_camera/build/CMakeFiles/test-results.dir
