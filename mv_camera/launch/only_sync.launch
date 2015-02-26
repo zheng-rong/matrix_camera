@@ -1,0 +1,13 @@
+<launch>
+
+    <arg name="vehicle" default="mono"/>
+
+
+    <node
+            pkg="mv_camera"
+            name="syncer"
+            type="sync_mono_imu"
+            output="screen"
+            />
+
+</launch> 

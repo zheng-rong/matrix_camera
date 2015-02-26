@@ -1,0 +1,15 @@
+<launch>
+
+  <arg name="bagfile" default="mono_imu"/>
+
+
+ <node pkg="rosbag"
+        type="record"
+        name="record"
+        output="screen"
+        args="-O /home/arkin/dataset/mono_imu_cali/$(arg bagfile)
+          /mono/image_raw
+          /imu/imu"
+          />
+
+</launch>
