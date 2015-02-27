@@ -21,6 +21,8 @@
             pkg="mv_camera" 
             name="cam_configurer"
             type="modify_mono_settings" 
-            output="screen"/>
+            output="screen">
+	<param name="ext_trig" value="false"/>
+	</node>
 
 </launch> 
