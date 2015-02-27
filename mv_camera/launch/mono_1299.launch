@@ -22,8 +22,7 @@
             name="cam_configurer"
             type="modify_mono_settings" 
             output="screen">
-
-    <param name="ext_trig" value="false"/>
+    <param name="ext_trig" value="true"/>
     </node>
 
 </launch> 

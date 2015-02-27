@@ -3,7 +3,7 @@
   <arg name="vehicle" default="mega"/>
 
   <!--group ns="$(arg vehicle)"-->
-    <group ns="mono">
+    <group ns="$(arg vehicle)/sync/mono">
       <node pkg="image_proc" type="image_proc" name="rectifier" output="screen"/>
     </group>
   <!--/group-->
