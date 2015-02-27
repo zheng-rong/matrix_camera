@@ -1,4 +1,7 @@
 <launch>
+<arg name="vehicle" value="mega"/>
+
+<group ns="$(arg vehicle)">
 
     <!-- cmu-mavlink talk with px4 -->
 
@@ -18,7 +21,7 @@
     <remap from="~rc_scaled" to="/rc_scaled"/>
     </node>
 
-
+</group>
 
 
 

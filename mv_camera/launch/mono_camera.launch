@@ -1,8 +1,7 @@
 <launch>
 
-    <arg name="vehicle" default="mega"/>
+    <arg name="vehicle" default="mono"/>
 
-    <group ns="$(arg vehicle)">
 
         <node
                 pkg="mv_camera" 
@@ -11,22 +10,19 @@
                 output="screen">
         <param name="guid" value="MV_CAMERA_25001299" />
         <param name="frame_rate" value="20" />
-        <param name="pixel_clock" value="40."/>
         <param name="use_ros_time" value="true" />
         <remap from="camera" to="mono" />
         </node>
 
 
     <!-- configure the cameras -->
+    <!--
     <node   
             pkg="mv_camera" 
             name="cam_configurer"
-            type="modify_mono_settings" 
-            output="screen">
+            type="modify_camera_settings" 
+            output="screen"/>
+    -->
 
-    <param name="ext_trig" value="true"/>
-    </node>
-
-    </group>
 
 </launch> 

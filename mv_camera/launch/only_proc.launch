@@ -2,11 +2,13 @@
 
   <arg name="vehicle" default="mega"/>
 
-  <!--group ns="$(arg vehicle)"-->
+    <group ns="$(arg vehicle)">
     <group ns="sync/mono">
-      <node pkg="image_proc" type="image_proc" name="rectifier" output="screen"/>
+
+    <node pkg="image_proc" type="image_proc" name="rectifier" output="screen"/>
+    
     </group>
-  <!--/group-->
+    </group>
 
 
 </launch>

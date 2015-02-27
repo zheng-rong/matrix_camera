@@ -1,13 +1,16 @@
 <launch>
 
-    <arg name="vehicle" default="mono"/>
+    <arg name="vehicle" default="mega"/>
 
-
+    <group ns="$(arg vehicle)">
+    
     <node
             pkg="mv_camera"
             name="syncer"
             type="sync_mono_imu"
             output="screen"
             />
+    
+    </group>
 
 </launch> 

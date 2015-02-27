@@ -4,7 +4,7 @@ Reads and maintains the following parameters on the ROS server
 
 - \b "~guid" : \b [str] Serial number of camera, suffix CAMERA_MODEL_ + serial number (use first camera if null). e.g. BLUECOUGAR_GX002408 min: , default: , max: 
 - \b "~frame_id" : \b [str] ROS tf frame of reference, resolved with tf_prefix unless absolute. min: , default: camera, max: 
-- \b "~pixel_clock" : \b [double] Pixel clock of image sensor [MHz]. min: 6.0, default: 40.0, max: 57.6
+- \b "~pixel_clock" : \b [double] Pixel clock of image sensor [MHz]. min: 6.0, default: 27.0, max: 57.6
 - \b "~frame_rate" : \b [double] Camera speed (frames per second). min: 1.0, default: 15.0, max: 240.0
 - \b "~camera_info_url" : \b [str] Camera calibration URL for this video_mode (uncalibrated if null). min: , default: , max: 
 - \b "~binning_x" : \b [int] Number of pixels combined for horizontal binning, use device hints if zero. min: 0, default: 0, max: 4

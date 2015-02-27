@@ -40,10 +40,10 @@
     <param name="frame_id/imu" value="/imu"/>
     <param name="cmd_timeout_dt" value="0.2"/>
     <param name="rate/cmd" value="100.0"/>
-    <remap from="~att" to="/imu"/>
+    <!--remap from="~att" to="/imu"/>
     <remap from="~pd_cmd" to="/pd_cmd"/>
     <remap from="~voltage" to="/voltage"/>
-    <remap from="~rc_scaled" to="/rc_scaled"/>
+    <remap from="~rc_scaled" to="/rc_scaled"/-->
     </node>
 
 

@@ -1,0 +1,15 @@
+<launch>
+
+<arg name="bagfile" default="mega_bag"/>
+
+    <node
+        pkg="rosbag"
+        type="record"
+        name="recording"
+        output="screen"
+        args="-O /home/odroid/dataset/mega_mvo/$(arg bagfile)
+            /mega/mavlink/imu
+            /mega/sync/mono/image_rect"
+        />
+
+</launch>

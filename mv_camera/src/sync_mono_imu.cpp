@@ -97,10 +97,10 @@ int main(int argc, char **argv)
 
     std::string ns = nh.getNamespace();
 
-    std::string sub_time_topic_name = "/mavlink/gpio_time";
+    std::string sub_time_topic_name = ros::names::append(ns, "/mavlink/gpio_time");
     std::string sub_mono_image_topic_name = ros::names::append(ns, "mono/image_raw");
     std::string sub_mono_info_topic_name = ros::names::append(ns, "mono/camera_info");
-    std::string sub_imu_topic_name = "/mavlink/imu";
+    std::string sub_imu_topic_name = ros::names::append(ns, "/mavlink/imu");
     //std::string sub_imu_topic_name = ros::names::append(ns, "imu/imu");
 
 
