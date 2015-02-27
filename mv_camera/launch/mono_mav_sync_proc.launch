@@ -1,0 +1,76 @@
+<launch>
+
+<arg name="vehicle" default="mega"/>
+
+<group ns="$(arg vehicle)">
+
+    <!-- camera driver -->
+    <node
+            pkg="mv_camera" 
+            type="mv_camera_node" 
+            name="mono_camera_node" 
+            output="screen">
+    <param name="guid" value="MV_CAMERA_25001299" />
+    <param name="frame_rate" value="20" />
+    <param name="pixel_clock" value="40."/>
+    <param name="use_ros_time" value="true" />
+    <remap from="camera" to="mono" />
+    </node>
+
+
+    <!-- configure the cameras -->
+    <node   
+            pkg="mv_camera" 
+            name="cam_configurer"
+            type="modify_mono_settings" 
+            output="screen">
+    <param name="ext_trig" value="true"/>
+    </node>
+
+
+    <!-- cmu-mavlink talk with px4 -->
+    <node   
+    		pkg="cmu_mavlink"
+            name="mavlink"
+            type="cmu_mavlink"
+            output="screen">
+    <param name="serial/port" value="/dev/ttyUSB0"/>
+    <param name="serial/baud" value="230400"/>
+    <param name="frame_id/fixed" value="world"/>
+    <param name="frame_id/imu" value="/imu"/>
+    <param name="cmd_timeout_dt" value="0.2"/>
+    <param name="rate/cmd" value="100.0"/>
+    <remap from="~att" to="/imu"/>
+    <remap from="~pd_cmd" to="/pd_cmd"/>
+    <remap from="~voltage" to="/voltage"/>
+    <remap from="~rc_scaled" to="/rc_scaled"/>
+    </node>
+
+
+
+	<!-- sync mono_timestamp with gpio time -->
+   	<node
+            pkg="mv_camera"
+            name="syncer"
+            type="sync_mono_imu"
+            output="screen"
+            />
+
+	<group ns="sync/mono">
+
+	<!-- proc mono images -->
+  	<node 	
+  		pkg="image_proc" 
+	      type="image_proc" 
+	      name="rectifier" 
+	      output="screen"/>
+
+	</group>
+
+</group>
+
+
+
+
+
+</launch> 

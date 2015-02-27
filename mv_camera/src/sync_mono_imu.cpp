@@ -10,7 +10,7 @@
 
 using namespace std;
 
-#define IMAGE_FRAME_TIME_TOLERANCE 2.5e-2     //25ms
+#define IMAGE_FRAME_TIME_TOLERANCE 3.5e-2     //25ms
 
 bool align_msgs_ready = false;
 
