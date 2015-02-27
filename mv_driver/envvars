@@ -1,4 +1,4 @@
-export GENICAM_ROOT=/home/arkin/ros_code/matrixvision_camera/mv_driver/mvGenTL_Acquire_runtime/GenICam
-export GENICAM_ROOT_V2_3=/home/arkin/ros_code/matrixvision_camera/mv_driver/mvGenTL_Acquire_runtime/GenICam
-export GENICAM_GENTL64_PATH=/home/arkin/ros_code/matrixvision_camera/mv_driver/mvGenTL_Acquire_runtime/lib
-export GENICAM_LOG_CONFIG_V2_3=/home/arkin/ros_code/matrixvision_camera/mv_driver/mvGenTL_Acquire_runtime/GenICam/log/config-unix/DefaultLogging.properties
+export GENICAM_ROOT=/home/arkin/ros_code/matrix_camera/mv_driver/mvGenTL_Acquire_runtime/GenICam
+export GENICAM_ROOT_V2_3=/home/arkin/ros_code/matrix_camera/mv_driver/mvGenTL_Acquire_runtime/GenICam
+export GENICAM_GENTL64_PATH=/home/arkin/ros_code/matrix_camera/mv_driver/mvGenTL_Acquire_runtime/lib
+export GENICAM_LOG_CONFIG_V2_3=/home/arkin/ros_code/matrix_camera/mv_driver/mvGenTL_Acquire_runtime/GenICam/log/config-unix/DefaultLogging.properties

@@ -4,4 +4,5 @@ downloadandinstall:
 	./make.sh
 	
 clean:
-	rm -rf mvBlue* mvGen* download downloadandinstall
+	rm -rf mvBlue* mvGen* downloadandinstall
+
