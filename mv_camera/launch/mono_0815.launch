@@ -17,14 +17,12 @@
 
 
     <!-- configure the cameras -->
-    
     <node   
             pkg="mv_camera" 
             name="cam_configurer"
             type="modify_mono_settings" 
             output="screen">
-    <param name="ext_trig" value="false"/>
-    </node>
-
+	<param name="ext_trig" value="false"/>
+	</node>
 
 </launch> 

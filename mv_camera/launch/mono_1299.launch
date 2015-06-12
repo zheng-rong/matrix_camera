@@ -1,8 +1,7 @@
 <launch>
 
-    <arg name="vehicle" default="mega"/>
-
-    <group ns="$(arg vehicle)">
+    <arg name="vehicle" default="mono"/>
+    <!--param name="ext_trig" type="bool" value="true" /-->
 
         <node
                 pkg="mv_camera" 
@@ -23,10 +22,16 @@
             name="cam_configurer"
             type="modify_mono_settings" 
             output="screen">
-
-    <param name="ext_trig" value="true"/>
+    <param name="ext_trig" value="false"/>
+    <param name="binn_mode" value="BinningHV"/>
+    <param name="auto_expo" value="true"/>
+    <param name="expo_mode" value="Standard"/>      
+    <param name="expo_time" value="10000"/>
+    <param name="auto_gain" value="On"/>
+    <param name="hdr_mode" value="Off"/>
     </node>
 
-    </group>
+    <!--Overlapped 
+    BinningHV Off-->
 
 </launch> 
