@@ -19,10 +19,10 @@ MODULE_NAME=PowerDownTest
 #-------------------------------------------
 OOBJ =										\
 	Timer.o									\
-	saveimg.o
+	PGMFileFunctions.o
 
 #-------------------------------------------
-vpath %.cpp ..
+vpath %.cpp ..:$(ROOT_PATH)/../common
 
 #-------------------------------------------
 USR_INCLS =					\

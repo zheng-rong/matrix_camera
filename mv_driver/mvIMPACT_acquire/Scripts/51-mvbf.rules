@@ -1,4 +1,4 @@
-SUBSYSTEM!="usb|usb_device", GOTO="mvbf_rules_end"
+SUBSYSTEM!="usb|usb_device|plugdev", GOTO="mvbf_rules_end"
 ACTION!="add", GOTO="mvbf_rules_end"
 
 ATTRS{idVendor}=="164c", ATTRS{idProduct}=="0103", MODE="0664", GROUP="plugdev"

@@ -1,11 +1,4 @@
 #! /bin/make
-############################################
-# 03.08.2002 td
-# 23.03.2004 td (add OSTYPE)
-# 02.11.2005 td (add native)
-#===========================================
-#        == DO NOT CHANGE !!! ==
-############################################
 OSTYPE := $(shell uname | cut -d _ -f 1 | tr [:upper:] [:lower:])
 HOSTTYPE := $(shell uname -m)
 
@@ -20,12 +13,9 @@ else
 		ifeq ($(NATIVE),x86_64)
 			EXTRA_TARGET=x86
 		endif
-		ifeq ($(NATIVE),ppc64)
-			EXTRA_TARGET=ppc
-		endif
 	endif
 
-	SUBDIRS = $(NATIVE) ppc603e arm $(EXTRA_TARGET) xcell xcell64 armv7a
+	SUBDIRS = $(NATIVE) ppc603e arm $(EXTRA_TARGET) armv7a
 endif
 
 #-------------------------------------------
@@ -41,7 +31,7 @@ native:
 	$(MAKE) -C $(NATIVE) -f ../Makefile.inc all || exit $$?
 
 #-------------------------------------------
-ppc603e ppc x86 x86_64 arm cygwin xcell xcell64 armv7a:
+ppc603e ppc x86 x86_64 arm cygwin armv7a:
 	@mkdir -p $@
 	$(MAKE) -C $@ -f ../Makefile.inc all || exit $$?
 

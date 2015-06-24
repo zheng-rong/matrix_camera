@@ -2,7 +2,7 @@
 ##############################################
 # common make definitions
 # supported CPUs : x86(native and cross on x86_64),
-#   ppc (native and cross on ppc64),
+#   ppc (native),
 #   ppc603e(cross), arm(cross) and x86_64 (native)
 
 include $(SYSTEM_PATH)/version.inc
@@ -62,20 +62,16 @@ else
 	CPUTYPEDEF=
 	ifeq ($(TARGET),arm)
 	# alternative toolchains
- 		CROSS_USER_INC_PATH=$(GCCPATH)/arm-linux/include
- 		CROSS_USER_LIB_PATH=$(GCCPATH)/arm-linux/lib
-	#
-	# Gentoo toolchain
-#		CROSS_USER_INC_PATH=/usr/arm-any-linux-gnu/usr/include/
-#		CROSS_USER_LIB_PATH=/usr/arm-any-linux-gnu/usr/lib/
-
-		CROSS_USR_INC=-I$(CROSS_USER_INC_PATH)
-
-	# alternative toolchains
+		CROSS_USER_INC_PATH=$(GCCPATH)/arm-linux/include
+		CROSS_USER_LIB_PATH=$(GCCPATH)/arm-linux/lib
 		CROSS_PREFIX=arm-linux-
-
+		
 	# Gentoo toolchain
-#		CROSS_PREFIX=arm-unknown-linux-gnu-
+	# CROSS_USER_INC_PATH=/usr/arm-any-linux-gnu/usr/include/
+	# CROSS_USER_LIB_PATH=/usr/arm-any-linux-gnu/usr/lib/
+	# CROSS_PREFIX=arm-unknown-linux-gnu-
+	
+		CROSS_USR_INC=-I$(CROSS_USER_INC_PATH)
 	else
 		ifeq ($(TARGET),x86)
 			ifeq ($(HOSTTYPE),x86_64)
@@ -90,53 +86,56 @@ else
 				endif
 			endif
 		else
-			ifeq ($(TARGET),ppc)
-				ifeq ($(HOSTTYPE),ppc64)
-					# building for 32 bit on 64 bit system - use 64 bit compiler with -m32 option
-					CROSS_USER_INC_PATH=/usr/include
-					CROSS_USER_LIB_PATH=/usr/lib
-				endif
+			ifeq ($(TARGET),ppc_6xx)
+				CPUTYPEDEF=-D__ppc_6xx__
+				CROSS_USER_INC_PATH=$(GCCPATH)/usr/include
+				CROSS_USER_LIB_PATH=$(GCCPATH)/usr/lib
+				CROSS_PREFIX=ppc_6xx-
 			else
-				ifeq ($(TARGET),ppc_6xx)
-					CPUTYPEDEF=-D__ppc_6xx__
-					CROSS_USER_INC_PATH=$(GCCPATH)/usr/include
-					CROSS_USER_LIB_PATH=$(GCCPATH)/usr/lib
-					CROSS_PREFIX=ppc_6xx-
+				ifeq ($(TARGET),armv7a)
+					CROSS_PREFIX=arm-angstrom-linux-gnueabi-
+					CROSS_USER_INC_PATH=$(GCCPATH)/include
+					CROSS_USER_LIB_PATH=$(GCCPATH)/lib
+					CPUTYPEDEF=-D__armv7a__
+					CROSS_USER_FLAGS=-march=armv7-a -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp \
+						-Wl,-rpath-link,$(CROSS_USER_LIB_PATH),--hash-style=gnu \
+						-mthumb-interwork -mno-thumb -isystem$(CROSS_USER_INC_PATH) \
+						-fexpensive-optimizations -frename-registers -fomit-frame-pointer
 				else
-					ifeq ($(TARGET),xcell)
-						CPUTYPEDEF=-D__ppc_970__
-						CROSS_USER_INC_PATH=/usr/include
-						CROSS_USER_LIB_PATH=/usr/lib
+					ifeq ($(TARGET),oeppc)
+						CROSS_PREFIX=powerpc-angstrom-linux-
+						CROSS_USER_INC_PATH=/usr/local/angstrom/powerpc/powerpc-angstrom-linux/usr/include
+						CROSS_USER_LIB_PATH=/usr/local/angstrom/powerpc/powerpc-angstrom-linux/usr/lib
 					else
-						ifeq ($(TARGET),xcell64)
-							CPUTYPEDEF=-D__ppc_970__
-							CROSS_USER_INC_PATH=/usr/include
-							CROSS_USER_LIB_PATH=/usr/lib64
+						ifeq ($(TARGET),armv6zk)
+							CROSS_PREFIX=arm-bcm2708hardfp-linux-gnueabi-
+							CROSS_USER_INC_PATH=$(SDK_PATH)/arm-bcm2708hardfp-linux-gnueabi/sysroot/usr/include
+							CROSS_USER_LIB_PATH=$(SDK_PATH)/arm-bcm2708hardfp-linux-gnueabi/sysroot/usr/lib
+							CPUTYPEDEF=-D__armv6zk__
+							CROSS_USER_FLAGS=-mfpu=vfp -mfloat-abi=hard -march=armv6zk -mtune=arm1176jzf-s \
+							-Wl,-rpath-link,$(CROSS_USER_LIB_PATH),--hash-style=gnu \
+							-mthumb-interwork -isystem$(CROSS_USER_INC_PATH) \
+							-fexpensive-optimizations -frename-registers -fomit-frame-pointer
 						else
-							ifeq ($(TARGET),armv7a)
+							ifeq ($(TARGET),armv7ahf)
 								CROSS_PREFIX=arm-angstrom-linux-gnueabi-
-								CROSS_USER_INC_PATH=$(GCCPATH)/include
-								CROSS_USER_LIB_PATH=$(GCCPATH)/lib
-								CPUTYPEDEF=-D__armv7a__
-								CROSS_USER_FLAGS=-march=armv7-a -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp \
-									-Wl,-rpath-link,$(CROSS_USER_LIB_PATH),--hash-style=gnu \
-									-mthumb-interwork -mno-thumb -isystem$(CROSS_USER_INC_PATH) \
-									-fexpensive-optimizations -frename-registers -fomit-frame-pointer
+								#PKG_CONFIG_SYSROOT_DIR=/usr/local/oecore-i686/sysroots/armv7ahf-vfp-neon-angstrom-linux-gnueabi
+								CROSS_USER_INC_PATH=$(PKG_CONFIG_SYSROOT_DIR)/usr/include
+								CROSS_USER_LIB_PATH=$(PKG_CONFIG_SYSROOT_DIR)/usr/lib
+								#CPUTYPEDEF=-D__armv7ahf__
+								CROSS_USER_FLAGS=-march=armv7-a -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard -ftree-vectorize -ffast-math
 							else
-								ifeq ($(TARGET),oeppc)
-									CROSS_PREFIX=powerpc-angstrom-linux-
-									CROSS_USER_INC_PATH=/usr/local/angstrom/powerpc/powerpc-angstrom-linux/usr/include
-									CROSS_USER_LIB_PATH=/usr/local/angstrom/powerpc/powerpc-angstrom-linux/usr/lib
+								ifeq ($(TARGET),armhf)
+									CROSS_PREFIX=arm-linux-gnueabihf-
+									CROSS_USER_INC_PATH=/usr/arm-linux-gnueabihf/include
+									CROSS_USER_LIB_PATH=/usr/arm-linux-gnueabihf/lib
+									CROSS_USR_INC=-I$(CROSS_USER_INC_PATH)
 								else
-									ifeq ($(TARGET),armv6zk)
-										CROSS_PREFIX=arm-bcm2708hardfp-linux-gnueabi-
-										CROSS_USER_INC_PATH=$(SDK_PATH)/arm-bcm2708hardfp-linux-gnueabi/sysroot/usr/include
-										CROSS_USER_LIB_PATH=$(SDK_PATH)/arm-bcm2708hardfp-linux-gnueabi/sysroot/usr/lib
-										CPUTYPEDEF=-D__armv6zk__
-										CROSS_USER_FLAGS=-mfpu=vfp -mfloat-abi=hard -march=armv6zk -mtune=arm1176jzf-s \
-										-Wl,-rpath-link,$(CROSS_USER_LIB_PATH),--hash-style=gnu \
-										-mthumb-interwork -isystem$(CROSS_USER_INC_PATH) \
-										-fexpensive-optimizations -frename-registers -fomit-frame-pointer
+									ifeq ($(TARGET),armsf)
+										CROSS_PREFIX=arm-linux-gnueabi-
+										CROSS_USER_INC_PATH=/usr/arm-linux-gnueabi/include
+										CROSS_USER_LIB_PATH=/usr/arm-linux-gnueabi/lib
+										CROSS_USR_INC=-I$(CROSS_USER_INC_PATH)
 									endif
 								endif
 							endif
@@ -193,34 +192,33 @@ endif
 # compile level options
 # -fPIC	 needed for SO
 #===========================================
-COMP_OPTIONS=				\
-	-Wall -W -fPIC -D_REENTRANT -D_GNU_SOURCE	\
+COMP_OPTIONS=							\
+	-Wall -W -fPIC -D_REENTRANT -D_GNU_SOURCE		\
 	-D_MAJOR_VERSION=$(GPV_MAJOR)				\
 	-D_MINOR_VERSION=$(GPV_MINOR)				\
 	-D_BUILD_VERSION=$(GPV_BUILD)				\
 	-D_BUILD2_VERSION=$(GPV_BUILD2)				\
 
-
-ifeq ($(findstring xcell,$(TARGET)),xcell) # caches both xcell and xcell64
-	COMP_OPTIONS += -mcpu=970
-endif
-
 #---------------------------------------------
-CPPFLAGS_2=					\
-	$(OTYPEDEF)				\
-	$(CPUTYPEDEF)			\
-	$(INCFILES)				\
-	$(CROSS_USR_INC)		\
-	$(OPT)					\
-	$(COMP_OPTIONS)			\
-	$(CPPFLAGS_1)			\
+CPPFLAGS_2=			\
+	$(OTYPEDEF)		\
+	$(CPUTYPEDEF)		\
+	$(INCFILES)		\
+	$(CROSS_USR_INC)	\
+	$(OPT)			\
+	$(COMP_OPTIONS)		\
+	$(CPPFLAGS_1)		\
 	$(CROSS_USER_FLAGS)	\
 	$(USE_NDEBUG)
 
 #-------------------------------------------------
 #-------------------------------------------------
 ifneq ($(GCCPATH),)
-	CC_TOOL_PATH=$(GCCPATH)/bin/$(CROSS_PREFIX)
+	ifeq ($(TARGET),armv7ahf)
+		CC_TOOL_PATH=$(GCCPATH)/bin/arm-angstrom-linux-gnueabi/$(CROSS_PREFIX)
+	else
+		CC_TOOL_PATH=$(GCCPATH)/bin/$(CROSS_PREFIX)
+	endif
 	TOOLS= $(SPEED_PREFIX) $(CC_TOOL_PATH)
 endif
 
@@ -241,22 +239,22 @@ ifeq ($(HAVE_GCC),yes)
 	GCC_MAJOR          := $(shell echo $(GCC_VERSION) | cut -d'.' -f1)
 	GCC_MINOR          := $(shell echo $(GCC_VERSION) | cut -d'.' -f2)
 	# C++ symbol visibility support since version 4.0
-	CPP_SYM_VISIBILITY := $(shell if [ $(GCC_MAJOR) -ge 4 ] ; then 	\
+	CPP_SYM_VISIBILITY := $(shell if [ $(GCC_MAJOR) -ge 4 ] ; then 						\
 								echo "-fvisibility=hidden";			\
-							else									\
-								echo "";							\
+							else							\
+								echo "";					\
 							fi )
 	# OpenMP support since gcc version 4.2
-	OPENMP             := $(shell if [ $(GCC_MAJOR) -ge 4 ] && [ $(GCC_MINOR) -ge 2 ]; then	\
-								echo "-fopenmp";					\
-							else									\
-								echo "";							\
+	OPENMP             := $(shell if [ $(GCC_MAJOR) -ge 4 ] && [ $(GCC_MINOR) -ge 2 ]; then			\
+								echo "-fopenmp";				\
+							else							\
+								echo "";					\
 							fi )
 	# static libstdc++ link support since gcc version 4.5
-	CPP_STATIC_LINK    := $(shell if [ $(GCC_MAJOR) -ge 4 ] && [ $(GCC_MINOR) -ge 5 ]; then	\
-								echo "-static-libgcc -static-libstdc++";			\
-							else									\
-								echo "";							\
+	CPP_STATIC_LINK    := $(shell if [ $(GCC_MAJOR) -ge 4 ] && [ $(GCC_MINOR) -ge 5 ]; then			\
+								echo "-static-libgcc -static-libstdc++";	\
+							else							\
+								echo "";					\
 							fi )
 endif
 
@@ -294,7 +292,7 @@ $(TARGET_SYST)/%.o:	%.cpp
 #-------------------------------------------
 info:
 	@echo "==================================================="
-	@echo -n "PWD            =" ; pwd
+	@echo -n "PWD         =" ; pwd
 	@echo "OTSYPE         =" $(OSTYPE)
 	@echo "HOSTTYPE       =" $(HOSTTYPE)
 	@echo "TARGET         =" $(TARGET)
@@ -326,3 +324,4 @@ info:
 
 #-------------------------------------------------
 #------------------------------ vim: filetype=make
+

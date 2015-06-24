@@ -30,7 +30,7 @@ USR_LIBS =					\
 
 #-------------------------------------------
 CPPFLAGS_1 = 				\
-	-pedantic \
+	-pedantic -Wno-long-long \
 	-DMALLOC_TRACE
 
 #-------------------------------------------

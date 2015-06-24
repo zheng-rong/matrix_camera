@@ -34,9 +34,6 @@ else
 		ifeq (\$(NATIVE),x86_64)
 			EXTRA_TARGET=x86
 		endif
-		ifeq (\$(NATIVE),ppc64)
-			EXTRA_TARGET=ppc
-		endif
 	endif
 
 	SUBDIRS = \$(NATIVE) ppc603e ppc_6xx arm \$(EXTRA_TARGET)

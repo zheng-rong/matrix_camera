@@ -1457,10 +1457,9 @@ void wxPGPropertyWithChildren::ChildChanged( wxPGProperty* WXUNUSED(p) )
 
 wxString wxPGPropertyWithChildren::GetValueAsString( int /*argFlags*/ ) const
 {
-    // SB: Evaluating this value takes far too long and also we want the 
-    // description string of the property list to appear here instead of
-    //  a summery of the values inside the list
-    // original
+    // BAT: Evaluating this value takes far too long and also we want the
+    //      description string of the property list to appear here instead of
+    //      a summary of the values inside the list.
 #if 0
     wxCHECK_MSG( GetCount() > 0,
                  wxString(),
@@ -1511,7 +1510,7 @@ wxString wxPGPropertyWithChildren::GetValueAsString( int /*argFlags*/ ) const
 
     return text;
 #endif
-    // SB : Replacment
+    // BAT: Replacement
     return m_data;
 }
 
@@ -1519,8 +1518,7 @@ wxString wxPGPropertyWithChildren::GetValueAsString( int /*argFlags*/ ) const
 // Convert semicolon delimited tokens into child values.
 bool wxPGPropertyWithChildren::SetValueFromString( const wxString& text, int /*argFlags*/ )
 {
-    // SB: See comments under wxPGPropertyWithChildren::GetValueAsString
-    // original
+    // BAT: See comments under wxPGPropertyWithChildren::GetValueAsString
 #if 0
     if ( !GetCount() )
         return false;
@@ -1679,7 +1677,7 @@ bool wxPGPropertyWithChildren::SetValueFromString( const wxString& text, int /*a
 
     return changed;
 #endif
-    // replacement
+    // BAT: Replacement
     if( m_data != text )
     {
         m_data = text;
@@ -1739,8 +1737,9 @@ void wxParentPropertyClass::ChildChanged( wxPGProperty* WXUNUSED(p) )
 
 wxString wxParentPropertyClass::GetValueAsString( int argFlags ) const
 {
-    // see comments under wxPGPropertyWithChildren::GetValueAsString
-#if 0 // SB: Disabled as otherwise empty lists don't display the string assigned to them
+    // BAT: Disabled as otherwise empty lists don't display the string assigned to them.
+    //      Also see comments under wxPGPropertyWithChildren::GetValueAsString.
+#if 0 
     if ( !GetCount() )
         return wxEmptyString;
 #endif
@@ -1840,7 +1839,7 @@ void wxPGEditor::DrawValue( wxDC& dc, wxPGProperty* property, const wxRect& rect
 {
     if ( !(property->GetFlags() & wxPG_PROP_UNSPECIFIED) )
     {
-        // SB: Always use the assigned colour and reset it afterwards
+        // BAT: Always use the assigned colour and reset it afterwards
         wxColour oldColour(dc.GetTextForeground());
         dc.SetTextForeground( property->GetTextColour() );
         dc.DrawText( property->GetDisplayedString(), rect.x+wxPG_XBEFORETEXT, rect.y );
@@ -2136,7 +2135,7 @@ void wxPGTextCtrlEditor::DrawValue( wxDC& dc, wxPGProperty* property, const wxRe
             drawStr.Empty();
             drawStr.Append(wxT('*'),a);
         }*/
-        // SB: Always use the assigned colour and reset it afterwards
+        // BAT: Always use the assigned colour and reset it afterwards
         wxColour oldColour(dc.GetTextForeground());
         dc.SetTextForeground( property->GetTextColour() );
         dc.DrawText( drawStr, rect.x+wxPG_XBEFORETEXT, rect.y );
@@ -2164,14 +2163,13 @@ bool wxPGTextCtrlEditor::OnTextCtrlEvent( wxPropertyGrid* /*propGrid*/,
 
     if ( event.GetEventType() == wxEVT_COMMAND_TEXT_ENTER )
     {
-        // SB: Disabled as the function always seems to return false???
+        // BAT: Disabled as the function always seems to return false???
         // if ( propGrid->IsEditorsValueModified() )
         {
             return true;
         }
     }
-    // SB: Disabled as we are only interessted in the end of the edit
-    //  process
+    // BAT: Disabled as we are only interested in the end of the edit process
 #if 0
     else if ( event.GetEventType() == wxEVT_COMMAND_TEXT_UPDATED )
     {
@@ -4346,7 +4344,7 @@ void wxPropertyGrid::SetCaptionForegroundColour( const wxColour& col )
 
 void wxPropertyGrid::SetBackgroundColourIndex( wxPGProperty* p, int index, int /*flags*/ )
 {
-    // SB: Original
+    // BAT: Original
 #if 0
     unsigned char ind = index;
 
@@ -4361,7 +4359,7 @@ void wxPropertyGrid::SetBackgroundColourIndex( wxPGProperty* p, int index, int /
             SetBackgroundColourIndex(pwc->Item(i), index, flags & ~(wxPG_RECURSE_STARTS));
     }
 #endif
-    // replacement
+    // BAT: Replacement
     p->m_bgColIndex = static_cast<unsigned char>(index);
 }
 
@@ -4417,7 +4415,7 @@ void wxPropertyGrid::SetTextColourIndex( wxPGProperty* p, int index, int flags )
     unsigned char ind = index;
 
     p->m_fgColIndex = ind;
-    // SB: Make Value the same colour as the label
+    // BAT: Make Value the same colour as the label
     p->SetTextColour( ((wxPGColour*)m_arrFgCols.Item(index))->GetColour() );
 
     if ( p->GetParentingType() != 0 && (flags & wxPG_RECURSE) )
@@ -4466,7 +4464,7 @@ void wxPropertyGrid::SetPropertyTextColour( wxPGId id, const wxColour& colour )
 
     // Set indexes
     //SetTextColourIndex(p, CacheColour(colour), wxPG_RECURSE);
-    // SB: Do not set the color for childs!
+    // BAT: Do not set the color for childs!
     SetTextColourIndex(p, CacheColour(colour), 0);
 
     // If this was on a visible grid, then draw it.
@@ -4643,7 +4641,7 @@ void wxPGTypeOperationFailed( const wxPGProperty* p, const wxChar* typestr,
 void wxPropertyGrid::SetPropertyValue( wxPGId id, const wxPGValueType* typeclass, const wxPGVariant& value )
 {
     wxPG_PROP_ID_CALL_PROLOG()
-    // SB: Changes that should result in a more efficient update
+    // BAT: Changes that should result in a more efficient update
     if ( p && m_pState->SetPropertyValue(p,typeclass,value) )
     {
         if( m_arrVisible.Index(p) >= 0 )
@@ -4658,7 +4656,7 @@ void wxPropertyGrid::SetPropertyValue( wxPGId id, const wxPGValueType* typeclass
 void wxPropertyGrid::SetPropertyValue( wxPGId id, const wxChar* typestring, const wxPGVariant& value )
 {
     wxPG_PROP_ID_CALL_PROLOG()
-    // SB: Changes that should result in a more efficient update
+    // BAT: Changes that should result in a more efficient update
     if ( p && m_pState->SetPropertyValue(p,typestring,value) )
     {
         if( m_arrVisible.Index(p) >= 0 )
@@ -4673,7 +4671,7 @@ void wxPropertyGrid::SetPropertyValue( wxPGId id, const wxChar* typestring, cons
 void wxPropertyGrid::SetPropertyValueString( wxPGId id, const wxString& value )
 {
     wxPG_PROP_ID_CALL_PROLOG()
-    // SB: Changes that should result in a more efficient update
+    // BAT: Changes that should result in a more efficient update
     if ( m_pState->SetPropertyValueString(p,value) )
     {
         if( m_arrVisible.Index(p) >= 0 )
@@ -4688,7 +4686,7 @@ void wxPropertyGrid::SetPropertyValueString( wxPGId id, const wxString& value )
 void wxPropertyGrid::SetPropertyValueWxObjectPtr( wxPGId id, wxObject* value )
 {
     wxPG_PROP_ID_CALL_PROLOG()
-    // SB: Changes that should result in a more efficient update
+    // BAT: Changes that should result in a more efficient update
     if ( m_pState->SetPropertyValueWxObjectPtr(p,value) )
     {
         if( m_arrVisible.Index(p) >= 0 )
@@ -4704,7 +4702,7 @@ void wxPropertyGrid::SetPropertyValueWxObjectPtr( wxPGId id, wxObject* value )
 void wxPropertyGrid::SetPropertyValue( wxPGId id, wxVariant& value )
 {
     wxPG_PROP_ID_CALL_PROLOG()
-    // SB: Changes that should result in a more efficient update
+    // BAT: Changes that should result in a more efficient update
     if ( m_pState->SetPropertyValue(p,value) )
     {
         if( m_arrVisible.Index(p) >= 0 )
@@ -4780,7 +4778,7 @@ bool wxPropertyGrid::EnableProperty( wxPGId id, bool enable )
         // If active, Set active Editor.
         if ( p == m_selected )
         {
-            // SB: Original code caused problems when a property in edit mode became enabled.
+            // BAT: Original code caused problems when a property in edit mode became enabled.
             //     When this did happen, the properties editor could only be reactivated by selecting a different
             //     property and then switching back to this one.
             //DoSelectProperty( p, wxPG_SEL_FORCE );
@@ -4795,7 +4793,7 @@ bool wxPropertyGrid::EnableProperty( wxPGId id, bool enable )
         // If active, Disable as active Editor.
         if ( p == m_selected )
         {
-            // SB: Original code caused problems when a property in edit mode became disabled.
+            // BAT: Original code caused problems when a property in edit mode became disabled.
             //     When this did happen, the properties editor could only be reactivated by selecting a different
             //     property and then switching back to this one.
             //DoSelectProperty( p, wxPG_SEL_FORCE );
@@ -8740,10 +8738,8 @@ bool wxPropertyGrid::SetPropertyPriority( wxPGProperty* p, int priority )
 
     return true;
     */
-    // SB:
-    // Changed in a way that this update is only forced when the
-    // properties new priority actually differs from the current 
-    // priority to improve update speed
+    // BAT: Changed in a way that this update is only forced when the properties new
+    //      priority actually differs from the current priority to improve update speed
     if ( p )
     {
         int oldPriority = ( p->IsFlagSet(wxPG_PROP_HIDEABLE) ) ? wxPG_LOW : wxPG_HIGH;
@@ -9418,12 +9414,12 @@ bool wxPropertyGrid::HandleMouseMove( int x, unsigned int y, wxMouseEvent &event
             }
 
         #endif
-            // SB: added to achive the desired splitter behaviour
+            // BAT: Added to achive the desired splitter behaviour
             if( m_width != 0 )
             {
                 m_splitterxRatio = (double)m_splitterx / m_width;
             }
-            // SB: end
+            // BAT: End
             m_dragStatus = 2;
 
         }
@@ -9980,7 +9976,7 @@ void wxPropertyGrid::HandleKeyEvent(wxKeyEvent &event)
         wxPGProperty* p = m_selected;
 
         int selectDir = -2;
-        // SB: shortened...
+        // BAT: Shortened...
 #if 0
         if ( p->GetParentingType() != 0 &&
              !(p->m_flags & wxPG_PROP_DISABLED)
@@ -10012,7 +10008,7 @@ void wxPropertyGrid::HandleKeyEvent(wxKeyEvent &event)
             {
                 selectDir = 1;
             }
-            else if( keycode == WXK_RETURN ) // SB: branch added
+            else if( keycode == WXK_RETURN ) // BAT: branch added
             {
                 selectDir = -1;
             }
@@ -10022,15 +10018,14 @@ void wxPropertyGrid::HandleKeyEvent(wxKeyEvent &event)
             }
 
         }
-        // SB: was '>=', however we need '-1' for the handling of the 'ENTER' key now
+        // BAT: was '>=', however we need '-1' for the handling of the 'ENTER' key now.
         if ( selectDir > -1 )
         {
             p = GetNeighbourItem( p, true, selectDir );
             if ( p )
                 DoSelectProperty(p);
         }
-        // SB: branch added
-        else if( selectDir == -1 )
+        else if( selectDir == -1 ) // BAT: branch added
         {
             SelectProperty( wxPGId(p), true );
         }
@@ -10143,7 +10138,7 @@ void wxPropertyGrid::OnNavigationKey( wxNavigationKeyEvent& event )
     {
         if ( dir == 1 && (m_wndPrimary || m_wndSecondary) )
         {
-            // SB: removed as this is unused now
+            // BAT: removed as this is unused now
             // wxWindow* focused = wxWindow::FindFocus();
 
             wxWindow* wndToCheck = GetEditorControl();
@@ -10175,7 +10170,7 @@ void wxPropertyGrid::OnNavigationKey( wxNavigationKeyEvent& event )
                 wxLogDebug(wxT("Exp1"));
             }
             */
-// SB: Section disabled
+// BAT: Section disabled
 #if 0
             if ( focused != wndToCheck &&
                  wndToCheck )
@@ -12421,13 +12416,16 @@ bool wxPropertyGridState::EnableProperty( wxPGProperty* p, bool enable )
         if ( p->GetParentingType() == 0 )
             return true;
 
+        // BAT: Section disabled as we don't want a RO selector to block access
+        //      to the features selected.
+#if 0
         // Apply same to sub-properties as well
         wxPGPropertyWithChildren* pwc = (wxPGPropertyWithChildren*)p;
 
         size_t i;
         for ( i = 0; i < pwc->GetCount(); i++ )
             EnableProperty ( pwc->Item(i), enable );
-
+#endif
         return true;
     }
     return false;
@@ -12766,7 +12764,7 @@ int wxPropertyGridState::PrepareToAddItem( wxPGProperty* property,
 
     property->m_y = -1;
 
-#if 0 // SB: Disabled as we do NOT want childs to look like their parents
+#if 0 // BAT: Disabled as we do NOT want childs to look like their parents
     if ( scheduledParent )
     {
         // Use parent's colours.
@@ -13137,10 +13135,10 @@ void wxPropertyGridState::DoDelete( wxPGProperty* item )
     //    Py_DECREF( item->m_scriptObject );
 #endif
 
-    // SB: This is supposed to fix crashes that could occur when deleting the property the grid
-    // thinks it hovers on. This property is cached on the assumpttion that the same property
-    // will always live at the same screen position, which is not true if a tree is deleted
-    // and a new one is build...
+    // BAT: This is supposed to fix crashes that could occur when deleting the property the grid
+    //      thinks it hovers on. This property is cached on the assumpttion that the same property
+    //      will always live at the same screen position, which is not true if a tree is deleted
+    //      and a new one is build...
     m_pPropGrid->ClearOnHoverProp();
     // We can actually delete it now
     delete item;

@@ -57,25 +57,6 @@ ifeq ($(HOSTTYPE),x86_64)
 endif
 
 #-------------------------------------------
-ifeq ($(HOSTTYPE),ppc64)
-	ifeq ($(filter $(TARGET),ppc64 xcell64),)
-		COMP_OPTIONS_32BIT=-m32
-	else
-		COMP_OPTIONS_64BIT=-m64
-	endif
-else
-	ifeq ($(TARGET),xcell)
-		HAVE_GCC="no"
-		WRONG_HOST=yes
-	else
-		ifeq ($(TARGET),xcell64)
-			HAVE_GCC="no"
-			WRONG_HOST=yes
-		endif
-	endif
-endif
-
-#-------------------------------------------
 CPPFLAGS= 							\
 	$(CPPFLAGS_2)					\
 	$(COMP_OPTIONS_32BIT)			\
@@ -120,12 +101,12 @@ endif
 #-------------------------------------------
 ifeq ($(DO_DYNAMIC_LIBS),y)
 $(DYNAMIC_LIB).$(MAJOR):	ltarget $(TARGET) $(OBJECTS) $(LIBPATH)
-	$(CTYPE) -shared -Wl,-soname,$(DYNAMIC_LIB)$(RPATH_OPTIONS)										\
+	$(CTYPE) -shared -Wl,-soname,$(DYNAMIC_LIB)$(RPATH_OPTIONS)						\
 		-o $(LIBPATH)/$(DYNAMIC_LIB).$(VERSION) $(EXTERN_OBJ) $(OBJECTS) $(USE_LN_LIBS) -lc $(LDOPT)
-	@( cd $(LIBPATH);																	\
-		rm -f $(DYNAMIC_LIB) $(DYNAMIC_LIB).$(MAJOR) ;									\
-		ln -s $(DYNAMIC_LIB).$(VERSION) $(DYNAMIC_LIB).$(MAJOR) ;						\
-		ln -s $(DYNAMIC_LIB).$(MAJOR) $(DYNAMIC_LIB) ;									\
+	@( cd $(LIBPATH);											\
+		rm -f $(DYNAMIC_LIB) $(DYNAMIC_LIB).$(MAJOR) ;							\
+		ln -s $(DYNAMIC_LIB).$(VERSION) $(DYNAMIC_LIB).$(MAJOR) ;					\
+		ln -s $(DYNAMIC_LIB).$(MAJOR) $(DYNAMIC_LIB) ;							\
 	)
 
 strip: all
@@ -201,22 +182,22 @@ extract_ar:
 	@set -x
 	@mkdir -p tmp
 	@cd tmp
-	@for i in $(USER_AR_LIB_LIST);				\
-		do 										\
-			cd tmp;								\
+	@for i in $(USER_AR_LIB_LIST);				                \
+		do 								\
+			cd tmp;							\
 			if [ -f ../$$i ];					\
-			then								\
-				$(TOOLS)$(AR) x ../$$i;			\
-			else								\
+			then							\
+                                $(TOOLS)$(AR) x ../$$i;                         \
+			else							\
 				if [ -f $$i ];					\
-				then							\
-					$(TOOLS)$(AR) x $$i;		\
-				else							\
+				then						\
+					$(TOOLS)$(AR) x $$i;		        \
+				else						\
 					echo "**** no archive: '$$i' found!!";	\
-				fi;								\
-			fi;									\
+				fi;						\
+			fi;							\
 			rm -f *_*_.SYMDEF;					\
-			cd ..;								\
+			cd ..;							\
 		done;
 
 endif

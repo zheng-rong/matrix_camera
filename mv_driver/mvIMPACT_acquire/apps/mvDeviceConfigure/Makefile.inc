@@ -32,10 +32,11 @@ OOBJ = \
 	KernelDriverUpdate.o \
 	LogOutputConfigurationDlg.o \
 	LogOutputHandlerDlg.o \
-	PackageDescriptionParser.o
+	PackageDescriptionParser.o \
+	Timeout.o
 
 #-------------------------------------------
-vpath %.cpp ..:../linux
+vpath %.cpp ..:../linux:../../Common/FirmwareUpdate_mvHYPERION
 
 #-----------------------------------------
 LOC_LIB_PATH=$(WORK)/lib/$(TARGET)
@@ -51,7 +52,8 @@ WXCXXFLAGS=$(shell $(WX_CONF_TOOL) --cxxflags)
 USR_INCLS =				\
 
 #-------------------------------------------
-USR_LIBS =				\
+USR_LIBS = \
+	-lexpat \
 	$(ADD_LIBS)
 
 #-------------------------------------------
@@ -64,9 +66,18 @@ LOCALFLAGS=				\
 endif
 
 #-------------------------------------------
-CPPFLAGS_1 = 				\
-	-pedantic -Wno-long-long \
-	$(WXCXXFLAGS)			\
+# Local typedefs warning since gcc version 4.8 (wxWidgets code)
+GCC_MAJOR          := $(shell g++ -dumpversion 2>&1 | cut -d'.' -f1)
+GCC_MINOR          := $(shell g++ -dumpversion 2>&1 | cut -d'.' -f2)
+NOLOCALTYPEDEFWARNING := $(shell if [ $(GCC_MAJOR) -ge 4 ] && [ $(GCC_MINOR) -ge 8 ]; then		\
+						 echo "-Wno-unused-local-typedefs";			\
+						 else										\
+						 echo "";									\
+						 fi )
+#-------------------------------------------
+CPPFLAGS_1 = $(NOLOCALTYPEDEFWARNING) 	\
+	-pedantic -Wno-long-long            \
+	$(WXCXXFLAGS)			            \
 	$(LOCALFLAGS)
 
 #-------------------------------------------

@@ -1,2 +1,2 @@
--L/home/zheng/ros_code/matrix_camera/mv_driver/mvBlueFOX_runtime/lib/x86_64
--L/home/zheng/ros_code/matrix_camera/mv_driver/mvIMPACT_acquire/lib/x86_64
+-L/home/zheng/ros_code/test/matrix_camera/mv_driver/mvBlueFOX_runtime/lib/x86_64
+-L/home/zheng/ros_code/test/matrix_camera/mv_driver/mvIMPACT_acquire/lib/x86_64

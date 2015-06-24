@@ -107,7 +107,15 @@ ifneq ($(strip $(PKG_CONF_TOOL)),)
     GTK2LIBFLAGS=$(shell $(PKG_CONF_TOOL)  --libs gtk+-2.0)
     GTK2CXXFLAGS=$(shell $(PKG_CONF_TOOL)  --cflags gtk+-2.0)
 endif
-
+#-------------------------------------------
+# Local typedefs warning since gcc version 4.8 (wxWidgets code)
+GCC_MAJOR          := $(shell g++ -dumpversion 2>&1 | cut -d'.' -f1)
+GCC_MINOR          := $(shell g++ -dumpversion 2>&1 | cut -d'.' -f2)
+NOLOCALTYPEDEFWARNING := $(shell if [ $(GCC_MAJOR) -ge 4 ] && [ $(GCC_MINOR) -ge 8 ]; then		\
+						 echo "-Wno-unused-local-typedefs";			\
+						 else										\
+						 echo "";									\
+						 fi )
 #-----------------------------------------
 ifeq ($(DEST),ppc603e)
 CPPFLAGS_1=                              \
@@ -119,6 +127,7 @@ CPPFLAGS_1=                              \
 
 else
 CPPFLAGS_1= -I../../Include              \
+    $(NOLOCALTYPEDEFWARNING)             \
     $(WXCXXFLAGS)                        \
     $(GTK2CXXFLAGS)                      \
     -pedantic -Wno-long-long             \

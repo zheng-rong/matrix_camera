@@ -3,14 +3,14 @@
 //=============================================================================
 //================= Implementation DrawingCanvas ==============================
 //=============================================================================
-BEGIN_EVENT_TABLE(DrawingCanvas, wxScrolledWindow)
-  EVT_SIZE(DrawingCanvas::OnSize)
+BEGIN_EVENT_TABLE( DrawingCanvas, wxScrolledWindow )
+    EVT_SIZE( DrawingCanvas::OnSize )
 END_EVENT_TABLE()
 
 //-----------------------------------------------------------------------------
 DrawingCanvas::DrawingCanvas( wxWindow* parent, wxWindowID id /* = -1 */, const wxPoint& pos /* = wxDefaultPosition */,
-	const wxSize& size /* = wxDefaultSize */, long style /* = wxSUNKEN_BORDER */, const wxString& name /* = "DrawingCanvas" */, bool boActive /* = false */ )
-  : wxScrolledWindow( parent, id, pos, size, style, name ), m_boActive(boActive)
+                              const wxSize& size /* = wxDefaultSize */, long style /* = wxSUNKEN_BORDER */, const wxString& name /* = "DrawingCanvas" */, bool boActive /* = false */ )
+    : wxScrolledWindow( parent, id, pos, size, style, name ), m_boActive( boActive )
 //-----------------------------------------------------------------------------
 {
 
@@ -20,21 +20,21 @@ DrawingCanvas::DrawingCanvas( wxWindow* parent, wxWindowID id /* = -1 */, const 
 void DrawingCanvas::HandleSizeEvent( wxSizeEvent& e )
 //-----------------------------------------------------------------------------
 {
-	Refresh( true );
-	e.Skip();
+    Refresh( true );
+    e.Skip();
 }
 
 //-----------------------------------------------------------------------------
 void DrawingCanvas::OnSize( wxSizeEvent& e )
 //-----------------------------------------------------------------------------
 {
-	HandleSizeEvent( e );
+    HandleSizeEvent( e );
 }
 
 //-----------------------------------------------------------------------------
 void DrawingCanvas::SetActive( bool boActive )
 //-----------------------------------------------------------------------------
 {
-	m_boActive = boActive;
-	Refresh( !boActive );
+    m_boActive = boActive;
+    Refresh( !boActive );
 }

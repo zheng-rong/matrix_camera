@@ -2642,8 +2642,8 @@ void wxCustomPropertyClass::OnCustomPaint( wxDC& dc,
 bool wxCustomPropertyClass::SetValueFromInt ( long value, int )
 {
     size_t index = value;
-    // SB: Next 3 lines disabled as otherwise this editor does only work, when a list of string choices has
-    // 0-based gap free integer representations
+    // BAT: Next 3 lines disabled as otherwise this editor does only work, when a list of string choices has
+    //      0-based gap free integer representations
     //const wxArrayInt& values = m_choices.GetValues();
     //if ( values.GetCount() )
     //    index = values.Index(value);

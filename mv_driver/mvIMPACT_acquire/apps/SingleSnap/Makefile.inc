@@ -1,6 +1,6 @@
 #! /bin/make
 ##############################################
-# Makefile for the 'SingleSnap' sample
+# Makefile for the 'SingleSnap' sample,
 ##############################################
 #-------------------------------------------
 ifndef MVIMPACT_ACQUIRE_SOURCE_DIR
@@ -18,10 +18,10 @@ MODULE_NAME=SingleSnap
 
 #-------------------------------------------
 OOBJ =										\
-	saveimg.o
+	PGMFileFunctions.o
 
 #-------------------------------------------
-vpath %.cpp ..
+vpath %.cpp ..:$(ROOT_PATH)/../common
 
 #-------------------------------------------
 USR_INCLS =					\

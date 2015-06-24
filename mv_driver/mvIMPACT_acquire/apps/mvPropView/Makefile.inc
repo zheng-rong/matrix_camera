@@ -50,7 +50,9 @@ OOBJ =										\
 	spinctld.o								\
 	ValuesFromUserDlg.o						\
 	VectorScopeCanvas.o						\
+	WizardLensControl.o						\
 	WizardLUTControl.o						\
+	WizardQuickSetup.o						\
 	WizardSaturation.o
 
 #-------------------------------------------
@@ -84,10 +86,18 @@ ifneq ($(DEST),ppc603e)
 LOCALFLAGS=								\
 	-Wno-variadic-macros -Wno-strict-aliasing
 endif
-
 #-------------------------------------------
-CPPFLAGS_1 = 							\
-	-pedantic -Wno-long-long 			\
+# Local typedefs warning since gcc version 4.8 (wxWidgets code)
+GCC_MAJOR          := $(shell g++ -dumpversion 2>&1 | cut -d'.' -f1)
+GCC_MINOR          := $(shell g++ -dumpversion 2>&1 | cut -d'.' -f2)
+NOLOCALTYPEDEFWARNING := $(shell if [ $(GCC_MAJOR) -ge 4 ] && [ $(GCC_MINOR) -ge 8 ]; then		\
+						 echo "-Wno-unused-local-typedefs";			\
+						 else										\
+						 echo "";									\
+						 fi )
+#-------------------------------------------
+CPPFLAGS_1 = $(NOLOCALTYPEDEFWARNING) 	\
+	-pedantic -Wno-long-long            \
 	$(WXCXXFLAGS)						\
 	$(LOCALFLAGS)
 

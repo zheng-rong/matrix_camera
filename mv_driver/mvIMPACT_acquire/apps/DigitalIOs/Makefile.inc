@@ -32,7 +32,7 @@ USR_LIBS =					\
 
 #-------------------------------------------
 CPPFLAGS_1 = 				\
-	-pedantic
+	-pedantic -Wno-long-long
 
 #-------------------------------------------
 include $(ROOT_PATH)/Makefile.samp.inc

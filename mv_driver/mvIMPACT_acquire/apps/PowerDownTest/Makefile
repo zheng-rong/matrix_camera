@@ -1,11 +1,4 @@
 #! /bin/make
-############################################
-# 03.08.2002 td
-# 23.03.2004 td (add OSTYPE)
-# 02.11.2005 td (add native)
-#===========================================
-#        == DO NOT CHANGE !!! ==
-############################################
 OSTYPE := $(shell uname | cut -d _ -f 1 | tr [:upper:] [:lower:])
 HOSTTYPE := $(shell uname -m)
 
@@ -19,9 +12,6 @@ else
 		NATIVE=$(HOSTTYPE)
 		ifeq ($(NATIVE),x86_64)
 			EXTRA_TARGET=x86
-		endif
-		ifeq ($(NATIVE),ppc64)
-			EXTRA_TARGET=ppc
 		endif
 	endif
 

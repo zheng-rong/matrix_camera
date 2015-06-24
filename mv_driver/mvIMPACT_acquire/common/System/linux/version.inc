@@ -2,6 +2,6 @@
 # -*- sh -*-
 # global version information for all impact Makefiles
 GPV_MAJOR=2
-GPV_MINOR=5
-GPV_BUILD=4
-GPV_BUILD2=838
+GPV_MINOR=13
+GPV_BUILD=1
+GPV_BUILD2=1639

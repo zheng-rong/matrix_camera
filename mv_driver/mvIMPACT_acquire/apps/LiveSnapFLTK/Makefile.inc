@@ -30,9 +30,9 @@ USR_LIBS =					\
 		$(FLTK_LDFLAGS)		\
 
 #-------------------------------------------
-CPPFLAGS_1 = 				\
-	-pedantic				\
-	$(FLTK_CPPFLAGS)			\
+CPPFLAGS_1 =                                \
+	-pedantic -Wno-long-long                \
+	$(FLTK_CPPFLAGS)                        \
 
 #		-DMALLOC_TRACE
 

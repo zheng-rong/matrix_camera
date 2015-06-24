@@ -4,7 +4,7 @@
 // Author:      John Labenski
 // Created:     11/05/02
 // Copyright:   John Labenski, 2002
-// License:     wxWidgets 
+// License:     wxWidgets
 /////////////////////////////////////////////////////////////////////////////
 
 /*
@@ -12,7 +12,7 @@ wxSpinCtrlDbl is a double valued wxSpinCtrl using non native (wxWidgets) widgets
 
 It consists of a wxSpinButton and a wxTextCtrl on a wxControl and can be used
 as a drop in replacement for the wxSpinCtrl. It's been tested in GTK and MSW
-and should work with MAC, but you may need to fix the sizing perhaps. It 
+and should work with MAC, but you may need to fix the sizing perhaps. It
 will not work in Motif as there is no wxSpinButton in Motif.
 
 Differences to wxSpinCtrl:
@@ -39,7 +39,7 @@ Differences to wxSpinCtrl:
 #define __wxSPINCTRLDBL_H__
 
 #if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "spinctld.h"
+#pragma interface "spinctld.h"
 #endif
 
 #include "wx/slider.h"
@@ -78,52 +78,55 @@ class WXDLLIMPEXP_THINGS wxSpinCtrlDbl: public wxControl
         widSlider = 1
     };
 public:
-    wxSpinCtrlDbl() : wxControl() { Init(); }
-    
+    wxSpinCtrlDbl() : wxControl()
+    {
+        Init();
+    }
+
     // Native constructor - note &parent, this is to avoid ambiguity
-    wxSpinCtrlDbl( wxWindow &parent, wxWindowID id,
-                   const wxString &value = wxEmptyString,
+    wxSpinCtrlDbl( wxWindow& parent, wxWindowID id,
+                   const wxString& value = wxEmptyString,
                    const wxPoint& pos = wxDefaultPosition,
-                   const wxSize& size = wxSize(95,-1),
+                   const wxSize& size = wxSize( 95, -1 ),
                    long style = 0,
                    double min = 0.0, double max = 100.0,
                    double initial = 0.0,
                    double increment = 1.0, int digits = wxSPINCTRLDBL_AUTODIGITS,
-                   const wxString& name = wxT("wxSpinCtrlDbl"),
+                   const wxString& name = wxT( "wxSpinCtrlDbl" ),
                    bool boWithSlider = false )
     {
         Init();
-        Create(&parent, id, value, pos, size, style,
-               min, max, initial, increment, digits, wxT(""), name, boWithSlider);
+        Create( &parent, id, value, pos, size, style,
+                min, max, initial, increment, digits, wxT( "" ), name, boWithSlider );
     }
 
     // wxSpinCtrl compatibility, call SetIncrement(increment,digits) after
-    wxSpinCtrlDbl( wxWindow *parent, wxWindowID id = wxID_ANY,
-                   const wxString &value = wxEmptyString,
+    wxSpinCtrlDbl( wxWindow* parent, wxWindowID id = wxID_ANY,
+                   const wxString& value = wxEmptyString,
                    const wxPoint& pos = wxDefaultPosition,
-                   const wxSize& size = wxSize(95,-1),
+                   const wxSize& size = wxSize( 95, -1 ),
                    long style = 0,
                    int min = 0, int max = 100,
                    int initial = 0,
-                   const wxString& name = wxT("wxSpinCtrlDbl"),
+                   const wxString& name = wxT( "wxSpinCtrlDbl" ),
                    bool boWithSlider = false )
     {
         Init();
-        Create(parent, id, value, pos, size, style,
-               (double)min, (double)max, (double)initial, 1.0, wxSPINCTRLDBL_AUTODIGITS, wxT(""), name, boWithSlider);
+        Create( parent, id, value, pos, size, style,
+                ( double )min, ( double )max, ( double )initial, 1.0, wxSPINCTRLDBL_AUTODIGITS, wxT( "" ), name, boWithSlider );
     }
 
-    bool Create( wxWindow *parent,
+    bool Create( wxWindow* parent,
                  wxWindowID id = wxID_ANY,
-                 const wxString &value = wxEmptyString,
+                 const wxString& value = wxEmptyString,
                  const wxPoint& pos = wxDefaultPosition,
-                 const wxSize& size = wxSize(100,-1),
+                 const wxSize& size = wxSize( 100, -1 ),
                  long style = 0,
                  double min = 0.0, double max = 100.0,
                  double initial = 0.0,
                  double increment = 1.0, int digits = wxSPINCTRLDBL_AUTODIGITS,
-                 const wxString& format = wxT(""),
-                 const wxString& name = wxT("wxSpinCtrlDbl"),
+                 const wxString& format = wxT( "" ),
+                 const wxString& name = wxT( "wxSpinCtrlDbl" ),
                  bool boWithSlider = false );
 
     virtual ~wxSpinCtrlDbl();
@@ -139,86 +142,139 @@ public:
     };
 
     virtual void SetValue( double value );
-    void SetValue( double value, double min, double max, double increment, 
+    void SetValue( double value, double min, double max, double increment,
                    int digits = wxSPINCTRLDBL_AUTODIGITS, formatType fmt = lg_fmt )
-        { SetRange(min, max); SetIncrement(increment); SetDigits(digits, fmt); SetValue(value); }
+    {
+        SetRange( min, max );
+        SetIncrement( increment );
+        SetDigits( digits, fmt );
+        SetValue( value );
+    }
     // Set the value as text, if force then set text as is
-    virtual void SetValue( const wxString& text, bool force ); 
+    virtual void SetValue( const wxString& text, bool force );
     // Set the allowed range, if max_val < min_val then no range and all vals allowed.
     void SetRange( double min_val, double max_val );
     // Set the increment to use when the spin button or arrow keys pressed.
     void SetIncrement( double increment );
     void SetIncrement( double increment, int digits, formatType fmt = lg_fmt )
-        { SetIncrement(increment); SetDigits(digits, fmt); }
-    // Set the number of digits to show, use wxSPINCTRLDBL_AUTODIGITS 
+    {
+        SetIncrement( increment );
+        SetDigits( digits, fmt );
+    }
+    // Set the number of digits to show, use wxSPINCTRLDBL_AUTODIGITS
     //  or specify exact number to show i.e. %.[digits]lf
     //  The format type is used to create an appropriate format string.
-    void SetDigits( int digits = wxSPINCTRLDBL_AUTODIGITS, formatType fmt = lg_fmt ); 
+    void SetDigits( int digits = wxSPINCTRLDBL_AUTODIGITS, formatType fmt = lg_fmt );
     // Set the format string to use, ie. format="%.2lf" for .01
-    void SetFormat( const wxString& format ); 
-    // Set the control the the default value.
-    virtual void SetDefaultValue() { SetValue( m_default_value ); }
+    void SetFormat( const wxString& format );
+    // Set the control the default value.
+    virtual void SetDefaultValue()
+    {
+        SetValue( m_default_value );
+    }
     // Set the value of the default value, default is the inital value.
     void SetDefaultValue( double default_value );
     // Force the value to always be divisible by the increment, initially off.
     //   This uses the default_value as the basis, you'll get strange results
     //   for very large differences between the current value and default value
     //   when the increment is very small.
-    void SetSnapToTicks(bool forceTicks);
+    void SetSnapToTicks( bool forceTicks );
 
-    double   GetValue() const { return m_value; }
-    double   GetMin() const { return m_min; }
-    double   GetMax() const { return m_max; }
-    virtual bool HasRange() const { return m_max >= m_min; }
-    virtual bool InRange(double value) const { return !HasRange() || ((value >= m_min) && (value <= m_max)); }
-    double   GetIncrement() const { return m_increment; }
-    int      GetDigits() const { return m_digits; }
-    wxString GetFormat() const { return m_textFormat; }
-    double   GetDefaultValue() const { return m_default_value; }
-    bool     GetSnapToTicks() const { return m_snap_ticks; }
+    double   GetValue() const
+    {
+        return m_value;
+    }
+    double   GetMin() const
+    {
+        return m_min;
+    }
+    double   GetMax() const
+    {
+        return m_max;
+    }
+    virtual bool HasRange() const
+    {
+        return m_max >= m_min;
+    }
+    virtual bool InRange( double value ) const
+    {
+        return !HasRange() || ( ( value >= m_min ) && ( value <= m_max ) );
+    }
+    double   GetIncrement() const
+    {
+        return m_increment;
+    }
+    int      GetDigits() const
+    {
+        return m_digits;
+    }
+    wxString GetFormat() const
+    {
+        return m_textFormat;
+    }
+    double   GetDefaultValue() const
+    {
+        return m_default_value;
+    }
+    bool     GetSnapToTicks() const
+    {
+        return m_snap_ticks;
+    }
 
-    bool IsDefaultValue() const { return (m_value == m_default_value); }
+    bool IsDefaultValue() const
+    {
+        return ( m_value == m_default_value );
+    }
 
-    bool   SetFont( const wxFont &font );
+    bool   SetFont( const wxFont& font );
     wxFont GetFont() const;
 
-    virtual bool SetBackgroundColour(const wxColour& colour);
+    virtual bool SetBackgroundColour( const wxColour& colour );
     wxColour GetBackgroundColour() const;
 
-    virtual bool SetForegroundColour(const wxColour& colour);
+    virtual bool SetForegroundColour( const wxColour& colour );
     wxColour GetForegroundColour() const;
 
     // for setting... stuff
-    wxTextCtrl *GetTextCtrl() { return (wxTextCtrl*)m_textCtrl; }
+    wxTextCtrl* GetTextCtrl()
+    {
+        return ( wxTextCtrl* )m_textCtrl;
+    }
 
-    TMode GetMode( void ) const { return m_mode; }
-    void SetMode( TMode mode ) { m_mode = mode; }
+    TMode GetMode( void ) const
+    {
+        return m_mode;
+    }
+    void SetMode( TMode mode )
+    {
+        m_mode = mode;
+    }
 protected:
     void OnScrollThumbtrack( wxScrollEvent& e );
-    void OnSpinUp( wxSpinEvent &e );
-    void OnSpinDown( wxSpinEvent &e );
-    void OnTextEnter( wxCommandEvent &e );
-    void OnText( wxCommandEvent &e );
+    void OnSpinUp( wxSpinEvent& e );
+    void OnSpinDown( wxSpinEvent& e );
+    void OnTextEnter( wxCommandEvent& e );
+    void OnText( wxCommandEvent& e );
     // the textctrl is subclassed to get at pgup/dn and then sent here
-    void OnChar( wxKeyEvent &e );
+    void OnChar( wxKeyEvent& e );
 
-    virtual void SyncSpinToText(bool send_event = true, bool force_valid = true);
-    virtual void SyncSpinToTextFromKeyboardInput(const double inc = 0.);
+    virtual void SyncSpinToText( bool send_event = true, bool force_valid = true );
+    virtual void SyncSpinToTextFromKeyboardInput( const double inc = 0. );
 
     void DoSendEvent();                 // send an event based on current state
-    
-    virtual void DoSetSize(int x, int y, int width, int height,
-                           int sizeFlags = wxSIZE_AUTO);
+
+    virtual void DoSetSize( int x, int y, int width, int height,
+                            int sizeFlags = wxSIZE_AUTO );
 
     virtual wxSize DoGetBestSize() const;
-    virtual void DoSetToolTip( wxToolTip *tip );
+    virtual void DoSetToolTip( wxToolTip* tip );
 
     void OnFocus( wxFocusEvent& e );  // pass focus to textctrl, for wxTAB_TRAVERSAL
-    void OnKillFocus( wxFocusEvent &e );
+    void OnKillFocus( wxFocusEvent& e );
 
-    wxSpinButton          *m_spinButton;
-    wxSlider              *m_slider;
-    wxSpinCtrlDblTextCtrl *m_textCtrl;
+    wxSpinButton*          m_spinButton;
+    wxSlider*              m_slider;
+    wxSpinCtrlDblTextCtrl* m_textCtrl;
 
     double   m_min;           // min allowed value
     double   m_max;           // max allowed value
@@ -237,7 +293,7 @@ private:
 
     double GetStep();
     void Init();
-    DECLARE_DYNAMIC_CLASS(wxSpinCtrlDbl)
+    DECLARE_DYNAMIC_CLASS( wxSpinCtrlDbl )
     DECLARE_EVENT_TABLE()
 };
 

@@ -67,51 +67,32 @@ ifeq ($(HOSTTYPE),x86_64)
 endif
 
 #-------------------------------------------
-ifeq ($(HOSTTYPE),ppc64)
-	ifeq ($(filter $(TARGET),ppc64 xcell64),)
-		COMP_OPTIONS_32BIT=-m32
-	else
-		COMP_OPTIONS_64BIT=-m64
-	endif
-else
-	ifeq ($(TARGET),xcell)
-		HAVE_GCC="no"
-		WRONG_HOST=yes
-	else
-		ifeq ($(TARGET),xcell64)
-			HAVE_GCC="no"
-			WRONG_HOST=yes
-		endif
-	endif
-endif
-
-#-------------------------------------------
-CPPFLAGS=						\
-	$(CPPFLAGS_2)				\
+CPPFLAGS=				\
+	$(CPPFLAGS_2)			\
 	$(COMP_OPTIONS_32BIT)		\
 	$(COMP_OPTIONS_64BIT)		\
-    $(LOCDEFINES)				\
+    $(LOCDEFINES)			\
     $(INCLFILES)
 
 #-------------------------------------------
 ifeq ($(NO_MV_DEVICE_LIBS),)
 # You should only need to link to the device manager but you also need libmvPropHandling when cross-compiling
-MV_LIBS +=						\
+MV_LIBS +=				\
 	-L$(WORK)/lib/$(TARGET)		\
-	-lmvDeviceManager			\
+	-lmvDeviceManager		\
 	-lmvPropHandling
 endif
 
 #-------------------------------------------
-LDFLAGS = 						\
-	$(MV_LIBS)					\
-	$(LDOPT_1)					\
-	$(ARCH_LDFLAGS)				\
-	$(USR_LIBS)					\
+LDFLAGS = 				\
+	$(MV_LIBS)			\
+	$(LDOPT_1)			\
+	$(ARCH_LDFLAGS)			\
+	$(USR_LIBS)			\
 	$(COMP_OPTIONS_32BIT)		\
 	$(COMP_OPTIONS_64BIT)		\
-	-lm							\
-	-lpthread					\
+	-lm				\
+	-lpthread			\
 
 #-----------------------------------------
 # You may need to adapt this path for your system.
@@ -163,7 +144,7 @@ ifeq ($(strip $(FLTK_CONF_TOOL)),)
 		FLTK_CONF_PATH=$(GCCPATH)/bin/
 		FLTK_CONF_TOOL=$(shell if [ -x $(FLTK_CONF_PATH)fltk-config ]; then echo $(FLTK_CONF_PATH)fltk-config; fi )
 	else
-		ifeq ($(filter $(TARGET),i686 x86 xcell xcell64),$(TARGET))
+		ifeq ($(filter $(TARGET),i686 x86),$(TARGET))
 			FLTK_CONF_TOOL=$(shell which fltk-config 2>/dev/null)
 		else
 			ifeq ($(HOSTTYPE),x86_64)

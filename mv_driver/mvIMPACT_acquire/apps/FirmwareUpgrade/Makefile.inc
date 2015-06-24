@@ -17,10 +17,12 @@ endif
 MODULE_NAME=FirmwareUpgrade
 
 #-------------------------------------------
-OOBJ =										\
+OOBJ = \
+	Epcs.o \
+	Timeout.o
 
 #-------------------------------------------
-vpath %.cpp ..
+vpath %.cpp ..:../../Common/FirmwareUpdate_mvHYPERION
 
 #-------------------------------------------
 USR_INCLS =					\

@@ -13,16 +13,13 @@ else
         ifeq ($(NATIVE),x86_64)
             EXTRA_TARGET=x86
         endif
-        ifeq ($(NATIVE),ppc64)
-            EXTRA_TARGET=ppc
-        endif
     endif
 
-    SUBDIRS = $(NATIVE) ppc603e arm armv7a $(EXTRA_TARGET) xcell xcell64
+    SUBDIRS = $(NATIVE) ppc603e arm armv7a $(EXTRA_TARGET)
 endif
 
 #-------------------------------------------
-.PHONY: $(SUBDIRS) all build new info linfo native clean cygwin xcell xcell64 ppc_6xx
+.PHONY: $(SUBDIRS) all build new info linfo native clean cygwin ppc_6xx
 
 #-------------------------------------------
 all info linfo:
@@ -34,7 +31,7 @@ native:
 	$(MAKE) $(MAKEOPTS) -C $(NATIVE) -f ../Makefile.inc all || exit $$?
 
 #-------------------------------------------
-ppc x86 x86_64 cygwin xcell xcell64 arm armv7a:
+ppc x86 x86_64 cygwin arm armv7a:
 	@mkdir -p $@
 	$(MAKE) $(MAKEOPTS) -C $@ -f ../Makefile.inc all || exit $$?
 
