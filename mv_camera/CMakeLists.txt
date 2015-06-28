@@ -57,6 +57,9 @@ target_link_libraries(mv_camera_node mv_camera_driver)
 rosbuild_add_executable(sync_mono_imu src/sync_mono_imu.cpp)
 target_link_libraries(mv_camera_node mv_camera_driver)
 
+rosbuild_add_executable(sync_mono_imu_post src/sync_mono_imu_post.cpp)
+target_link_libraries(mv_camera_node mv_camera_driver)
+
 rosbuild_add_library(mv_camera_nodelet src/mv_camera_nodelet.cpp)
 target_link_libraries(mv_camera_nodelet mv_camera_driver)
 
