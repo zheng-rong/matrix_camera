@@ -27,13 +27,6 @@ std::vector<double>::iterator compare_iter;
 std::vector<double>::iterator max_iter;
 std::vector<double>::iterator min_iter;
 
-// unsigned int mono_counter = 0;
-// unsigned int imu_counter = 0;
-// unsigned int time_counter = 0;
-
-// unsigned int mono_counter_one = 0;
-// unsigned int imu_counter_one = 0;
-
 double time_error = 0;
 
 
@@ -74,16 +67,16 @@ int main(int argc, char **argv)
 
     std::string ns = nh.getNamespace();
 
-    std::string sub_time_topic_name = "/mavlink/gpio_time";
-    std::string sub_mono_image_topic_name = "mono/image_raw";
-    std::string sub_mono_info_topic_name = "mono/camera_info";
+    std::string sub_time_topic_name = ros::names::append(ns, "gpio_time");
+    std::string sub_mono_image_topic_name = ros::names::append(ns, "image_raw");
+    std::string sub_mono_info_topic_name = ros::names::append(ns, "camera_info");
     // std::string sub_imu_topic_name = "/mavlink/imu";
     //std::string sub_imu_topic_name = ros::names::append(ns, "imu/imu");
 
 
     std::string pub_time_topic_name = ros::names::append(ns, "sync/gpio_time");
-    std::string pub_mono_image_topic_name = ros::names::append(ns, "sync/mono/image_raw");
-    std::string pub_mono_info_topic_name = ros::names::append(ns, "sync/mono/camera_info");
+    std::string pub_mono_image_topic_name = ros::names::append(ns, "sync/image_raw");
+    std::string pub_mono_info_topic_name = ros::names::append(ns, "sync/camera_info");
     // std::string pub_imu_topic_name = ros::names::append(ns, "sync/imu");
 
     image_transport::ImageTransport it(nh);

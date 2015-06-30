@@ -85,7 +85,8 @@ int main(int argc, char **argv)
     ros::NodeHandle n;
 
     std::string ns = n.getNamespace();
-    std::string mono_cam_service  = ros::names::append(ns, "mono/poll_property_list");
+    std::string mono_cam_service  = ros::names::append(ns, "poll_property_list");
+    // ros::names::append(ns, "poll_property_list");
 
     ros::service::waitForService(mono_cam_service);
 
