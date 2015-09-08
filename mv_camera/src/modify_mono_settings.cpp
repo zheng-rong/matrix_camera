@@ -102,8 +102,7 @@ int main(int argc, char **argv)
     string key;
     
     bool param_trigger;
-    bool param_auto_expo;
-    
+    std::string param_auto_expo;
     std::string param_hdr_en;
     std::string param_binn_mode;
     std::string param_auto_gain;
@@ -114,145 +113,73 @@ int main(int argc, char **argv)
     ROS_WARN("Try to read configuration parameters...");
     //===============================================================
     ROS_WARN("Trigger Mode Setting:");
-
     if(!ros::param::search("ext_trig",key)) 
-    {
-        ROS_ERROR("Failed to search for the parameter 'ext_trig'"); return false;
-    }
-
+        {ROS_ERROR("Failed to search for the parameter 'ext_trig'"); return false;}
     if(!ros::param::has(key))
-    {
-        ROS_ERROR("Can not find the parameter %s", key.c_str());    return false;
-    }
-
+        {ROS_ERROR("Can not find the parameter %s", key.c_str());    return false;}
     if(!ros::param::get(key, param_trigger))
-    {
-        ROS_ERROR("Failed to get the parameter %s", key.c_str());   return false;
-    }
-        
+        {ROS_ERROR("Failed to get the parameter %s", key.c_str());   return false;}    
     std::cout << key << ":\t" << param_trigger << std::endl;
 
     //===============================================================
     ROS_WARN("Setting Binning Mode:");
-
     if(!ros::param::search("binn_mode",key)) 
-    {
-        ROS_ERROR("Failed to search for the parameter 'binn_mode'");  return false;
-    }
-
+        {ROS_ERROR("Failed to search for the parameter 'binn_mode'");  return false;}
     if(!ros::param::has(key))
-    {
-        ROS_ERROR("Can not find the parameter %s", key.c_str());    return false;
-    }
-
+        {ROS_ERROR("Can not find the parameter %s", key.c_str());    return false;}
     if(!ros::param::get(key, param_binn_mode))
-    {
-        ROS_ERROR("Failed to get the parameter %s", key.c_str());   return false;
-    }
-        
+        {ROS_ERROR("Failed to get the parameter %s", key.c_str());   return false;}  
     std::cout << key << ":\t" << param_binn_mode << std::endl;
 
     //===============================================================
     ROS_WARN("Setting Auto Expose:");
-
     if(!ros::param::search("auto_expo",key)) 
-    {
-        ROS_ERROR("Failed to search for the parameter 'auto_expo'");  return false;
-    }
-
+        {ROS_ERROR("Failed to search for the parameter 'auto_expo'");  return false;}
     if(!ros::param::has(key))
-    {
-        ROS_ERROR("Can not find the parameter %s", key.c_str());    return false;
-    }
-
+        {ROS_ERROR("Can not find the parameter %s", key.c_str());    return false;}
     if(!ros::param::get(key, param_auto_expo))
-    {
-        ROS_ERROR("Failed to get the parameter %s", key.c_str());   return false;
-    }
-        
+        {ROS_ERROR("Failed to get the parameter %s", key.c_str());   return false;} 
     std::cout << key << ":\t" << param_auto_expo << std::endl;
 
     //===============================================================
     ROS_WARN("Setting Expose Mode:");
-
     if(!ros::param::search("expo_mode",key)) 
-    {
-        ROS_ERROR("Failed to search for the parameter 'expo_mode'");  return false;
-    }
-
+        {ROS_ERROR("Failed to search for the parameter 'expo_mode'");  return false;}
     if(!ros::param::has(key))
-    {
-        ROS_ERROR("Can not find the parameter %s", key.c_str());    return false;
-    }
-
+        {ROS_ERROR("Can not find the parameter %s", key.c_str());    return false;}
     if(!ros::param::get(key, param_expo_mode))
-    {
-        ROS_ERROR("Failed to get the parameter %s", key.c_str());   return false;
-    }
-        
+        {ROS_ERROR("Failed to get the parameter %s", key.c_str());   return false;}  
     std::cout << key << ":\t" << param_expo_mode << std::endl;
 
     //===============================================================
     ROS_WARN("Setting Expose Time:");
-
     if(!ros::param::search("expo_time",key)) 
-    {
-        ROS_ERROR("Failed to search for the parameter 'expo_time'");  return false;
-    }
-
+        {ROS_ERROR("Failed to search for the parameter 'expo_time'");  return false;}
     if(!ros::param::has(key))
-    {
-        ROS_ERROR("Can not find the parameter %s", key.c_str());    return false;
-    }
-
+        {ROS_ERROR("Can not find the parameter %s", key.c_str());    return false;}
     if(!ros::param::get(key, param_expo_time))
-    {
-        ROS_ERROR("Failed to get the parameter %s", key.c_str());   return false;
-    }
-        
+        {ROS_ERROR("Failed to get the parameter %s", key.c_str());   return false; }  
     std::cout << key << ":\t" << param_expo_time << std::endl;
 
     //===============================================================
     ROS_WARN("Setting Gain Mode:");
-
     if(!ros::param::search("auto_gain",key)) 
-    {
-        ROS_ERROR("Failed to search for the parameter 'auto_gain'");  return false;
-    }
-
+        {ROS_ERROR("Failed to search for the parameter 'auto_gain'");  return false;}
     if(!ros::param::has(key))
-    {
-        ROS_ERROR("Can not find the parameter %s", key.c_str());    return false;
-    }
-
+        {ROS_ERROR("Can not find the parameter %s", key.c_str());    return false;}
     if(!ros::param::get(key, param_auto_gain))
-    {
-        ROS_ERROR("Failed to get the parameter %s", key.c_str());   return false;
-    }
-        
+        {ROS_ERROR("Failed to get the parameter %s", key.c_str());   return false; } 
     std::cout << key << ":\t" << param_auto_gain << std::endl;
 
     //===============================================================
     ROS_WARN("Setting HDR Mode:");
-
     if(!ros::param::search("hdr_mode",key)) 
-    {
-        ROS_ERROR("Failed to search for the parameter 'hdr_mode'");  return false;
-    }
-
+        {ROS_ERROR("Failed to search for the parameter 'hdr_mode'");  return false;}
     if(!ros::param::has(key))
-    {
-        ROS_ERROR("Can not find the parameter %s", key.c_str());    return false;
-    }
-
+        {ROS_ERROR("Can not find the parameter %s", key.c_str());    return false;}
     if(!ros::param::get(key, param_hdr_en))
-    {
-        ROS_ERROR("Failed to get the parameter %s", key.c_str());   return false;
-    }
-        
+        {ROS_ERROR("Failed to get the parameter %s", key.c_str());   return false;}   
     std::cout << key << ":\t" << param_hdr_en << std::endl;
-
-
 
     /**********************************************************************
      *                           Modify Settings
@@ -287,13 +214,13 @@ int main(int argc, char **argv)
 
     // Set the auto-control mode
     identifier = "Camera/AutoControlMode";
-    value = "DeviceSpecific";
+    value = "Standard"; //"DeviceSpecific";
     queryService(client_mono, identifier, value);
     callService(client_mono, identifier, value);
 
     // Set the auto-control speed
     identifier = "Camera/AutoControlParameters/ControllerSpeed";
-    value = "Fast";
+    value = "Fast"; //"Low";  //"Medium";   //"Fast";
     queryService(client_mono, identifier, value);
     callService(client_mono, identifier, value);
 
@@ -364,17 +291,7 @@ int main(int argc, char **argv)
         callService(client_mono, identifier, value);
     }
 
-
-    
-
-    
-    
-
-    
-
-
     return 0;
-
 }
 
 
