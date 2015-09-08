@@ -89,6 +89,7 @@ public:
 
     std::string                         currentProductString_;
     std::string                         currentDeviceSerial_;
+    unsigned int                        currentDeviceFWVersion_;
     std::map<std::string, DeviceSettings> currentSettings_;
     std::map<std::string, SupportedWizardFeatures> featuresSupported_;
 

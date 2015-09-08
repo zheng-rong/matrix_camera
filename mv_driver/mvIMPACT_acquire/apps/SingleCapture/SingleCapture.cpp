@@ -14,11 +14,11 @@ using namespace mvIMPACT::acquire::display;
 using namespace mvIMPACT::acquire;
 using namespace std;
 
-#ifdef linux
+#if defined(linux) || defined(__linux) || defined(__linux__)
 #   define NO_DISPLAY
 #else
 #   undef NO_DISPLAY
-#endif
+#endif // #if defined(linux) || defined(__linux) || defined(__linux__)
 
 //-----------------------------------------------------------------------------
 int main( int /*argc*/, char* /*argv*/[] )

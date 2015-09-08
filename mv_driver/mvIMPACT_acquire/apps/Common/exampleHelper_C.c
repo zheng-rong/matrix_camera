@@ -561,7 +561,7 @@ unsigned int isFeatureWriteable( HOBJ hObj )
     return isFeatureFlagSet( hObj, cfWriteAccess );
 }
 
-#ifdef linux
+#if defined(linux) || defined(__linux) || defined(__linux__)
 #   include <sys/types.h>
 #   include <unistd.h>
 //-----------------------------------------------------------------------------
@@ -580,4 +580,4 @@ unsigned waitForInput( int maxWait_sec, int fd )
 
     return select( fd + 1, &rfds, NULL, NULL, &tv );
 }
-#endif // #ifdef linux
+#endif // #if defined(linux) || defined(__linux) || defined(__linux__)

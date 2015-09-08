@@ -340,6 +340,7 @@ DeviceHandlerBlueDevice::DeviceHandlerBlueDevice( mvIMPACT::acquire::Device* pDe
     }
     else
     {
+        AppendPathSeparatorIfNeeded( firmwareUpdateFolder_ );
         firmwareUpdateFolderDevelopment_ = firmwareUpdateFolder_;
         if( product_ == pgBlueFOX3 )
         {
@@ -1655,13 +1656,13 @@ int DeviceHandlerBlueDevice::UploadFile( const wxString& fullPath, const wxStrin
 void DeviceHandlerBlueDevice::UserSetBackup( void )
 //-----------------------------------------------------------------------------
 {
-#ifdef __linux__
+#if defined(linux) || defined(__linux) || defined(__linux__)
     temporaryFolder_ = wxT( "/tmp" );
 #elif defined __WIN32__
     wxGetEnv( "TEMP", &temporaryFolder_ );
 #else
     temporaryFolder_ = firmwareUpdateFolder_;
-#endif
+#endif // #if defined(linux) || defined(__linux) || defined(__linux__)
     numberOfUserSets_ = 0;
     if( pDev_->isOpen() )
     {

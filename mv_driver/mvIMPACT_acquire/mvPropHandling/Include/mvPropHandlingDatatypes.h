@@ -17,19 +17,19 @@ namespace acquire
 #endif // #if defined(MVIMPACT_ACQUIRE_H_) || defined(DOXYGEN_CPP_DOCUMENTATION)
 
 #if !defined(DOXYGEN_SHOULD_SKIP_THIS) && !defined(WRAP_ANY)
-#   ifdef _WIN32
+#   if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 typedef __int64 int64_type;
 typedef unsigned __int64 uint64_type;
 #       ifdef __BORLANDC__ // is Borland compiler?
 #           pragma option push -b // force enums to the size of integer
 #       endif // __BORLANDC__
-#   elif defined(linux)
+#   elif defined(linux) || defined(__linux) || defined(__linux__)
 #       include <stdint.h>
 typedef int64_t int64_type;
 typedef uint64_t uint64_type;
 #   else
 #       error "unsupported target environment"
-#   endif // _WIN32
+#   endif // #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 #endif // DOXYGEN_SHOULD_SKIP_THIS && WRAP_ANY
 
 //=============================================================================

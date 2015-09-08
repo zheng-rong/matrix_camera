@@ -1210,33 +1210,33 @@ RawImageImportDlg::RawImageImportDlg( PropGridFrameBase* pParent, const wxString
     }
 
     const size_t pixelFormatCount = pixelFormatChoices.Count();
-    wxString initalPixelFormat = pixelFormatChoices[0];
+    wxString initialPixelFormat = pixelFormatChoices[0];
     for( size_t i = 1; i < pixelFormatCount; i++ )
     {
         if( formatNaked == pixelFormatChoices[i] )
         {
-            initalPixelFormat = pixelFormatChoices[i];
+            initialPixelFormat = pixelFormatChoices[i];
             break;
         }
     }
 
     const size_t bayerParityCount = bayerParityChoices.Count();
-    wxString initalbayerParity = bayerParityChoices[0];
+    wxString initialbayerParity = bayerParityChoices[0];
     for( size_t i = 1; i < bayerParityCount; i++ )
     {
         if( bayerPattern == bayerParityChoices[i] )
         {
-            initalbayerParity = bayerParityChoices[i];
+            initialbayerParity = bayerParityChoices[i];
             break;
         }
     }
 
     pGridSizer->Add( new wxStaticText( pPanel, wxID_ANY, wxT( " Pixel Format:" ) ) );
-    pCBPixelFormat_ = new wxComboBox( pPanel, wxID_ANY, initalPixelFormat, wxDefaultPosition, wxDefaultSize, pixelFormatChoices, wxCB_DROPDOWN | wxCB_READONLY );
+    pCBPixelFormat_ = new wxComboBox( pPanel, wxID_ANY, initialPixelFormat, wxDefaultPosition, wxDefaultSize, pixelFormatChoices, wxCB_DROPDOWN | wxCB_READONLY );
     pGridSizer->Add( pCBPixelFormat_, wxSizerFlags().Expand() );
 
     pGridSizer->Add( new wxStaticText( pPanel, wxID_ANY, wxT( " Bayer Parity:" ) ) );
-    pCBBayerParity_ = new wxComboBox( pPanel, wxID_ANY, initalbayerParity, wxDefaultPosition, wxDefaultSize, bayerParityChoices, wxCB_DROPDOWN | wxCB_READONLY );
+    pCBBayerParity_ = new wxComboBox( pPanel, wxID_ANY, initialbayerParity, wxDefaultPosition, wxDefaultSize, bayerParityChoices, wxCB_DROPDOWN | wxCB_READONLY );
     pGridSizer->Add( pCBBayerParity_, wxSizerFlags().Expand() );
 
     long w;

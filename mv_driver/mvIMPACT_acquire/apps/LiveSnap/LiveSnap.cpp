@@ -1,6 +1,6 @@
-#ifndef linux
-#   error Sample only for linux side!!
-#endif  // linux
+#if !defined(linux) && !defined(__linux) && !defined(__linux__)
+#   error Sorry! Linux only code!
+#endif  // // #if !defined(linux) && !defined(__linux) && !defined(__linux__)
 #include <stdio.h>
 #include <unistd.h>
 #include <iostream>

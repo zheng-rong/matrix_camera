@@ -224,7 +224,7 @@ enum TAutoControlMode
     /**
      *  \b mvBlueFOX \b specific:
      *  For mvBlueFOX devices of type 202b and 202d the operation in device specific AEC/AGC
-     *  mode is limited in (non continous)triggered-modes. AEC/AGC only works while the trigger
+     *  mode is limited in (non continuous)triggered-modes. AEC/AGC only works while the trigger
      *  signal is active. As these sensor types only support the trigger modes
      *  <b>mvIMPACT::acquire::ctmOnHighLevel</b> and <b>mvIMPACT::acquire::ctmOnLowLevel</b>
      *  'active' means that the required signal level for that mode(either \a high or \a low)
@@ -1421,7 +1421,7 @@ enum TColorTwistInputCorrectionMatrixMode
     cticmmBlueCOUGAR_Xx04eC_WPPLS   = 0x00020000 | 0x10000000 | 0x0014,
     /// \brief The WPPLS correction matrix for mvBlueCOUGAR-XDx04dC devices.
     cticmmBlueCOUGAR_XDx04dC_WPPLS = 0x00030000 | 0x10000000 | 0x0017,
-    /// \brief The WPPLS correction matrix for mvBlueCOUGAR-XDx212C devices.
+    /// \brief The WPPLS correction matrix for mvBlueCOUGAR-XDx212aC and mvBlueCOUGAR-XDx212C devices.
     cticmmBlueCOUGAR_XDx212C_WPPLS = 0x00030000 | 0x10000000 | 0x0018,
     /// \brief The WPPLS correction matrix for mvBlueCOUGAR-XDx24aC and mvBlueCOUGAR-XDx24bC devices.
     cticmmBlueCOUGAR_XDx24aC_WPPLS  = 0x00030000 | 0x10000000 | 0x000e,
@@ -1459,6 +1459,8 @@ enum TColorTwistInputCorrectionMatrixMode
     cticmmBlueFOX3_x013C_WPPLS      = 0x00050000 | 0x10000000 | 0x0004,
     /// \brief The WPPLS correction matrix for mvBlueFOX3-x024C devices.
     cticmmBlueFOX3_x024C_WPPLS      = 0x00050000 | 0x10000000 | 0x0017,
+    /// \brief The WPPLS correction matrix for mvBlueFOX3-x140C devices.
+    cticmmBlueFOX3_x140C_WPPLS      = 0x00050000 | 0x10000000 | 0x001a,
     /// \brief The WPPLS correction matrix for mvBlueFOX3-x024C devices.
     cticmmBlueFOX3_x024aC_WPPLS      = 0x00050000 | 0x10000000 | 0x001b
 };
@@ -1913,9 +1915,9 @@ enum TDeviceInterfaceLayout
 };
 
 //-----------------------------------------------------------------------------
-/// \brief Defines valid modes for the loading of settings during initialisation.
+/// \brief Defines valid modes for the loading of settings during initialization.
 /**
- *  Whenever a <b>mvIMPACT::acquire::Device</b> is initialised this enumeration type defines the mode the
+ *  Whenever a <b>mvIMPACT::acquire::Device</b> is initialized this enumeration type defines the mode the
  *  <b>mvIMPACT::acquire::Device</b> tries to restore settings from a previously stored session.
  */
 /// \ingroup CommonInterface
@@ -1924,7 +1926,7 @@ enum TDeviceLoadSettings
 {
     /// \brief Tries to load settings automatically following an internal procedure.
     /**
-     *  The load cycle at initialisation time is like this:
+     *  The load cycle at initialization time is like this:
      *
      * \code
      *  look for a setting for this particular device (via serial number)
@@ -2022,15 +2024,15 @@ enum TDeviceState
 {
     /// \brief The <b>mvIMPACT::acquire::Device</b> has been unplugged.
     /**
-     *  The <b>mvIMPACT::acquire::Device</b> has present been since the <b>mvIMPACT::acquire::DeviceManager</b> has been initialised,
+     *  The <b>mvIMPACT::acquire::Device</b> has present been since the <b>mvIMPACT::acquire::DeviceManager</b> has been initialized,
      *  but has been unplugged now and the driver has detected the unplugging of the device. Automatic detection of unplugging events
      *  is only possible for devices that support plug and play, other device drivers will only check if a device is still present
      *  if an application triggered this check.
      */
     dsAbsent = 0,
-    /// \brief The <b>mvIMPACT::acquire::Device</b> is currently connected and initialised.
+    /// \brief The <b>mvIMPACT::acquire::Device</b> is currently connected and initialized.
     dsPresent,
-    /// \brief The <b>mvIMPACT::acquire::Device</b> is connected and is currently initialising.
+    /// \brief The <b>mvIMPACT::acquire::Device</b> is connected and is currently initializing.
     dsInitializing,
     /// \brief This device is recognized, but can't be accessed currently.
     /**
@@ -2269,12 +2271,12 @@ enum TDMR_ERROR // no_property_type
     /**
      *  This error occurs either if an invalid device ID has been passed to the
      *  device manager or if the caller tried to close a device which currently
-     *  isn't initialised.
+     *  isn't initialized.
      *
      *  \b [-2100]
      */
     DMR_DEV_NOT_FOUND = -2100,
-    /// \brief The device manager couldn't be initialised.
+    /// \brief The device manager couldn't be initialized.
     /**
      *  This is an internal error.
      *
@@ -2290,20 +2292,20 @@ enum TDMR_ERROR // no_property_type
      *  \b [-2102]
      */
     DMR_DRV_ALREADY_IN_USE = -2102,
-    /// \brief The specified device couldn't be initialised.
+    /// \brief The specified device couldn't be initialized.
     /**
      *  \b [-2103]
      */
     DMR_DEV_CANNOT_OPEN = -2103,
-    /// \brief The device manager or another module hasn't been initialised properly.
+    /// \brief The device manager or another module hasn't been initialized properly.
     /**
      *  This error occurs if the user tries e.g. to close the device manager without
-     *  having initialised it before or if a library used internally or a module or device associated with that library has has not been initialised properly or if
+     *  having initialized it before or if a library used internally or a module or device associated with that library has has not been initialized properly or if
      *
      *  \b [-2104]
      */
     DMR_NOT_INITIALIZED = -2104,
-    /// \brief A device could not be initialised.
+    /// \brief A device could not be initialized.
     /**
      *  In this case the log-file will contain detailed information about the source of the
      *  problem.
@@ -4789,7 +4791,7 @@ enum TVirtualDeviceTestMode
     vdtmMovingYUV444_UYVPackedRamp,
     /// \brief Will generate a moving test pattern with pixel format <b>mvIMPACT::acquire::ibpfBGR101010Packed_V2</b>.
     vdtmMovingBGRPacked_V2Image,
-    /// \brief Will just allocate but not initialise a mono buffer.
+    /// \brief Will just allocate but not initialize a mono buffer.
     vdtmEmptyMonoBuffer,
     /// \brief Will generate a horizontal mono ramp with pixel format <b>mvIMPACT::acquire::ibpfMono12Packed_V1</b>.
     vdtmHorizontalMono12Packed_V1Ramp,

@@ -698,10 +698,11 @@ void DeviceConfigureFrame::GetConfigurationEntriesFromFile( const wxString& file
     while( !file.eof() )
     {
         std::string l;
-        file >> l;
+        getline( file, l );
         wxString line = ConvertedString( l );
-        // remove all whitespaces, TABs and newlines
-        line = line.Strip( wxString::both );
+        // remove all whitespaces, TABs and newlines and also just consider everything until the first ',' as the file
+        // format allows to specify additional parameters after a ',' (e.g. 'mvBlueCOUGAR-XD126aC, serial=GX200376, linkspeed=1000000000')
+        line = line.BeforeFirst( wxT( ',' ) ).Strip( wxString::both );
         if( line.IsEmpty() == false )
         {
             if( line.Contains( wxT( "mvBlueCOUGAR-S" ) ) == false )

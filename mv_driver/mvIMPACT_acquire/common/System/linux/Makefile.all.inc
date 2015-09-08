@@ -29,8 +29,6 @@ endif
 
 #---------------------------------------------
 GCCPATH=$(GCC_$(HOSTTYPE)X$(TARGET_SYST))
-
-
 #---------------------------------------------
 # when not cross compiling just set these to the standard directories
 CROSS_USER_INC_PATH=/usr/include
@@ -169,6 +167,16 @@ GLOBINCFILES=								\
 	$(PPC_USR_INC)							\
 
 #---------------------------------------------
+#=============================================
+# PARALLEL COMPILING ON MANY PROCESSOR CORES
+NUM_OF_PROCESSORS := $(shell if [ "x$$(which getconf )" != "x" ]	\
+	&& [ $$(getconf _NPROCESSORS_CONF ) -gt 0 ] ; then				\
+		echo -n $$(getconf _NPROCESSORS_CONF );						\
+	else															\
+		echo -n 2;													\
+	fi )
+MAKEFLAGS+=" -j$(NUM_OF_PROCESSORS) "
+#=============================================
 #===========================================
 # OPT
 # ---
@@ -180,7 +188,8 @@ GLOBINCFILES=								\
 #===========================================
 #---------------------------------------------
 ifeq ($(OPT),)
-	OPT=-O2
+	OPT= -O2
+#	OPT= -ggdb
 	USE_NDEBUG=-DNDEBUG
 	ifeq ($(TARGET),armv7a)
 		OPT=-O3
@@ -263,7 +272,7 @@ else
 	CPPFLAGS_2 += $(CPP_SYM_VISIBILITY)
 endif
 # uncomment following line to re-enable OpenMP
-#CPPFLAGS_2 += $(OPENMP)
+# CPPFLAGS_2 += $(OPENMP)
 
 #---------------------------------------------
 #---------------------------------------------

@@ -21,6 +21,20 @@ public:
 };
 
 //-----------------------------------------------------------------------------
+class DisplayComponent : public std::unary_function<Component, void>
+//-----------------------------------------------------------------------------
+{
+public:
+    void operator()( const Component& data ) const
+    {
+        if( data.isValid() )
+        {
+            std::cout << "  " << data.name() << "(" << data.typeAsString() << ")" << std::endl;
+        }
+    }
+};
+
+//-----------------------------------------------------------------------------
 class DisplayProperty : public std::unary_function<std::pair<std::string, mvIMPACT::acquire::Property>, void>
 //-----------------------------------------------------------------------------
 {
@@ -49,6 +63,21 @@ void DisplayPropertyDictionary( const mvIMPACT::acquire::Property& p )
     prop.getTranslationDict( dict );
     std::for_each( dict.begin(), dict.end(), DisplayDictEntry<typename _Ty::value_type>() );
 #endif // #ifdef _MSC_VER
+}
+
+//-----------------------------------------------------------------------------
+/// \brief Checks is a certain value for property is supported.
+template<class _Tx>
+bool supportsEnumStringValue( const _Tx& prop, const std::string& value )
+//-----------------------------------------------------------------------------
+{
+    if( prop.hasDict() )
+    {
+        typename std::vector<std::string> sequence;
+        prop.getTranslationDictStrings( sequence );
+        return std::find( sequence.begin(), sequence.end(), value ) != sequence.end();
+    }
+    return false;
 }
 
 //-----------------------------------------------------------------------------
@@ -94,6 +123,22 @@ void conditionalSetProperty( const _Ty& prop, const _Tx& value, bool boSilent = 
 }
 
 //-----------------------------------------------------------------------------
+/// \brief Sets a property to a certain value if this value is supported.
+template<typename _Ty>
+void conditionalSetEnumPropertyByString( const _Ty& prop, const std::string& value, bool boSilent = false )
+//-----------------------------------------------------------------------------
+{
+    if( prop.isValid() && prop.isWriteable() && supportsEnumStringValue( prop, value ) )
+    {
+        prop.writeS( value );
+        if( !boSilent )
+        {
+            std::cout << "Property '" << prop.name() << "' set to '" << prop.readS() << "'." << std::endl;
+        }
+    }
+}
+
+//-----------------------------------------------------------------------------
 /// This function makes heavy use of strings. In real world applications
 /// this can be avoided if optimal performance is crucial. All properties can be modified
 /// via strings, but most properties can also be modified with numerical (int / double )
@@ -102,7 +147,32 @@ inline void displayPropertyData( const mvIMPACT::acquire::Property& prop )
 //-----------------------------------------------------------------------------
 {
     const std::string name( prop.name() );
-    std::cout << "Property '" << name << "' currently specifies the following flags: " << prop.flagsAsString() << std::endl;
+    std::cout << std::endl
+              << "Property '" << name << "'(display name: '" << prop.displayName() << "', type: " << prop.typeAsString() << ") currently specifies the following flags: " << prop.flagsAsString() << std::endl
+              << std::endl;
+    const std::string doc( prop.docString() );
+    if( !doc.empty() )
+    {
+        std::cout << "The following documentation has been reported by the driver for this feature: " << std::endl
+                  << doc << std::endl
+                  << std::endl;
+    }
+    if( prop.selectedFeatureCount() > 0 )
+    {
+        std::vector<Component> selectedFeatureList;
+        prop.selectedFeatures( selectedFeatureList );
+        std::cout << "The following features are selected by this feature(Whenever the current feature is modified, all selected features might change):" << std::endl;
+        std::for_each( selectedFeatureList.begin(), selectedFeatureList.end(), DisplayComponent() );
+        std::cout << std::endl;
+    }
+    if( prop.selectingFeatureCount() > 0 )
+    {
+        std::vector<Component> selectingFeatureList;
+        prop.selectingFeatures( selectingFeatureList );
+        std::cout << "The following features select this feature(Whenever a selecting features is modified, a selected one might change):" << std::endl;
+        std::for_each( selectingFeatureList.begin(), selectingFeatureList.end(), DisplayComponent() );
+        std::cout << std::endl;
+    }
     if( prop.hasMinValue() )
     {
         std::cout << "The minimum value of '" << name << "' is " << prop.readS( mvIMPACT::acquire::plMinValue ) << std::endl;
@@ -136,7 +206,7 @@ inline void displayPropertyData( const mvIMPACT::acquire::Property& prop )
             std::cout << "Error! Unhandled enum prop type: " << prop.typeAsString() << std::endl;
         }
     }
-    std::cout << "The current value of '" << name << "' is: " << prop.readS() << std::endl;
+    std::cout << "The current value of '" << name << "' is: '" << prop.readS() << "'" << std::endl;
 }
 
 //-----------------------------------------------------------------------------
@@ -414,7 +484,7 @@ inline std::vector<mvIMPACT::acquire::Device*>::size_type getValidDevices( const
     return v.size();
 }
 
-#ifdef linux
+#if defined(linux) || defined(__linux) || defined(__linux__)
 #   include <fcntl.h>
 #   include <stdio.h>
 #   include <sys/types.h>
@@ -473,6 +543,6 @@ inline int checkKeyboardInput( void )
 
     return 0;
 }
-#endif // #ifdef linux
+#endif // #if defined(linux) || defined(__linux) || defined(__linux__)
 
 #endif // exampleHelperH

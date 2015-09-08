@@ -160,4 +160,14 @@ inline void AddwxWidgetsInfo( wxWindow* pParent, wxSizer* pParentSizer )
     pParentSizer->Add( pSizer, 0, wxALL | wxALIGN_CENTER, 5 );
 }
 
+//-----------------------------------------------------------------------------
+inline void AppendPathSeparatorIfNeeded( wxString& path )
+//-----------------------------------------------------------------------------
+{
+    if( !path.EndsWith( wxT( "/" ) ) && !path.EndsWith( wxT( "\\" ) ) )
+    {
+        path.append( wxT( "/" ) );
+    }
+}
+
 #endif // wxAbstractionH

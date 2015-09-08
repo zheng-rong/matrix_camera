@@ -8,7 +8,7 @@
 #include <map>
 #include <apps/Common/exampleHelper.h>
 #include <mvIMPACT_CPP/mvIMPACT_acquire.h>
-#ifndef __linux__
+#if !defined(linux) && !defined(__linux) && !defined(__linux__)
 #   include <mvDisplay/Include/mvIMPACT_acquire_display.h>
 using namespace mvIMPACT::acquire::display;
 #else
@@ -63,7 +63,7 @@ void singleCapture( Device* pDev, const FunctionInterface& fi, ImageDisplayWindo
         if( pRequest->isOK() )
         {
             // everything went well. Display the result...
-#ifndef __linux__
+#if !defined(linux) && !defined(__linux) && !defined(__linux__)
             pDisp->GetImageDisplay().SetImage( pRequest );
             pDisp->GetImageDisplay().Update();
 #else
@@ -142,12 +142,12 @@ int main( int /*argc*/, char* /*argv*/[] )
     }
     // create a function interface to the device
     FunctionInterface fi( pDev );
-#ifndef __linux__
+#if !defined(linux) && !defined(__linux) && !defined(__linux__)
     // initialise a display window
     ImageDisplayWindow* pDisp = new ImageDisplayWindow( "mvIMPACT_acquire sample" );
 #else
     ImageDisplayWindow* pDisp = 0;
-#endif  // __linux__
+#endif  // #if !defined(linux) && !defined(__linux) && !defined(__linux__)
 
     // obtain all the settings related properties available for this device
     // Only work with the 'Base' setting. For more information please refer to the manual (working with settings)
@@ -215,9 +215,9 @@ int main( int /*argc*/, char* /*argv*/[] )
         }
     }
 
-#ifndef __linux__
+#if !defined(linux) && !defined(__linux) && !defined(__linux__)
     // free resources
     delete pDisp;
-#endif  // __linux__
+#endif  // #if !defined(linux) && !defined(__linux) && !defined(__linux__)
     return 0;
 }

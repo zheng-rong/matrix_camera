@@ -78,7 +78,7 @@ WizardQuickSetup::WizardQuickSetup( PropViewFrame* pParent, const wxString& titl
     : OkAndCancelDlg( pParent, widMainFrame, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxMINIMIZE_BOX ),
       pTopDownSizer_( 0 ), pBtnPresetColor_( 0 )/*, pBtnPresetColorHS_( 0 )*/, pBtnPresetFactory_( 0 ), pBtnPresetGrey_( 0 )/*, pBtnPresetGreyHS_( 0 )*/,
       pSLExposure_( 0 ), pSCExposure_( 0 ), pBtnExposureAuto_( 0 ), pCBShowDialogAtStartup_( 0 ), boGUILocked_( true ),
-      pDev_( 0 ), pIP_( 0 ), propGridSettings_(), pParentPropViewFrame_( pParent ),  pID_( 0 )
+      pDev_( 0 ), pIP_( 0 ), propGridSettings_(), pParentPropViewFrame_( pParent ), pID_( 0 )
 //-----------------------------------------------------------------------------
 {
     /*
@@ -393,8 +393,8 @@ void WizardQuickSetup::CloseDlg( void )
         WriteQuickSetupWizardErrorMessage( wxString::Format( wxT( "Error when closing dialog: %s(%s)" ), ConvertedString( e.getErrorString() ).c_str(), ConvertedString( e.getErrorCodeAsString() ).c_str() ) );
     }
 
-    //The user cancelled, therefore, the original settings before calling the wizard, have to be set as
-    //current ones, otherwise there may be inconsistencies when calling the wizard again.
+    // The user canceled, therefore, the original settings before calling the wizard, have to be set as
+    // current ones, otherwise there may be inconsistencies when calling the wizard again.
     currentSettings_[currentDeviceSerial_] = devSettings;
     Hide();
     pParentPropViewFrame_->RestoreGUIStateAfterQuickSetupWizard();
@@ -415,7 +415,7 @@ void WizardQuickSetup::ApplyExposure( void )
             WriteQuickSetupWizardErrorMessage( wxString::Format( wxT( "Failed to apply exposure time(Error: %s(%s))" ), ConvertedString( e.getErrorString() ).c_str(), ConvertedString( e.getErrorCodeAsString() ).c_str() ) );
         }
     }
-    //The exposure is a special case. It influences the FrameRate properties, thus the FrameRate controls have to be redrawn
+    // The exposure is a special case. It influences the FrameRate properties, thus the FrameRate controls have to be redrawn
     if( !currentSettings_[currentDeviceSerial_].boAutoFrameRateEnabled )
     {
         SetupFrameRateControls();
@@ -509,10 +509,10 @@ void WizardQuickSetup::ApplyFrameRate( void )
         }
         catch( const ImpactAcquireException& e )
         {
-            WriteQuickSetupWizardErrorMessage( wxString::Format( wxT( "Failed to apply framerate limit(Error: %s(%s))" ), ConvertedString( e.getErrorString() ).c_str(), ConvertedString( e.getErrorCodeAsString() ).c_str() ) );
+            WriteQuickSetupWizardErrorMessage( wxString::Format( wxT( "Failed to apply frame rate limit(Error: %s(%s))" ), ConvertedString( e.getErrorString() ).c_str(), ConvertedString( e.getErrorCodeAsString() ).c_str() ) );
         }
-        // Since framerate controls are special due to their dynamic nature ( they depend on the exposure values )
-        // many functions rely on the framerate member of the Device Settings structure. Thus we have to keep it
+        // Since frame rate controls are special due to their dynamic nature ( they depend on the exposure values )
+        // many functions rely on the frame rate member of the Device Settings structure. Thus we have to keep it
         // up to date with every change.
         currentSettings_[currentDeviceSerial_].frameRate = pSCFrameRate_->GetValue();
     }
@@ -653,9 +653,9 @@ void WizardQuickSetup::OnBtnPresetFactory( wxCommandEvent& )
     SetupDriverSettings();
     SetupControls();
 
-    //When making a factory reset the currentSettings and PropgridSettings for this device should
-    //be overwritten with the factory settings, otherwise strange things may happen when pressing
-    //the cancel button.
+    // When making a factory reset the currentSettings and PropgridSettings for this device should
+    // be overwritten with the factory settings, otherwise strange things may happen when pressing
+    // the cancel button.
     SaveWizardConfiguration();
     propGridSettings_[currentDeviceSerial_] = currentSettings_[currentDeviceSerial_];
     SelectLUTDependingOnPixelFormat();
@@ -928,7 +928,7 @@ void WizardQuickSetup::HandleFrameRateSpinControlChanges( void )
 }
 
 //-----------------------------------------------------------------------------
-void WizardQuickSetup::QueryInitialDeviceSettings( DeviceSettings&  devSettings )
+void WizardQuickSetup::QueryInitialDeviceSettings( DeviceSettings& devSettings )
 //-----------------------------------------------------------------------------
 {
     devSettings.boAutoExposureEnabled = false;
@@ -1218,6 +1218,7 @@ void WizardQuickSetup::ReferToNewDevice( Device* pDev )
 {
     currentDeviceSerial_ = pDev->serial.readS();
     currentProductString_ = pDev->product.readS();
+    currentDeviceFWVersion_ = static_cast<unsigned int>( pDev->firmwareVersion.read() );
     bool boFirstTimeDeviceStartsWizard = ( currentSettings_.find( currentDeviceSerial_ ) == currentSettings_.end() );
 
     CleanUp();
@@ -1227,7 +1228,7 @@ void WizardQuickSetup::ReferToNewDevice( Device* pDev )
     pIP_ = new ImageProcessing( pDev );
 
     SetupUnifiedData( boFirstTimeDeviceStartsWizard );
-    //Save PropGridState in case Cancel is pressed.
+    // Save PropGridState in case Cancel is pressed.
     DeviceSettings devSettings;
     QueryInitialDeviceSettings( devSettings );
     propGridSettings_[currentDeviceSerial_] = devSettings;
@@ -1294,7 +1295,7 @@ void WizardQuickSetup::RefreshControls( void )
         pSCGain_->Enable( false );
     }
 
-    //Blacklevel needs no refresh, the slider should always be visible since there is no auto-black-level functionality.
+    // Black level needs no refresh, the slider should always be visible since there is no auto-black-level functionality.
     pSLBlackLevel_->Enable( features.boBlackLevelSupport );
     pSCBlackLevel_->Enable( features.boBlackLevelSupport );
 
@@ -1512,7 +1513,7 @@ void WizardQuickSetup::SetupDevice( void )
 
         if( features.boColorOptionsSupport )
         {
-            InitializeWhiteBalanceParameters(  devSettings, features );
+            InitializeWhiteBalanceParameters( devSettings, features );
         }
 
         if( features.boAutoFrameRateSupport )
@@ -1522,7 +1523,7 @@ void WizardQuickSetup::SetupDevice( void )
         }
         else
         {
-            //By entering a big number the maxValue of the Framerate will be written
+            // By entering a big number the maxValue of the Frame rate will be written
             SetFrameRate( 10000. );
             devSettings.boAutoFrameRateEnabled = false;
         }
@@ -1624,7 +1625,7 @@ void WizardQuickSetup::UpdateGainControlsFromCamera( void )
 //-----------------------------------------------------------------------------
 {
     // ReadUnifiedGain leads to stuttering. Since DigitalGain is set to 0 on pressing AutoGain Button,
-    // one could rely on analog gain values alone to update the current gain when autogain is in use.
+    // one could rely on analog gain values alone to update the current gain when auto-gain is in use.
     // This option however has to be investigated further before using.
     // double const unifiedGain = pAnC_->gain.read();
     double const unifiedGain = ReadUnifiedGainData();
@@ -1743,8 +1744,8 @@ void WizardQuickSetupGenICam::DoConfigureFrameRateAuto( bool boActive, double fr
         SetFrameRateEnable( true );
         if( pAcC_->acquisitionFrameRate.hasMaxValue() )
         {
-            //In the case of FrameRate, checks have to be done first, as due to changes in exposure, the desired value
-            //may be out of range (e.g. writing the maximum framerate value after exposure has increased dramatically)
+            // In the case of FrameRate, checks have to be done first, as due to changes in exposure, the desired value
+            // may be out of range (e.g. writing the maximum frame rate value after exposure has increased dramatically)
             double frameRateValue = currentSettings_[currentDeviceSerial_].frameRate;
             double frameRateMin = pAcC_->acquisitionFrameRate.getMinValue();
             double frameRateMax = pAcC_->acquisitionFrameRate.getMaxValue();
@@ -2265,10 +2266,13 @@ void WizardQuickSetupGenICam::SetupFrameRateControls( void )
 
         if( GetFrameRateEnable() )
         {
-            // These settings are used when FrameRate is manually configured
-            frameRateRangeMin = pAcC_->acquisitionFrameRate.hasMinValue() ? ( pAcC_->acquisitionFrameRate.getMinValue() >= 5. ? pAcC_->acquisitionFrameRate.getMinValue() : 5. ) : 2.;
-            frameRateRangeMax = pAcC_->acquisitionFrameRate.hasMaxValue() ? pAcC_->acquisitionFrameRate.getMaxValue() : 100.;
-            frameRate = pAcC_->acquisitionFrameRate.read();
+            // These settings are used when the frame rate is manually configured.
+            // Depending on whether the old or the new frame rate behaviour is used we have to use a different property here. This did change in firmware version 1.6.450.0
+            static const unsigned int s_FW_VERSION_WITH_NEW_RESULTING_FRAMERATE_BEHAVIOR = ( ( 1 << 24 ) | ( 6 << 16 ) | ( 450 << 4 ) | 0 ); // 1.6.450.0 in 8.8.12.4 notation
+            PropertyF propFrameRate( ( currentDeviceFWVersion_ < s_FW_VERSION_WITH_NEW_RESULTING_FRAMERATE_BEHAVIOR ) ? pAcC_->acquisitionFrameRate.hObj() : pAcC_->mvResultingFrameRate.hObj() );
+            frameRateRangeMin = propFrameRate.hasMinValue() ? ( propFrameRate.getMinValue() >= 5. ? propFrameRate.getMinValue() : 5. ) : 2.;
+            frameRateRangeMax = propFrameRate.hasMaxValue() ? propFrameRate.getMaxValue() : 100.;
+            frameRate = propFrameRate.read();
         }
         else
         {
@@ -2277,7 +2281,7 @@ void WizardQuickSetupGenICam::SetupFrameRateControls( void )
             // Hardcoding the frameRateRangeMin value is not elegant; however there is no other obvious minimum
             // that could be used instead. Number 5 also fits with the maximum exposure limit of the wizard (200ms).
             frameRateRangeMin = 5;
-            frameRateRangeMax = pAcC_->mvResultingFrameRate.isValid() ? pAcC_->mvResultingFrameRate.read() : 100.;
+            frameRateRangeMax = ( pAcC_->mvResultingFrameRate.isValid() && pAcC_->mvResultingFrameRate.hasMaxValue() ) ? pAcC_->mvResultingFrameRate.getMaxValue() : 100.;
             frameRate = pAcC_->mvResultingFrameRate.read();
         }
         DoSetupFrameRateControls( frameRateRangeMin, frameRateRangeMax, frameRate );
@@ -2298,7 +2302,7 @@ void WizardQuickSetupGenICam::SetFrameRate( double value )
 {
     if( pAcC_->acquisitionFrameRate.hasMaxValue() )
     {
-        //Out-of-bounds check because of Framerate controls' dynamic nature
+        //Out-of-bounds check because of Frame rate controls' dynamic nature
         double currentMaxFrameRate = pAcC_->acquisitionFrameRate.getMaxValue();
         if( value > currentMaxFrameRate )
         {
@@ -2395,8 +2399,8 @@ void WizardQuickSetupGenICam::TryToReadFrameRate( double& value )
 {
     if( pAcC_->acquisitionFrameRate.isValid() && pAcC_->mvAcquisitionFrameRateLimitMode.isValid() )
     {
-        // Up to this point the device has not been analysed and there is no information available about
-        // what capabilities it supports, and crucially whether it supports Auto framrate or not. Maybe there
+        // Up to this point the device has not been analyzed and there is no information available about
+        // what capabilities it supports, and crucially whether it supports Auto frame rate or not. Maybe there
         // is another way to do this, or the sequence of QueryInitialSettings and AnalyzeDeviceAndGatherInformation
         // should be reworked...? As of now it is not clear what will happen with third-party devices.
         pAcC_->mvAcquisitionFrameRateLimitMode.writeS( "mvDeviceLinkThroughput" );
@@ -2539,7 +2543,7 @@ string WizardQuickSetupDeviceSpecific::GetPixelFormat( void ) const
 double WizardQuickSetupDeviceSpecific::GetWhiteBalance( TWhiteBalanceChannel channel )
 //-----------------------------------------------------------------------------
 {
-    //Driver WhiteBalance for mvBF2
+    // Driver WhiteBalance for mvBF2
     WhiteBalanceSettings& wbs = pIP_->getWBUserSetting( 0 );
     return ( channel == wbcRed ) ? wbs.redGain.read() : wbs.blueGain.read();
 }
@@ -2625,7 +2629,7 @@ void WizardQuickSetupDeviceSpecific::QueryInterfaceLayoutSpecificSettings( Devic
     devSettings.whiteBalanceRed = wbs.redGain.read() * 100.;
     devSettings.whiteBalanceBlue = wbs.blueGain.read() * 100.;
 
-    //No AutoWhitebalance for BF2
+    // No AutoWhitebalance for BF2
     devSettings.boAutoWhiteBalanceEnabled = false;
 }
 
@@ -2767,7 +2771,7 @@ void WizardQuickSetupDeviceSpecific::SetupWhiteBalanceControls( void )
 void WizardQuickSetupDeviceSpecific::SetWhiteBalance( TWhiteBalanceChannel channel, double value )
 //-----------------------------------------------------------------------------
 {
-    //WhiteBalance for mvBF2 has to be done via driver Properties
+    // WhiteBalance for mvBF2 has to be done via driver Properties
     try
     {
         WhiteBalanceSettings& wbs = pIP_->getWBUserSetting( 0 );
@@ -2865,7 +2869,7 @@ void WizardQuickSetupDeviceSpecific::WriteWhiteBalanceFeatures( const DeviceSett
     wbs.blueGain.write( devSettings.whiteBalanceBlue / 100. );
     if( features.boAutoWhiteBalanceSupport )
     {
-        //In case continuous autowhitebalancing is implemented:
+        // In case continuous auto white balancing is implemented:
         //pCSBF_->"balanceWhiteAuto-Property".writeS( string( devSettings.boAutoWhiteBalanceEnabled ? "Continuous" : "Off" ) );
     }
 }

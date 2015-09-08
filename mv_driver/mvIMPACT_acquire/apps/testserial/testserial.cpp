@@ -5,16 +5,12 @@ Network/Communication
 \endxmlonly
 
 \brief Simple test program for the serial port.
-
-
-$Id: testserial.cpp,v 1.6 2010-01-25 12:49:50 km Exp $
-
 */
 
 //---------------------------------------------------------------------------
-#ifndef __linux__
-#   error This is a Linux sample!!
-#endif // #ifndef __linux__
+#if !defined(linux) && !defined(__linux) && !defined(__linux__)
+#   error Sorry! Linux only code!
+#endif // #if !defined(linux) && !defined(__linux) && !defined(__linux__)
 #include <errno.h>
 #include <unistd.h>
 #include <stdio.h>

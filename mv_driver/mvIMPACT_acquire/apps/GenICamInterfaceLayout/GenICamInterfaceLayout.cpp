@@ -6,7 +6,7 @@
 #include <iostream>
 #include <apps/Common/exampleHelper.h>
 #include <mvIMPACT_CPP/mvIMPACT_acquire_GenICam.h>
-#ifdef __linux__
+#if defined(linux) || defined(__linux) || defined(__linux__)
 #   include <stdio.h>
 #   include <unistd.h>
 #else
@@ -14,7 +14,7 @@
 #   include <process.h>
 #   include <mvDisplay/Include/mvIMPACT_acquire_display.h>
 using namespace mvIMPACT::acquire::display;
-#endif // #ifdef __linux__
+#endif // #if defined(linux) || defined(__linux) || defined(__linux__)
 
 using namespace std;
 using namespace mvIMPACT::acquire;
@@ -26,12 +26,12 @@ struct ThreadParameter
 //-----------------------------------------------------------------------------
 {
     Device* pDev;
-#ifdef __linux__
+#if defined(linux) || defined(__linux) || defined(__linux__)
     explicit ThreadParameter( Device* p ) : pDev( p ) {}
 #else
     ImageDisplayWindow  displayWindow;
     explicit ThreadParameter( Device* p, const std::string& windowTitle ) : pDev( p ), displayWindow( windowTitle ) {}
-#endif // #ifdef __linux__
+#endif // #if defined(linux) || defined(__linux) || defined(__linux__)
 };
 
 //-----------------------------------------------------------------------------
@@ -87,12 +87,12 @@ unsigned int DMR_CALL liveThread( void* pData )
                          << ", " << statistics.errorCount.name() << ": " << statistics.errorCount.readS()
                          << ", " << statistics.captureTime_s.name() << ": " << statistics.captureTime_s.readS() << endl;
                 }
-#ifdef __linux__
+#if defined(linux) || defined(__linux) || defined(__linux__)
                 cout << "Image captured(" << pRequest->imageWidth.read() << "x" << pRequest->imageHeight.read() << ")" << endl;
 #else
                 pThreadParameter->displayWindow.GetImageDisplay().SetImage( pRequest );
                 pThreadParameter->displayWindow.GetImageDisplay().Update();
-#endif  // #ifdef __linux__
+#endif  // #if defined(linux) || defined(__linux) || defined(__linux__)
             }
             else
             {
@@ -114,16 +114,16 @@ unsigned int DMR_CALL liveThread( void* pData )
             cout << "imageRequestWaitFor failed (" << requestNr << ", " << ImpactAcquireException::getErrorCodeAsString( requestNr ) << ")"
                  << ", timeout value too small?" << endl;
         }
-#ifdef __linux__
+#if defined(linux) || defined(__linux) || defined(__linux__)
         g_boTerminated = waitForInput( 0, STDOUT_FILENO ) == 0 ? false : true; // break by STDIN
-#endif // #ifdef __linux__
+#endif // #if defined(linux) || defined(__linux) || defined(__linux__)
     }
     manuallyStopAcquisitionIfNeeded( pThreadParameter->pDev, fi );
 
-#ifndef __linux__
+#if !defined(linux) && !defined(__linux) && !defined(__linux__)
     // stop the display from showing freed memory
     pThreadParameter->displayWindow.GetImageDisplay().SetImage( reinterpret_cast<Request*>( 0 ) );
-#endif // #ifndef __linux__
+#endif // #if !defined(linux) && !defined(__linux) && !defined(__linux__)
 
     // In this sample all the next lines are redundant as the device driver will be
     // closed now, but in a real world application a thread like this might be started
@@ -147,7 +147,7 @@ unsigned int DMR_CALL liveThread( void* pData )
 
 //-----------------------------------------------------------------------------
 // This function will allow to select devices that support the GenICam interface
-// layout(these are devices, that are claim to be compliant with the GenICam standard)
+// layout(these are devices, that claim to be compliant with the GenICam standard)
 // and that are bound to drivers that support the user controlled start and stop
 // of the internal acquisition engine. Other devices will not be listed for
 // selection as the code of the example relies on these features in the code.
@@ -224,7 +224,7 @@ int main( int /*argc*/, char* /*argv*/[] )
     // start the execution of the 'live' thread.
     cout << "Press [ENTER] to end the application" << endl;
 
-#ifdef __linux__
+#if defined(linux) || defined(__linux) || defined(__linux__)
     ThreadParameter threadParam( pDev );
     liveThread( &threadParam );
 #else
@@ -238,6 +238,6 @@ int main( int /*argc*/, char* /*argv*/[] )
     g_boTerminated = true;
     WaitForSingleObject( hThread, INFINITE );
     CloseHandle( hThread );
-#endif  // #ifdef __linux__
+#endif  // #if defined(linux) || defined(__linux) || defined(__linux__)
     return 0;
 }

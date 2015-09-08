@@ -3,6 +3,92 @@
 ===============================================================================================
 Date:       Release:    Changes:                                                                                Affected modules, files or packages:
 --------------------------------------------------------------------------------------------------------------------------------------------
+13.08.2015  2.13.3      NEW FEATURES:
+                        - Firmware version 1.6.461.0 for mvBlueFOX3 and mvBlueCOUGAR-X devices added.           (all shipped packages for GenICam compliant devices)
+                          Changed Behaviour:
+                            - mvBlueCOUGAR-XD124aG/C: Internal pre-gain reduced by 5dB. This will result in
+                              slightly darker but less noisier images after a firmware update.
+                            - New default: BalanceWhiteAuto = Off.
+                            - All sensors now have default white balance values corresponding to a light
+                              temperature of 5000K.
+                            - mvBlueCOUGAR-X/XD: The 'UserFile', selectable in File Access Control, is be
+                              preserved during firmware updates.
+                            - AcquisitionFrameRate property does not change its value any more, only by user
+                              input. New maximum values provided for this property. The maximum frame rate
+                              that can be reached with the current settings may be read from the
+                              mvResultingFrameRate property.
+                            - mvBlueCOUGAR-X(D): Device boot time reduced by 500 ms.
+                          New Features:
+                            - Full mvBlueSIRIUS support added.
+                            - mvBlueFOX3: RGB/YUV modes enabled for devices with IMX249 sensors.
+                            - Improved SequencerControl: 'CounterDuration' became a valid value for
+                              'SequencerFeatureSelector', 'SequencerTriggerSource' and
+                              'SequencerTriggerActivation' added.
+                          Bugs Fixed:
+                            - mvBlueCOUGAR-X104fG/C: Some devices did not start correctly.
+                            - mvBlueCOUGAR-X(D): With certain SCPS payload size and AOI combinations in
+                              chunk mode the device did crash.
+                            - mvBlueFOX3: The data written to 'mvUserData' was not stored in non-volatile
+                              memory.
+                            - mvBlueFOX3: Calling 'FileOperationExecute' with 'FileOperationSelector' set to
+                              'Close' twice did result in a crash.
+                            - mvBlueFOX3: Corrected device link speed to 5Gbps for USB super speed.
+                            - IMX: Sometimes starting/stopping the acquisition took too long.
+                            - IMX: Corrupt images when over-triggering and ExposureMode = TriggerWidth is used.
+                            - ICX (4 tap mode): OffsetY was not set when the image height was set to the
+                              sensor maximum, leading to black stripes in the image
+                            - mvBlueCOUGAR-X/XD: An upload of a 'UserFile' that exceeds the flash section size
+                              could crash the camera.
+                            - mvBlueCOUGAR-X/XD: When a 'DeviceReset' was executed after a firmware update
+                              the device could fail to reboot properly in very rare cases. The status LED
+                              would show blueish white color then. Power-cycling the device did fix this.
+
+                        UPDATES:
+                        - U3V devices that specify the non-HEX version of the serial number in the U3V device   (mvGenTLProducer.cti)
+                          info serial string descriptor could not be initialised.
+
+                        BUGS FIXED:
+                        - When a faulty U3V device did not answer when reading the max. device response time    (mvGenTLProducer.cti)
+                          the whole driver did lock up.
+                        - When a request timeout for a U3V device did elapsed the request result was returned   (mvGenTLProducer.cti)
+                          as 'rrRequestAborted' instead of 'rrTimeout' under Linux.
+                        - Under Windows the link speed value of LAG groups has not always been reported         (mvGenTLProducer.cti)
+                          correctly as added in version 2.5.17. This could result in incorrect resend
+                          behaviour.
+                          (Bug introduced in 2.6.0)
+
+29.07.2015  2.13.2      UPDATES:
+                        - mvIMPACT Acquire applications can be compiled with C++ 11 support now.                (all shipped Linux packages)
+
+                        CHANGED BEHAVIOUR:
+                        - The QuickSetup Wizard display window no longer hides the status bar of wxPropView.    (mvGenTLProducer.cti)
+
+                        NEW FEATURES:
+                        - New sample added to all packages: 'GenICamSequencerUsage'.                            (all shipped packages)
+                        - ImageProcessing now has a rotation filter. Relevant properties 'RotationEnable'       (mvIMPACT_acquire.h)
+                          and 'RotationAngle' published.
+                        - New C# example application added to all packages: 'SingleCaptureStorage'.             (all MSI-based shipped packages)
+                        - New VB.NET example application added to all packages: 'SingleCapture',                (all MSI-based shipped packages)
+                          'SingleCaptureStorage'.
+                        - New color correction matrix added: 'cticmmBlueFOX3_x140C_WPPLS'. It will be used by   (all shipped packages)
+                          mvBleFOX3-1140C devices.
+
+                        BUGS FIXED:
+                        - Calling 'EventKill' for events of type 'EVENT_REMOTE_DEVICE' or 'EVENT_NEW_BUFFER'    (mvGenTLProducer.cti)
+                          did not result in 'EventGetData' to return 'GC_ERR_ABORT' but 'GC_ERR_NO_DATA'.
+                        - Payload type 'ExtendedChunk' for GEV devices was not handled correctly. The           (mvGenTLProducer.cti)
+                          'image present' bit was ignored, thus the 'BUFFER_INFO_IMAGEPRESENT' query did return
+                          0 even if an image was present in the payload.
+                        - Unplugging a U3V device with event support under Linux no longer floods the log       (mvGenTLProducer.cti)
+                          output.
+                        - The 'TapSort' filter for RGB 24-bit with 2 pixels per cycle did not re-order the      (mvHYPERIONfg-lib)
+                          data correctly when 'ImageProcessingOptimization' was set to                          (mvTITANfg-lib)
+                          'ipoMinimizeMemoryUsage'.                                                             (mvVirtualDevice-lib)
+                        - mvBlueCOUGAR-XD1212aC devices now correctly use the 'cticmmBlueCOUGAR_XDx212C_WPPLS'  (all shipped packages)
+                          color correction matrix by default.
+                        - U3V events have been reported in a different order than delivered by the device under (mvGenTLProducer.cti)
+                          Windows.
+
 22.06.2015  2.13.1      NEW FEATURES:
                         - Firmware version 1.6.414.0 for mvBlueFOX3 and mvBlueCOUGAR-X devices added.           (all shipped packages for GenICam compliant devices)
                           Changed Behaviour:
@@ -17,7 +103,7 @@ Date:       Release:    Changes:                                                
                             - mvBlueFOX3: Switching 'mvDevicePowerMode' from 'mvActive' to 'mvStandby' and then
                               back to 'mvActive' did result in the chunk mode no longer working.
                               (Bug introduced in 1.6.403.0)
-                            - mvBlueFOX3-2024C/G: Only 32 instead of 41 Hz could be reached with
+                            - mvBlueFOX3-2024aC/G: Only 32 instead of 41 Hz could be reached with
                               'mvDigitizationBitDepth' set to 'Auto'
                         - New sample added to all packages: 'ContinuousCaptureGenICam_C'.                       (all shipped packages)
 
@@ -573,7 +659,7 @@ Date:       Release:    Changes:                                                
 
                         CHANGED BEHAVIOUR:
                         - Unused data type 'TImageResultConfiguration' removed from the interface. If your      (all shipped packages)
-                          code was using it, replace every occurence by 'TBoolean'. This will not affect
+                          code was using it, replace every occurrence by 'TBoolean'. This will not affect
                           shipped applications.
 
                         NEW FEATURES:
@@ -1042,7 +1128,7 @@ Date:       Release:    Changes:                                                
                           interface. The following stuff has been removed: 
                           mvIMPACT::acquire::CameraSettingsBlueLYNX, mv.impact.acquire.CameraSettingsBlueLYNX,
                           TBlueLYNXCameraDataClipMode and TBlueLYNXCameraFlashMode. Please remove every
-                          occurence of any of those data types from your code.
+                          occurrence of any of those data types from your code.
                         - Improved image quality for mvBlueFOX-223 devices.                                     (mvBlueFOX-lib)
 
                         NEW FEATURES:
@@ -1256,15 +1342,15 @@ Date:       Release:    Changes:                                                
                           images with a pitch, that is not a multiple of 4 now.
                         - 'mv.impact.acquire.LibraryPath.init' is called inside the constructor of              (mv.impact.acquire.dll)
                           'mv.impact.acquire.DeviceManager' now, thus an application does no longer has to do
-                          this explicitly unless changes shall be applied to the search pathes.
+                          this explicitly unless changes shall be applied to the search paths.
                         - Default values changed:                                                               (mvGenTLProducer.cti)
                           'GenICam::InterfaceModule::mvDeviceCommandChannelTransmissionTimeout': Was 0 is 200.
                           'GenICam::InterfaceModule::mvDeviceCommandChannelRetryCount': Was 0 is 3.
                         - When working with a setting with the deprecated property                              (all shipped packages)
                           'mvIMPACT::acquire::ImageProcessing::mirrorMode' being activated it was not possible
                           to completely switch off mirroring with the newly introduced global mirror mode.
-                        - Now hyperion sdi boards starts scanning the ancillary data with a higher userdata id  (mvHYPERIONfg-lib)
-                        number.
+                        - Now mvHYPERION-SDI boards starts scanning the ancillary data with a higher user data  (mvHYPERIONfg-lib)
+                          id number.
 
                         UPDATES:
                         - The GEV filter driver will try to map user-mode buffers in kernel space with page     (mvGigECapture.sys, version 2.0.12.46)
@@ -3505,7 +3591,7 @@ Date:       Release:    Changes:                                                
                         - Installation of version 2.1.1 of the GenApi runtime is working correctly now.         (mvBlueCOUGAR driver, Linux)
                           (Bug introduced in version 1.11.42)
                         - Internal data transfer improved. Now the corresponding routine called from the        (mvHYPERIONfg-lib)
-                          FPGA-processor waits until all data has been transfered completely.
+                          FPGA-processor waits until all data has been transferred completely.
 
 23.02.2011  1.11.49     NEW FEATURES:
                         - Automatic camera parameter detection added for mvHYPERION-SDI devices. The driver     (mvHYPERIONfg-lib)
@@ -5318,7 +5404,7 @@ Date:       Release:    Changes:                                                
 
                         CHANGED BEHAVIOUR: Multi-byte Bayer raw signals are no longer automatically             (mvHYPERIONfg-lib)
                                 converted to single byte Bayer raw data by default but will be
-                                transfered as multi-byte data now.
+                                transferred as multi-byte data now.
 
                         BUGFIX: Under Linux string properties storing string longer than 256 chars              (mvPropHandling-lib)
                                 did return their data truncated when calling 
@@ -6898,7 +6984,7 @@ Date:       Release:    Changes:                                                
                                 application.
 
                         CHANGED BEHAVIOUR: The translation dictionary entries for the property                  (mvBlueFOX-lib)
-                                SensorColorPattern have been adapted to all other occurences of these
+                                SensorColorPattern have been adapted to all other occurrences of these
                                 strings in other drivers(camera descriptions etc.).
 
                         UPDATE: Improved stability.                                                             (mvBlueCOUGAR-lib)
@@ -6960,7 +7046,7 @@ Date:       Release:    Changes:                                                
                         CHANGED BEHAVIOUR: The class mvIMPACT::acquire::ImageProcessingBlueFOX                  (mvIMPACT_acquire.h)
                                 is no longer available. As all its features are available for every
                                 device there is only one class mvIMPACT::acquire::ImageProcessing
-                                now. Please replace every occurence of
+                                now. Please replace every occurrence of
                                 mvIMPACT::acquire::ImageProcessingBlueFOX or 
                                 mvIMPACT::acquire::ImageProcessingBase in your code by
                                 mvIMPACT::acquire::ImageProcessing.
@@ -8022,7 +8108,7 @@ Date:       Release:    Changes:                                                
                         INCOMPATIBLE CHANGES:
 
                         typedef for IntDict and FloatDict removed from
-                                interface. Replace each occurence of FloatDict by
+                                interface. Replace each occurrence of FloatDict by
                                 std::vector<std::pair<std::string, double> >, each occurrence
                                 of IntDict by std::vector<std::pair<std::string, int> >.
 

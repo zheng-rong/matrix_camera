@@ -12,7 +12,7 @@
 #   include <windows.h>
 #   define USE_MV_DISPLAY_LIB // only available for Windows
 #   define LIVE_LOOP_CALL __stdcall
-#elif defined(linux)
+#elif defined(linux) || defined(__linux) || defined(__linux__)
 #   include <unistd.h>
 #   define LIVE_LOOP_CALL
 #   if defined(__x86_64__) || defined(__powerpc64__) // -m64 makes GCC define __powerpc64__
@@ -487,9 +487,9 @@ unsigned int LIVE_LOOP_CALL liveLoop( void* pData )
         {
             printf( "DMR_ImageRequestWaitFor: ERROR! Code %d\n", result );
         }
-#ifdef linux
+#if defined(linux) || defined(__linux) || defined(__linux__)
         g_boTerminated = waitForInput( 0, STDOUT_FILENO ) == 0 ? 0 : 1; // break by STDIN
-#endif // #ifndef _WIN32
+#endif // #if defined(linux) || defined(__linux) || defined(__linux__)
     }
     manuallyStopAcquisitionIfNeeded( hDrv );
 

@@ -10,7 +10,7 @@
 #   include <windows.h>
 #   define USE_MV_DISPLAY_LIB // only available for Windows
 #   define LIVE_LOOP_CALL __stdcall
-#elif defined(linux)
+#elif defined(linux) || defined(__linux) || defined(__linux__)
 #   include <string.h>
 #   include <unistd.h>
 #   define LIVE_LOOP_CALL
@@ -205,7 +205,7 @@ void captureLoop( CaptureParameter* pCaptureParams )
 
 //-----------------------------------------------------------------------------
 // This function will allow to select devices that support the GenICam interface
-// layout(these are devices, that are claim to be compliant with the GenICam standard)
+// layout(these are devices, that claim to be compliant with the GenICam standard)
 // and that are bound to drivers that support the user controlled start and stop
 // of the internal acquisition engine. Other devices will not be listed for
 // selection as the code of the example relies on these features in the code.

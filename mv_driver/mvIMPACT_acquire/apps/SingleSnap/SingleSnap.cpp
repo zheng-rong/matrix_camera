@@ -8,14 +8,14 @@
 #   include <mcheck.h>
 #endif  // MALLOC_TRACE
 
-#ifndef linux
-#define PRESS_A_KEY \
+#if !defined(linux) && !defined(__linux) && !defined(__linux__)
+#   define PRESS_A_KEY \
     cout << "Press RETURN to end the application..." << endl; \
     cin.get();
 #else
-#define PRESS_A_KEY \
+#   define PRESS_A_KEY \
     cout << "Application will exit now." << endl;
-#endif
+#endif // #if !defined(linux) && !defined(__linux) && !defined(__linux__)
 
 using namespace mvIMPACT::acquire;
 using namespace std;

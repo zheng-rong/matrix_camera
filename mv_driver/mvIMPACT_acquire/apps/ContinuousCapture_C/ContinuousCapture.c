@@ -10,7 +10,7 @@
 #   include <windows.h>
 #   define USE_MV_DISPLAY_LIB // only available for Windows
 #   define LIVE_LOOP_CALL __stdcall
-#elif defined(linux)
+#elif defined(linux) || defined(__linux) || defined(__linux__)
 #   include <string.h>
 #   include <unistd.h>
 #   define LIVE_LOOP_CALL
@@ -439,9 +439,9 @@ unsigned int LIVE_LOOP_CALL liveLoop( void* pData )
         {
             printf( "DMR_ImageRequestWaitFor failed(code: %d(%s))\n", result, DMR_ErrorCodeToString( result ) );
         }
-#ifdef linux
+#if defined(linux) || defined(__linux) || defined(__linux__)
         g_boTerminated = waitForInput( 0, STDOUT_FILENO ) == 0 ? 0 : 1; // break by STDIN
-#endif // #ifdef linux
+#endif // #if defined(linux) || defined(__linux) || defined(__linux__)
     }
     manuallyStopAcquisitionIfNeeded( hDrv );
 

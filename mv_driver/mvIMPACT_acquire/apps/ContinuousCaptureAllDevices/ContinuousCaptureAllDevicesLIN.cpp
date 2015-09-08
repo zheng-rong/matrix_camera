@@ -1,14 +1,6 @@
-// ContinuousCaptureAllDevicesLIN.cpp
-// Capture continuously from all found MATRIX VISION devices
-//
-// *** LINUX VERSION ***
-//
-// No display. Uses Linux threads.
-//
-#ifndef linux
-#error This file is only for Linux
-#endif
-
+#if !defined(linux) && !defined(__linux) && !defined(__linux__)
+#   error Sorry! Linux only code!
+#endif // #if !defined(linux) && !defined(__linux) && !defined(__linux__)
 #include <stdio.h>
 #include <cstdlib>
 #include <unistd.h>

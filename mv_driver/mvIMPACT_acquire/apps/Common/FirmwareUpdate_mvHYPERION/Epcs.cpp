@@ -646,11 +646,11 @@ void CEpcs::DbOutput( const char* pFormat, ... )
     memset( string, 0, 256 );
     va_start ( argptr, pFormat );
     vsprintf ( string, pFormat, argptr );
-#   ifdef linux
+#   if defined(linux) || defined(__linux) || defined(__linux__)
     printf( string );
 #   else
     OutputDebugStringA( string );
-#   endif
+#   endif // #if defined(linux) || defined(__linux) || defined(__linux__)
     va_end ( argptr );
 #else
     pFormat = pFormat; // remove compiler warning

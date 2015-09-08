@@ -44,9 +44,9 @@
 #   include <wx/wfstream.h>
 #   include <wx/zipstrm.h>
 #endif // _WIN32
-#ifdef linux
+#if defined(linux) || defined(__linux) || defined(__linux__)
 #   include <sys/sysctl.h>
-#endif // linux
+#endif // #if defined(linux) || defined(__linux) || defined(__linux__)
 
 using namespace mvIMPACT::acquire;
 using namespace std;
@@ -615,9 +615,9 @@ PropViewFrame::PropViewFrame( const wxString& title, const wxPoint& pos, const w
     m_pMISettings_WarnOnOutdatedFirmware = pMenuSettings->Append( wxID_ANY, wxT( "Warn On Outdated Firmware" ), wxT( "" ), wxITEM_CHECK );
     m_pMISettings_WarnOnReducedDriverPerformance = pMenuSettings->Append( wxID_ANY, wxT( "Warn On Reduced Driver Performance" ), wxT( "" ), wxITEM_CHECK );
     m_pMISettings_WarnOnUnreachableDevices = pMenuSettings->Append( wxID_ANY, wxT( "Warn On Unreachable Devices" ), wxT( "" ), wxITEM_CHECK );
-#ifdef linux
+#if defined(linux) || defined(__linux) || defined(__linux__)
     m_pMISettings_WarnOnPotentialBufferIssues = pMenuSettings->Append( wxID_ANY, wxT( "Warn On Potential Network/USB Buffer Issues" ), wxT( "" ), wxITEM_CHECK );
-#endif // linux
+#endif // #if defined(linux) || defined(__linux) || defined(__linux__)
     m_pMISettings_WarnOnPotentialFirewallIssues = pMenuSettings->Append( wxID_ANY, wxT( "Warn On Potential Firewall Issues" ), wxT( "" ), wxITEM_CHECK );
     pMenuSettings->AppendSeparator();
     m_pMISettings_ToggleFullScreenMode = pMenuSettings->Append( miSettings_ToggleFullScreenMode, wxT( "Full Screen Mode\tF11" ), wxT( "" ), wxITEM_CHECK );
@@ -1126,9 +1126,9 @@ PropViewFrame::~PropViewFrame()
         pConfig->Write( wxT( "/MainFrame/Settings/warnOnOutdatedFirmware" ), m_pMISettings_WarnOnOutdatedFirmware->IsChecked() );
         pConfig->Write( wxT( "/MainFrame/Settings/warnOnReducedDriverPerformance" ), m_pMISettings_WarnOnReducedDriverPerformance->IsChecked() );
         pConfig->Write( wxT( "/MainFrame/Settings/warnOnUnreachableDevices" ), m_pMISettings_WarnOnUnreachableDevices->IsChecked() );
-#ifdef linux
+#if defined(linux) || defined(__linux) || defined(__linux__)
         pConfig->Write( wxT( "/MainFrame/Settings/warnOnPotentialBufferIssues" ), m_pMISettings_WarnOnPotentialBufferIssues->IsChecked() );
-#endif // linux
+#endif // #if defined(linux) || defined(__linux) || defined(__linux__)
         pConfig->Write( wxT( "/MainFrame/Settings/warnOnPotentialFirewallIssues" ), m_pMISettings_WarnOnPotentialFirewallIssues->IsChecked() );
         pConfig->Write( wxT( "/MainFrame/Settings/propgrid_showMethodExecutionErrors" ), m_pMISettings_PropGrid_ShowMethodExecutionErrors->IsChecked() );
         pConfig->Write( wxT( "/MainFrame/Settings/automaticallyReconnectToUnusedDevices" ), m_pMIAction_AutomaticallyReconnectToUnusedDevices->IsChecked() );
@@ -1471,7 +1471,7 @@ void PropViewFrame::CheckForDriverPerformanceIssues( Device* pDev )
 void PropViewFrame::CheckForPotentialBufferIssues( Device* pDev )
 //-----------------------------------------------------------------------------
 {
-#ifdef linux
+#if defined(linux) || defined(__linux) || defined(__linux__)
     //buffer checks make only sense with GenICam devices
     if( pDev->interfaceLayout.read() != dilGenICam )
     {
@@ -1553,7 +1553,7 @@ void PropViewFrame::CheckForPotentialBufferIssues( Device* pDev )
     }
 #else
     pDev = pDev;
-#endif // #ifdef linux
+#endif // #if defined(linux) || defined(__linux) || defined(__linux__)
 }
 
 //-----------------------------------------------------------------------------
@@ -1934,7 +1934,6 @@ void PropViewFrame::ChangeGUIForQuickSetupWizard( void )
 {
     ConfigureToolBar( m_pLeftToolBar, false );
     ConfigureToolBar( m_pUpperToolBar, false );
-    m_pStatusBar->Show( false );
     m_pPanel->GetSizer()->Layout();
     SetMenuBar( 0 );
     m_pMISettings_PropGrid_Show->Check( false );
@@ -4283,10 +4282,10 @@ wxRect PropViewFrame::RestoreConfiguration( const unsigned int displayCount, dou
     m_pMISettings_WarnOnReducedDriverPerformance->Check( boActive );
     boActive = pConfig->Read( wxT( "/MainFrame/Settings/warnOnUnreachableDevices" ), 1l ) != 0;
     m_pMISettings_WarnOnUnreachableDevices->Check( boActive );
-#ifdef linux
+#if defined(linux) || defined(__linux) || defined(__linux__)
     boActive = pConfig->Read( wxT( "/MainFrame/Settings/warnOnPotentialBufferIssues" ), 1l ) != 0;
     m_pMISettings_WarnOnPotentialBufferIssues->Check( boActive );
-#endif // linux
+#endif // #if defined(linux) || defined(__linux) || defined(__linux__)
     boActive = pConfig->Read( wxT( "/MainFrame/Settings/warnOnPotentialFirewallIssues" ), 1l ) != 0;
     m_pMISettings_WarnOnPotentialFirewallIssues->Check( boActive );
     boActive = pConfig->Read( wxT( "/MainFrame/Settings/propgrid_showMethodExecutionErrors" ), 1l ) != 0;
@@ -4416,7 +4415,6 @@ void PropViewFrame::RestoreGUIStateAfterQuickSetupWizard( void )
     }
 
     ConfigureToolBar( m_pUpperToolBar, m_GUIBeforeQuickSetupWizard.boUpperToolbarShown_ );
-    m_pStatusBar->Show( m_GUIBeforeQuickSetupWizard.boStatusBarShown_ );
     SetMenuBar( m_pMenuBar );
     m_pVerticalSplitter->SetSashPosition( m_GUIBeforeQuickSetupWizard.verticalSplitterPosition_ );
     m_pMISettings_PropGrid_Show->Check( m_GUIBeforeQuickSetupWizard.boPropertyGridShown_ );

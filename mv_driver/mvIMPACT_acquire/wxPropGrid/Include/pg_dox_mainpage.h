@@ -1161,7 +1161,7 @@
 
     Represents a bit set that fits in a long integer. wxBoolProperty sub-properties
     are created for editing individual bits. Textctrl is created to manually edit
-    the flags as a text; a continous sequence of spaces, commas and semicolons
+    the flags as a text; a continuous sequence of spaces, commas and semicolons
     is considered as a flag id separator.
     <b>Note: </b> When changing "choices" (ie. flag labels) of wxFlagsProperty, you
     will need to use SetPropertyChoices - otherwise they will not get updated properly.

@@ -88,7 +88,12 @@ int main(int argc, char **argv)
     std::string mono_cam_service  = ros::names::append(ns, "poll_property_list");
     // ros::names::append(ns, "poll_property_list");
 
+    ROS_WARN("====== waitForService...");
+    ROS_WARN(mono_cam_service.c_str());
+
     ros::service::waitForService(mono_cam_service);
+
+    ROS_WARN("====== waitForService done.");
 
     ros::ServiceClient client_mono = n.serviceClient<mv_camera::PropertyMap>(mono_cam_service);
 

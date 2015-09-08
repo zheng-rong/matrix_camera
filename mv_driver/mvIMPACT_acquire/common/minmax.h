@@ -6,8 +6,8 @@
 #include <limits>
 #include <stdexcept>
 
-#undef min // otherwise we can't work with the numeric_limit template here as Windows defines a macro 'min'
-#undef max // otherwise we can't work with the numeric_limit template here as Windows defines a macro 'max'
+#undef min // otherwise we can't work with the 'numeric_limits' template here as Windows defines a macro 'min'
+#undef max // otherwise we can't work with the 'numeric_limits' template here as Windows defines a macro 'max'
 
 //-----------------------------------------------------------------------------
 template<typename _Ty>

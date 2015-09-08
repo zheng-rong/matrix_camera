@@ -2397,7 +2397,7 @@ public:
     PropertyI64 mvSmearReduction;
     /// \brief An enumerated integer property. mvRecord is used to store frames in memory. mvPlayback transfers stored frames. mvPretrigger stores frames in memory to be transferred after trigger.
     /**
-     *  mvRecord is used to store frames in memory. mvPlayback transfers stored frames. mvPretrigger stores frames in memory to be transfered after trigger.
+     *  mvRecord is used to store frames in memory. mvPlayback transfers stored frames. mvPretrigger stores frames in memory to be transferred after trigger.
      *
      *  The following string values might be valid for this feature:
      *  - \b Default (Display string: 'mv Acquisition Memory Mode'): Default memory mode.
@@ -8197,7 +8197,7 @@ public:
     Method transferAbort;
     /// \brief A method object. Pauses the streaming of data Block(s).
     /**
-     *  Pauses the streaming of data Block(s). Pausing the streaming will immediately suspend the ongoing data transfer even if a block is partially transfered. The device will resume its transmission at the reception of a TransferResume command.
+     *  Pauses the streaming of data Block(s). Pausing the streaming will immediately suspend the ongoing data transfer even if a block is partially transferred. The device will resume its transmission at the reception of a TransferResume command.
      */
     Method transferPause;
     /// \brief A method object. Resumes a data Blocks streaming that was previously paused by a TransferPause command.

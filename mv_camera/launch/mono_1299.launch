@@ -1,20 +1,20 @@
 <launch>
 
     <arg name="vehicle" default="mono"/>
-    <!--param name="ext_trig" type="bool" value="true" /-->
 
-        <node
-                pkg="mv_camera" 
-                type="mv_camera_node" 
-                name="mono_camera_node" 
-                output="screen">
-        <param name="guid" value="MV_CAMERA_25001299" />
-        <param name="frame_rate" value="20" />
-        <param name="pixel_clock" value="40."/>
-        <param name="use_ros_time" value="true" />
-        <remap from="camera" to="mono" />
-        </node>
+    <node
+            pkg="mv_camera" 
+            type="mv_camera_node" 
+            name="mono_camera_node" 
+            output="screen">
+    <param name="guid" value="MV_CAMERA_25001299" />
+    <param name="frame_rate" value="20" />
+    <param name="pixel_clock" value="40."/>
+    <param name="use_ros_time" value="true" />
+    <remap from="camera" to="$(arg vehicle)" />
+    </node>
 
+    <group ns="$(arg vehicle)">
 
     <!-- configure the cameras -->
     <node   
@@ -30,6 +30,8 @@
     <param name="auto_gain" value="On"/>
     <param name="hdr_mode" value="Off"/>
     </node>
+
+    </group>
 
     <!--Overlapped 
     BinningHV Off-->

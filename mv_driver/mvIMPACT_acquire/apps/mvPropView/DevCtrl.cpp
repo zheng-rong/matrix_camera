@@ -160,7 +160,10 @@ void DevicePropertyHandler::CheckForWizards( mvIMPACT::acquire::Device* pDev, De
         transform( manufacturer.begin(), manufacturer.end(), manufacturer.begin(), ptr_fun<int, int>( tolower ) );
         if( manufacturer.find( "matrix vision" ) != string::npos )
         {
-            pDevData->supportedWizards.insert( make_pair( wQuickSetup, set<HOBJ>() ) );
+            if( pDev->interfaceLayout.read() == dilGenICam )
+            {
+                pDevData->supportedWizards.insert( make_pair( wQuickSetup, set<HOBJ>() ) );
+            }
         }
     }
     else if( product.find( "mvBlueFOX" ) != string::npos )

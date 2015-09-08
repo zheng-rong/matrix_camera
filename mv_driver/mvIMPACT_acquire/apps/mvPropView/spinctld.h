@@ -31,7 +31,7 @@ Differences to wxSpinCtrl:
 
     SetDigits controls the format of the text, # decimal places
         exponential uses the %.Xle format otherwise %.Xlf, where places = X
-        for arbitray formats subclass control and override SyncSpinToText()
+        for arbitrary formats subclass control and override SyncSpinToText()
         for proper behavior when a user types in a value
 */
 
@@ -172,7 +172,7 @@ public:
     {
         SetValue( m_default_value );
     }
-    // Set the value of the default value, default is the inital value.
+    // Set the value of the default value, default is the initial value.
     void SetDefaultValue( double default_value );
     // Force the value to always be divisible by the increment, initially off.
     //   This uses the default_value as the basis, you'll get strange results

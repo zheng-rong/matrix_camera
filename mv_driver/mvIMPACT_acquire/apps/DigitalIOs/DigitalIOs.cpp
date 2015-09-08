@@ -10,7 +10,7 @@
 #include <vector>
 #ifdef _WIN32
 #   include <windows.h> // for 'Sleep'
-#elif defined(linux)
+#elif defined(linux) || defined(__linux) || defined(__linux__)
 #   include <unistd.h> // for 'usleep'
 #else
 #   error unsupported target platform

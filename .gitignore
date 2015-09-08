@@ -1,0 +1,15 @@
+/mv_driver/compile_flags
+/mv_driver/downloadandinstall
+/mv_driver/linker_paths
+/mv_driver/mvBlueFOX_runtime/
+/mv_driver/mvBlueFOX_scripts/
+/mv_driver/*.dox
+
+/mv_camera/bin
+/mv_camera/build/
+/mv_camera/srv_gen/
+/mv_camera/lib/
+/mv_camera/*.dox
+
+
+

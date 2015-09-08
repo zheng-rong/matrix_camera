@@ -8,9 +8,9 @@
     printf( "Press [ENTER] to end the application.\n" );    \
     getchar();                                              \
     return 1;
-#ifdef linux
+#if defined(linux) || defined(__linux) || defined(__linux__)
 unsigned   waitForInput( int maxWait_sec, int fd );
-#endif // #ifdef linux
+#endif // #if defined(linux) || defined(__linux) || defined(__linux__)
 
 int        getIntValFromSTDIn( void );
 int        getPropI( HOBJ hProp, int index );

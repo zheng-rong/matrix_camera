@@ -5001,10 +5001,10 @@ public:
  *  other objects available in this interface.
  *
  *  Almost every object requiering a valid pointer to a \b mvIMPACT::acquire::Device object will
- *  need to device in an initialised state as the properties provided e.g. by the
- *  class \b mvIMPACT::acquire::CameraSettingsBase will be constructed when the device is initialised.
- *  To initialise a device this class provides the function \b Device::open.
- *  However every object which needs an initialised device to be constructed
+ *  need to device in an initialized state as the properties provided e.g. by the
+ *  class \b mvIMPACT::acquire::CameraSettingsBase will be constructed when the device is initialized.
+ *  To initialize a device this class provides the function \b Device::open.
+ *  However every object which needs an initialized device to be constructed
  *  successfully will try to open the device when it hasn't been opened before, so
  *  the user does not need to call this function explicitly.
  *
@@ -5187,7 +5187,7 @@ public:
     /**
      *
      *  \note
-     *  This identifier is only valid, if the device has been initialised
+     *  This identifier is only valid, if the device has been initialized
      *  before by a call to \b Device::open
      */
     HDRV hDrv( void ) const
@@ -5223,7 +5223,7 @@ public:
      *  \sa
      *  \b Device::open, \n \b Device::close
      *  \return
-     *  - true if the device is initialised(opened) in the current process.
+     *  - true if the device is initialized(opened) in the current process.
      *  - false otherwise.
      */
     bool isOpen( void ) const
@@ -5977,12 +5977,12 @@ public:
     /// \brief Updates the internal device list.
     /**
      *  Most devices can't appear out of nowhere. For example a PCI device is
-     *  either connected to the current system when the device manager is initialised
+     *  either connected to the current system when the device manager is initialized
      *  or not but it will never appear at runtime after this instance of \b mvIMPACT::acquire::DeviceManager
      *  has been created.
      *
      *  However certain device classes (e.g. network devices) might be connected to
-     *  the system \b AFTER the device manager has been initialised. Some will announce themselves
+     *  the system \b AFTER the device manager has been initialized. Some will announce themselves
      *  like e.g. USB devices, which will send a message to every application interested while others
      *  like e.g. network devices wont. In order not to
      *  pollute the network or bus with constant rescan messages no polling is done inside the driver.
@@ -7334,7 +7334,7 @@ public:
      *  This is the property where the so called block ID will be stored.
      */
     PropertyI64 infoFrameID;
-    /// \brief A 64 bit integer property \b (read-only) containing the number of images captured since the driver has been initialised including the current image.
+    /// \brief A 64 bit integer property \b (read-only) containing the number of images captured since the driver has been initialized including the current image.
     PropertyI64 infoFrameNr;
     /// \brief An integer property \b (read-only) containing a timestamp (in us) defining the time the device started the exposure of the image associated with this \b mvIMPACT::acquire::Request object.
     /**
@@ -8366,7 +8366,7 @@ public:
     /// \brief Creates a new \b mvIMPACT::acquire::ImageRequestControl object.
     /**
      *  This function creates a new \b mvIMPACT::acquire::ImageRequestControl based on an existing one. New \b mvIMPACT::acquire::ImageRequestControl instances can only be derived
-     *  from \b mvIMPACT::acquire::ImageRequestControl instances that already exist. When the driver has been initialised there will at least be
+     *  from \b mvIMPACT::acquire::ImageRequestControl instances that already exist. When the driver has been initialized there will at least be
      *  one base \b mvIMPACT::acquire::ImageRequestControl called 'Base', which acts as the base for all other request controls.
      *
      *  All \b mvIMPACT::acquire::ImageRequestControl constructed by the application must be derived either from this base or any of its children using this function.
@@ -8401,7 +8401,7 @@ public:
     /// \brief Creates a new setting.
     /**
      *  This function creates a new setting base on an existing one. New settings can only be derived
-     *  from settings that already exist. When the driver has been initialised there will at least be
+     *  from settings that already exist. When the driver has been initialized there will at least be
      *  one base setting called 'Base', which acts as the base for all other settings.
      *
      *  When a new setting is created it derives all the properties from the parent setting. That means
@@ -9677,7 +9677,7 @@ public:
     PropertyF blueGain;
     /// \brief An enumerated integer property \b (read-only) containing the result of the last white balance calibration.
     /**
-     *  After the \b mvIMPACT::acquire::Device has been initialised, the value of this property will be
+     *  After the \b mvIMPACT::acquire::Device has been initialized, the value of this property will be
      *  \b mvIMPACT::acquire::bwbrUnknown.
      *
      *  Valid values for this property are defined by the enumeration \b mvIMPACT::acquire::TBayerWhiteBalanceResult.
@@ -10113,6 +10113,13 @@ class ImageProcessing : public ComponentCollection
             locator.bindComponent( formatReinterpreterEnable, "FormatReinterpreterEnable" );
             locator.bindComponent( formatReinterpreterMode, "FormatReinterpreterMode" );
         }
+        locator.bindSearchBase( m_hRoot );
+        if( locator.findComponent( "Rotation" ) != INVALID_ID )
+        {
+            locator.bindSearchBase( m_hRoot, "Rotation" );
+            locator.bindComponent( rotationEnable, "RotationEnable" );
+            locator.bindComponent( rotationAngle, "RotationAngle" );
+        }
     }
     //-----------------------------------------------------------------------------
     void dealloc( void )
@@ -10153,7 +10160,7 @@ public:
         colorTwistOutputCorrectionMatrixEnable(), colorTwistOutputCorrectionMatrixMode(),
         colorTwistOutputCorrectionMatrixRow0(), colorTwistOutputCorrectionMatrixRow1(), colorTwistOutputCorrectionMatrixRow2(),
         colorTwistResultingMatrixRow0(), colorTwistResultingMatrixRow1(), colorTwistResultingMatrixRow2(),
-        formatReinterpreterEnable(), formatReinterpreterMode()
+        formatReinterpreterEnable(), formatReinterpreterMode(), rotationEnable(), rotationAngle()
     {
         DeviceComponentLocator locator( pDev, dltSetting, settingName );
         m_pRefData = new ReferenceCountedData( pDev->hDrv(), locator.searchbase_id() );
@@ -10270,7 +10277,8 @@ public:
         colorTwistResultingMatrixRow1( src.colorTwistResultingMatrixRow1 ),
         colorTwistResultingMatrixRow2( src.colorTwistResultingMatrixRow2 ),
         formatReinterpreterEnable( src.formatReinterpreterEnable ),
-        formatReinterpreterMode( src.formatReinterpreterMode )
+        formatReinterpreterMode( src.formatReinterpreterMode ),
+        rotationEnable( src.rotationEnable ), rotationAngle( src.rotationAngle )
     {
         ++( m_pRefData->m_refCnt );
     }
@@ -10621,6 +10629,16 @@ public:
      *  Valid values for this property are defined by the enumeration \b mvIMPACT::acquire::TImageBufferFormatReinterpreterMode.
      */
     PropertyIImageBufferFormatReinterpreterMode formatReinterpreterMode;
+    /// \brief An enumerated integer property which can be used to enable/disable the rotation filter.
+    /**
+     *  Valid values for this property are defined by the enumeration \b mvIMPACT::acquire::TBoolean.
+     */
+    PropertyIBoolean rotationEnable;
+    /// \brief The counterclockwise angle at which the image will be rotated.
+    /**
+     *  This property will store the counterclockwise angle at which the image will be rotated.
+     */
+    PropertyF rotationAngle;
     PYTHON_ONLY( %mutable; )
     /// \brief Sets the saturation by using the color twist matrix.
     /**
@@ -16816,7 +16834,7 @@ public:
     /// \brief Stores the current camera description on disc.
     /**
      *  This function can be used to store the current settings of a camera description
-     *  permanently so that the next time the driver is initialised these settings are restored.
+     *  permanently so that the next time the driver is initialized these settings are restored.
      *
      *  When exporting a camera description a file in XML format will be written to disc. Under
      *  Windows&reg; camera descriptions will be stored under
@@ -16865,7 +16883,7 @@ public:
      *  while under other platforms these files MUST be located in the current working directory.
      *  This behaviour can be modified by writing the property \b mvIMPACT::acquire::Device::customDataDirectory before initialising the device.
      *  To get access to a XML description file within the application, these file must be copied to
-     *  this directory \b BEFORE the device is initialised. During the init process the
+     *  this directory \b BEFORE the device is initialized. During the init process the
      *  device driver will process every file located under this location and will add them to
      *  the internal list of descriptions. Every camera located during this process and also descriptions
      *  created later on during the program operation can be selected via the property
@@ -16880,7 +16898,7 @@ public:
      *  drivers internal list and will therefore be accessible via the
      *  \b mvIMPACT::acquire::CameraDescriptionManager.
      *
-     *  To restore the default values valid during the driver was initialised the function
+     *  To restore the default values valid during the driver was initialized the function
      *  \b mvIMPACT::acquire::ComponentCollection::restoreDefault can be used as well.
      *
      *  \sa

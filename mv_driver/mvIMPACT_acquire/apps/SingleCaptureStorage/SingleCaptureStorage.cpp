@@ -15,7 +15,7 @@ using namespace mvIMPACT::acquire::display;
 using namespace std;
 using namespace mvIMPACT::acquire;
 
-#ifdef linux
+#if defined(linux) || defined(__linux) || defined(__linux__)
 #   define NO_DISPLAY
 #   include <stdint.h>
 #   include <stdio.h>
@@ -64,15 +64,15 @@ typedef struct tagBITMAPFILEHEADER
 } BMP_ATTR_PACK BITMAPFILEHEADER, *PBITMAPFILEHEADER;
 #else
 #   undef NO_DISPLAY
-#endif
+#endif // #if defined(linux) || defined(__linux) || defined(__linux__)
 
 //-----------------------------------------------------------------------------
-int SaveBMP( const string& filename, const char* pdata, int XSize, int YSize, int pitch, int bitsPerPixel )
+int SaveBMP( const string& filename, const char* pData, int XSize, int YSize, int pitch, int bitsPerPixel )
 //------------------------------------------------------------------------------
 {
     static const WORD PALETTE_ENTRIES = 256;
 
-    if( pdata )
+    if( pData )
     {
         FILE* pFile = fopen( filename.c_str(), "wb" );
         if( pFile )
@@ -109,7 +109,7 @@ int SaveBMP( const string& filename, const char* pdata, int XSize, int YSize, in
 
                 for( YPos = YStart + YSize - 1; YPos >= YStart; YPos-- )
                 {
-                    if( fwrite( &pdata[YPos * pitch], linelen, 1, pFile ) != 1 )
+                    if( fwrite( &pData[YPos * pitch], linelen, 1, pFile ) != 1 )
                     {
                         cout << "SaveBmp: ERR_WRITE_FILE: " << filename << endl;
                     }
