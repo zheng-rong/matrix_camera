@@ -247,11 +247,6 @@ int main(int argc, char **argv)
     queryService(client_mono,identifier, value);
     callService(client_mono, identifier, value);
 
-    // set the exposion time
-    identifier = "Camera/Expose_us";
-    value = param_expo_time;                        //"10000";
-    queryService(client_mono, identifier, value);
-
     // set the Autogain
     identifier = "Camera/AutoGainControl";
     value = param_auto_gain;
@@ -290,6 +285,11 @@ int main(int argc, char **argv)
         queryService(client_mono,identifier, value);
         callService(client_mono, identifier, value);
     }
+
+    // set the exposion time
+    identifier = "Camera/Expose_us";
+    value = param_expo_time;                        //"10000";
+    queryService(client_mono, identifier, value);
 
     return 0;
 }

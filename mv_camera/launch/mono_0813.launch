@@ -8,9 +8,10 @@
             name="mono_camera_node" 
             output="screen">
     <param name="guid" value="MV_CAMERA_25000813" />
-    <param name="frame_rate" value="30" />
-    <param name="pixel_clock" value="40."/>
     <param name="use_ros_time" value="true" />
+    <param name="pixel_clock" value="40."/>
+    <!-- <param name="exposure" value="5000" /> -->
+    <param name="frame_rate" value="30" />
     <remap from="camera" to="$(arg vehicle)" />
     </node>
 
@@ -26,14 +27,18 @@
     <param name="binn_mode" value="Off"/>
     <param name="auto_expo" value="Off"/>
     <param name="expo_mode" value="Overlapped"/>      
-    <param name="expo_time" value="15000"/>
+    <param name="expo_time" value="12000"/>
     <param name="auto_gain" value="Off"/>
-    <param name="hdr_mode" value="On"/>
+    <param name="hdr_mode" value="Off"/>
     </node>
 
     </group>
 
-    <!--Overlapped  Standard
+    <!--
+        1299
+        0813
+        0815
+    Overlapped  Standard
     BinningHV Off-->
 
 </launch> 
