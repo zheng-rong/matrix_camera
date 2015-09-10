@@ -7,7 +7,7 @@
             type="mv_camera_node" 
             name="mono_camera_node" 
             output="screen">
-    <param name="guid" value="MV_CAMERA_25001299" />
+    <param name="guid" value="MV_CAMERA_25001494" />
     <param name="use_ros_time" value="true" />
     <param name="pixel_clock" value="40."/>
     <param name="binning_x" value="0" />
@@ -29,7 +29,7 @@
             type="modify_mono_settings" 
             output="screen">
     <param name="ext_trig" value="true"/>
-    <param name="binn_mode" value="Off"/>
+    <param name="binn_mode" value="BinningHV"/>
     <param name="auto_expo" value="Off"/>
     <param name="expo_mode" value="Overlapped"/>      
     <param name="expo_time" value="12000"/>
