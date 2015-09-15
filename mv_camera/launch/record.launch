@@ -1,0 +1,20 @@
+<launch>
+
+<arg name="vehicle" default="hummer"/>
+<arg name="filename" default="realbag"/>
+
+<group ns="$(arg vehicle)">
+
+	<node	pkg="rosbag"
+			type="record"
+			name="record"
+			output="screen"
+			args="-O /home/arkin/dataset_real/hummer-high/$(arg filename)
+			/sync/image_rect
+			/sync/gpio_time
+			/icc/imu"
+			/>
+			
+</group>
+
+</launch>
