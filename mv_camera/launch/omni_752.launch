@@ -16,6 +16,6 @@
 
     <param name="input_topic" value="/mono/image_raw" />
     <param name="output_topic" value="/mono/image_rect" />
-
+	<param name="output_file" value="mono_k.yaml"/>
   </node>
 </launch>
