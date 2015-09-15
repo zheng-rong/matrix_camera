@@ -1,15 +1,18 @@
 <launch>
 
-    <arg name="vehicle" default="hummer"/>
+<arg name="vehicle" default="hummer"/>
 
-    <group ns="$(arg vehicle)">
-    <node
-            pkg="mv_camera"
-            name="syncer"
-            type="sync_mono_imu"
-            output="screen"
-            />
+	<!-- <group ns="$(arg vehicle)"> -->
 
-    </group>
+	<node
+			pkg="mv_camera"
+			name="syncer"
+			type="sync_mono_imu"
+			output="screen">
+	<param name="image_rect_topic" value="/mono/image_rect"/>
+	<param name="gpio_time_topic" value="/icc/gpio_time"/>
+	</node>
+
+	<!-- </group> -->
 
 </launch> 

@@ -1,0 +1,21 @@
+<launch>
+  <node name="undistort_node" pkg="camera_models" type="undistort_node" output="screen">
+    <param name="k1" value="-0.11279946910643121"/>
+    <param name="k2" value="0.6653762601934388"/>
+    <param name="p1" value="0.0011035394635181127" />
+    <param name="p2" value="0.0007179509793586334" />
+
+    <param name="fx" value="1001.6319622078896"/>
+    <param name="fy" value="1000.6344905483273" />
+    <param name="cx" value="371.386323774267"/>
+    <param name="cy" value="243.4542333928459" />
+    <param name="xi" value="2.2382942679062823" />
+
+    <param name="width" value="752" />
+    <param name="height" value="480" />
+
+    <param name="input_topic" value="/mono/image_raw" />
+    <param name="output_topic" value="/mono/image_rect" />
+
+  </node>
+</launch>
