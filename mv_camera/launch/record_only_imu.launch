@@ -10,8 +10,6 @@
 			name="record"
 			output="screen"
 			args="-O /home/zheng/dataset_real/hummer-high/$(arg filename)
-			/sync/image_rect
-			/sync/gpio_time
 			/icc/imu"
 			/>
 			
