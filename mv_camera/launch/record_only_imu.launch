@@ -9,7 +9,7 @@
 			type="record"
 			name="record"
 			output="screen"
-			args="-O /home/zheng/dataset_real/hummer-high/$(arg filename)
+			args="-O /home/zheng/Dropbox/AAA_MVO/dataset_real/IMU_evaluation/$(arg filename)
 			/icc/imu"
 			/>
 			
