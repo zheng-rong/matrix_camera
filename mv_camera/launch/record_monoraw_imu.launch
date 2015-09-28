@@ -1,7 +1,7 @@
 <launch>
 
 <arg name="vehicle" default="hummer"/>
-<arg name="filename" default="realbag"/>
+<arg name="filename" default="kalibr_bag"/>
 
 <group ns="$(arg vehicle)">
 
@@ -9,10 +9,9 @@
 			type="record"
 			name="record"
 			output="screen"
-			args="-O /home/arkin/dataset_real/hummer-high/$(arg filename)
-			/sync/image_rect
-			/sync/gpio_time
-			/icc/imu"
+			args="-O /home/arkin/dataset_real/kalibr_bags/$(arg filename)
+			/icc/imu
+			/mono/image_raw"
 			/>
 			
 </group>
