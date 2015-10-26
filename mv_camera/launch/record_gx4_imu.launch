@@ -1,0 +1,18 @@
+<launch>
+
+<arg name="vehicle" default="hummer"/>
+<arg name="filename" default="realbag"/>
+
+<!-- <group ns="$(arg vehicle)"> -->
+
+	<node	pkg="rosbag"
+			type="record"
+			name="record"
+			output="screen"
+			args="-O /home/arkin/Dropbox/AAA_MVO/dataset_real/IMU_evaluation/$(arg filename)
+			/imu/imu"
+			/>
+			
+<!-- </group> -->
+
+</launch>
