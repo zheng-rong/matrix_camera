@@ -2,8 +2,8 @@
 
 TOP_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-source ~/ros_code/sandbox/stereo_visual_odometry/wet/devel/setup.sh
-source ~/ros_code/sandbox/stereo_visual_odometry/dry/install_isolated/setup.sh --extend
+source ~/ros_code/sandbox/mvo_sandbox/wet/devel/setup.sh
+source ~/ros_code/sandbox/mvo_sandbox/dry/install_isolated/setup.sh --extend
 export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:${TOP_DIR}
 
 env | grep ROS_PACKAGE_PATH
