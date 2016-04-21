@@ -15,7 +15,7 @@
     <param name="hdr_mode" value="off" />
     <param name="gain_auto" value="false" />
     <param name="shutter_auto" value="false" />
-    <param name="shutter" value="0.016" />
+    <param name="shutter" value="0.040" />
     <param name="frame_rate" value="20" />
     <remap from="camera" to="$(arg vehicle)" />
     </node>
@@ -30,19 +30,16 @@
             output="screen">
     <param name="ext_trig" value="true"/>
     <param name="binn_mode" value="Off"/>
-    <param name="auto_expo" value="Off"/>
+    <param name="auto_expo" value="On"/>
     <param name="expo_mode" value="Overlapped"/>      
-    <param name="expo_time" value="12000"/>
+    <param name="expo_time" value="8000"/>
     <param name="auto_gain" value="Off"/>
-    <param name="hdr_mode" value="On"/>
+    <param name="hdr_mode" value="Off"/>
     </node>
 
     </group>
 
     <!--
-        1299
-        0813
-        0815
     Overlapped  Standard
     BinningHV Off-->
 
