@@ -1,7 +1,7 @@
 <launch>
 
 <arg name="vehicle" default="hummer"/>
-<arg name="filename" default="kalibr_bag"/>
+<arg name="filename" default="data_mono_imu"/>
 
 <group ns="$(arg vehicle)">
 
@@ -9,8 +9,8 @@
 			type="record"
 			name="record"
 			output="screen"
-			args="-O /home/arkin/dataset_real/kalibr_bags/$(arg filename)
-			/icc/imu
+			args="-O /home/arkin/dataset/kalibr_bags/$(arg filename)
+			/itc/imu
 			/mono/image_raw"
 			/>
 			

@@ -9,7 +9,7 @@
 
 using namespace std;
 
-#define IMAGE_FRAME_TIME_TOLERANCE 3.5e-2     //25ms
+#define IMAGE_FRAME_TIME_TOLERANCE 2.5e-2     //25ms
 
 // buffer used to store the msgs
 std::vector<sensor_msgs::CameraInfo> mono_info_buff(0);
@@ -56,7 +56,7 @@ void mono_info_callback(const sensor_msgs::CameraInfoConstPtr& info)
 }
 
 //=======================================================================================
-// correct the mono image time stamp with px4-gpio time domain
+// correct the mono image time stamp with gpio time domain
 //=======================================================================================
 int main(int argc, char **argv)
 {
@@ -65,7 +65,7 @@ int main(int argc, char **argv)
 
     std::string ns = nh.getNamespace();
 
-    std::string sub_time_topic_name = "/icc/gpio_time";
+    std::string sub_time_topic_name = "/itc/gpio_time";
     std::string sub_mono_image_topic_name = "/mono/image_rect";
     //std::string sub_mono_info_topic_name = "/mono/camera_info";
     //std::string sub_imu_topic_name = ros::names::append(ns, "imu/imu");

@@ -1,15 +1,12 @@
 <launch>
 
-  <arg name="bagfile" default="calibration_data"/>
-
-
-
+  <arg name="bagfile" default="data_only_mono"/>
 
   <node pkg="rosbag"
         type="record"
         name="record"
         output="screen"
-        args="-O /home/arkin/dataset/calibration/$(arg bagfile)
+        args="-O /home/arkin/dataset/kalibr_bags/$(arg bagfile)
           /mono/image_raw "
           />
 
