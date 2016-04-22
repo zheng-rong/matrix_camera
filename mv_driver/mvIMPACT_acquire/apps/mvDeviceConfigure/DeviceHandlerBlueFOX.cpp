@@ -19,20 +19,21 @@ bool DeviceHandlerBlueFOX::SupportsKernelDriverUpdate( bool& boNewerDriverAvaila
 int DeviceHandlerBlueFOX::UpdateFirmware( bool boSilentMode, bool /*boPersistentUserSets*/ )
 //-----------------------------------------------------------------------------
 {
-    ConvertedString serial( pDev_->serial.read() );
+    const ConvertedString serial( pDev_->serial.read() );
+    const ConvertedString product( pDev_->product.read() );
     if( MessageToUser( wxT( "Firmware Update" ), wxString::Format( wxT( "Are you sure you want to update the firmware of device %s?" ), serial.c_str() ), boSilentMode, wxNO_DEFAULT | wxYES_NO | wxICON_INFORMATION ) &&
         MessageToUser( wxT( "Information" ), wxT( "The firmware will now be updated. During this time(approx. 30 sec.) the application will not react. Please be patient." ), boSilentMode, wxOK | wxICON_INFORMATION ) )
     {
         if( pParent_ )
         {
-            pParent_->WriteLogMessage( wxString::Format( wxT( "Updating firmware of device %s. This might take some time. Please be patient.\n" ), serial.c_str() ) );
+            pParent_->WriteLogMessage( wxString::Format( wxT( "Updating firmware of device %s(%s). This might take some time. Please be patient.\n" ), serial.c_str(), product.c_str() ) );
         }
         int result = pDev_->updateFirmware();
         if( pParent_ )
         {
             if( result == DMR_FEATURE_NOT_AVAILABLE )
             {
-                pParent_->WriteLogMessage( wxString::Format( wxT( "Device %s doesn't support firmware updates.\n" ), serial.c_str() ) );
+                pParent_->WriteLogMessage( wxString::Format( wxT( "Device %s(%s) doesn't support firmware updates.\n" ), serial.c_str(), product.c_str() ) );
             }
             else if( result != DMR_NO_ERROR )
             {
@@ -45,7 +46,7 @@ int DeviceHandlerBlueFOX::UpdateFirmware( bool boSilentMode, bool /*boPersistent
         }
         if( pDev_->HWUpdateResult.read() == urUpdateFWOK )
         {
-            MessageToUser( wxT( "Update Result" ), wxString::Format( wxT( "Update successful. Please disconnect and reconnect device %s now to activate the new firmware." ), ConvertedString( serial ).c_str() ), boSilentMode, wxOK | wxICON_INFORMATION );
+            MessageToUser( wxT( "Update Result" ), wxString::Format( wxT( "Update successful. Please disconnect and reconnect device %s(%s) now to activate the new firmware." ), serial.c_str(), product.c_str() ), boSilentMode, wxOK | wxICON_INFORMATION );
         }
         return urOperationSuccessful;
     }
@@ -53,7 +54,7 @@ int DeviceHandlerBlueFOX::UpdateFirmware( bool boSilentMode, bool /*boPersistent
     {
         if( pParent_ )
         {
-            pParent_->WriteLogMessage( wxString::Format( wxT( "Firmware update canceled for device %s.\n" ), ConvertedString( serial ).c_str() ) );
+            pParent_->WriteLogMessage( wxString::Format( wxT( "Firmware update canceled for device %s(%s).\n" ), serial.c_str(), product.c_str() ) );
         }
         return urOperationCanceled;
     }

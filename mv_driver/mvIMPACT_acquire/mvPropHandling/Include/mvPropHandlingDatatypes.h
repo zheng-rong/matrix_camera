@@ -158,23 +158,7 @@ enum TComponentFlag // flags_attribute, uint_type
      *  that the number of values stored in the property can't be modified.
      */
     cfFixedSize = 0x4,
-    /// \brief The component uses memory managed by the caller.
-    /**
-     *  If this flag is set this component uses user allocated memory for data storage (only implemented for
-     *  properties). If this is the case the property behaves slightly different:
-     *  - cloning still uses the same memory for property values instead of making its own copy
-     *    of the values
-     *  - a string property can't be assigned using other types like int or float.
-     *  - if a property is not \e <b>mvIMPACT::acquire::cfFixedSize</b> and is assigned a different
-     *    number of values no check for sufficient memory is performed and <b>NO</b> new memory is allocated.
-     *  - the memory used by the property is never free, moved or modified in size by the property.
-     *    At all times the user is responsible for this.
-     *
-     *  \note
-     *  If this flag is specified for a component, which is not a property, it will have no
-     *  effect on the behaviour of the component.
-     */
-    cfUserAllocatedMemory = 0x8,
+    //cfUserAllocatedMemory = 0x8, // no longer supported
     /// \brief The component is shadowed by other settings currently if set.
     /**
      *  This flag is used to specify that this component currently has no effect on the behaviour
@@ -274,6 +258,36 @@ enum TValueType // flags_attribute, uint_type, internal_attribute
 };
 
 //-----------------------------------------------------------------------------
+/// \brief Defines valid recommended representations for features.
+/**
+ *  These representations can be used to create a suitable GUI editor for a features.
+ */
+/// \ingroup CommonInterface
+enum TComponentRepresentation
+//-----------------------------------------------------------------------------
+{
+    crUndefined = 0,
+    /// \brief Defines a feature with linear behaviour. One possible editor would be a slider with linear behaviour.
+    crLinear,
+    /// \brief Defines a feature with logarithmic behaviour. One possible editor would be a slider with logarithmic behaviour.
+    crLogarithmic,
+    /// \brief Defines a boolean feature. This could be displayed to the user as a check box.
+    crBoolean,
+    /// \brief Defines a feature representing a pure number. This could be displayed to the user as an edit control.
+    crPureNumber,
+    /// \brief Defines a feature representing a hexadecimal number.
+    crHexNumber,
+    /// \brief Defines a feature representing an IPv4 address. This could be displayed to the user as a custom IPv4 edit control.
+    crIPv4Address,
+    /// \brief Defines a feature representing a MAC address. This could be displayed to the user as a custom MAC address edit control.
+    crMACAddress,
+    /// \brief Defines a feature representing a file name. This could be displayed to the user as a file selection dialog.
+    crFileName,
+    /// \brief Defines a feature representing a directory name. This could be displayed to the user as a directory selection dialog.
+    crDirectoryName
+};
+
+//-----------------------------------------------------------------------------
 /// \brief Allowed components handled by this module.
 /**
  *  This module can handle the types listed in this enumeration only.
@@ -298,7 +312,7 @@ enum TComponentType // flags_attribute, uint_type
     ctList = 0x00020000,
     /// \brief A method object.
     /**
-     *  Method objects provide the possibility to organise functions in lists.
+     *  Method objects provide the possibility to organize functions in lists.
      */
     ctMeth = 0x00040000,
     /// \brief Defines a property for 32 bit integer values.
@@ -407,15 +421,7 @@ enum TPROPHANDLING_ERROR
      *  \b [-2006]
      */
     PROPHANDLING_INCOMPATIBLE_COMPONENTS = -2006,
-    /// \brief This property doesn't use user defined memory.
-    /**
-     *  The caller tried to relocate the user defined memory for a property,
-     *  that doesn't reference user defined memory but uses the internal memory
-     *  management.
-     *
-     *  \b [-2007]
-     */
-    PROPHANDLING_NO_USER_ALLOCATED_MEMORY = -2007,
+    //PROPHANDLING_NO_USER_ALLOCATED_MEMORY = -2007, // no longer supported
     /// \brief One or more of the specified parameters are not supported by the function.
     /**
      *  \b [-2008]
@@ -851,6 +857,7 @@ enum TScope
 typedef enum TCallbackType TCallbackType;
 typedef enum TComponentFlag TComponentFlag;
 typedef enum TValueType TValueType;
+typedef enum TComponentRepresentation TComponentRepresentation;
 typedef enum TComponentType TComponentType;
 typedef enum TComponentVisibility TComponentVisibility;
 typedef enum TPROPHANDLING_ERROR TPROPHANDLING_ERROR;

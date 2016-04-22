@@ -47,7 +47,7 @@ clean strip new build x86_64 info native:
 				if [ -e $$DRV_DIR/Makefile ];								\
 				then														\
 					echo "make in :"$$DRV_DIR;							\
-					$(MAKE) -j4 --silent -C $$DRV_DIR $@ || exit $$?; \
+					$(MAKE) --silent -C $$DRV_DIR $@ || exit $$?;		\
 				fi;															\
 			fi																\
 		)																	\

@@ -15,7 +15,7 @@ class wxToggleButton;
 
 //-----------------------------------------------------------------------------
 class WizardQuickSetup : public OkAndCancelDlg
-//-----------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------
 {
 protected:
     //-----------------------------------------------------------------------------
@@ -25,17 +25,21 @@ protected:
         wbcRed,
         wbcBlue
     };
+    //-----------------------------------------------------------------------------
+    enum TOptimizationLevel
+    //-----------------------------------------------------------------------------
+    {
+        olBestQuality,
+        olHighestSpeed
+    };
+    void                                UpdateFramerateWarningBitmap( bool boIsFrameRateMax );
 public:
-    explicit                            WizardQuickSetup( PropViewFrame* pParent, const wxString& title, bool boShowAtStartup );
+    explicit                            WizardQuickSetup( PropViewFrame* pParent, const wxString& title );
     void                                ReferToNewDevice( Device* pDev );
     void                                RestoreWizardConfiguration( void );
     void                                SaveWizardConfiguration( void );
     void                                ShowImageTimeoutPopup( void );
     void                                UpdateControlsData( void );
-    bool                                MustShowAtStartup( void ) const
-    {
-        return pCBShowDialogAtStartup_->IsChecked();
-    }
     bool                                IsGenICam( void )
     {
         return pDev_->interfaceLayout.read() == dilGenICam;
@@ -57,7 +61,10 @@ public:
         double                          saturation;
         bool                            boCCMEnabled;
         double                          frameRate;
-        bool                            boAutoFrameRateEnabled;
+        double                          maxFrameRateAtCurrentAOI;
+        double                          maxAllowedHQFrameRateAtCurrentAOI;
+        double                          autoExposureUpperLimit;
+        bool                            boMaximumFrameRateEnabled;
 
         double                          analogGainMin;
         double                          analogGainMax;
@@ -69,8 +76,12 @@ public:
         double                          digitalBlackLevelMax;
 
         bool                            boColorEnabled;
+        bool                            boDeviceSpecificOverlappedExposure;
+        bool                            boSettingsHaveNotYetBeenSavedEvenOnce;
+        TOptimizationLevel              optimizationLevel;
         std::string                     imageFormatControlPixelFormat;
-        std::string                     imageDestinationPixelFormat;
+        TImageDestinationPixelFormat    imageDestinationPixelFormat;
+        std::string                     pixelClock;
     };
 
     //-----------------------------------------------------------------------------
@@ -82,9 +93,10 @@ public:
         bool                            boAutoExposureSupport;
         bool                            boAutoGainSupport;
         bool                            boAutoWhiteBalanceSupport;
-        bool                            boAutoFrameRateSupport;
+        bool                            boMaximumFrameRateSupport;
         bool                            boRegulateFrameRateSupport;
         bool                            boColorOptionsSupport;
+        bool                            boPlatformIPPSuport;
     };
 
     std::string                         currentProductString_;
@@ -95,28 +107,38 @@ public:
 
     virtual void                        CreateInterfaceLayoutSpecificControls( Device* pDev ) = 0;
     virtual void                        DeleteInterfaceLayoutSpecificControls( void ) = 0;
-    virtual void                        DoConfigureFrameRateAuto( bool /*boActive*/, double /*frameRateValue*/ ) {}
+    virtual double                      DetermineMaxFrameRateAtCurrentAOI( void ) = 0;
+    virtual double                      DetermineOptimalHQFrameRateAtCurrentAOI( void ) = 0;
+    virtual void                        DoConfigureFrameRateMaximum( bool /*boActive*/, double /*frameRateValue*/ ) {}
     virtual double                      DoReadUnifiedBlackLevel( void ) const = 0;
     virtual double                      DoReadUnifiedGain( void ) const = 0;
     virtual void                        DoSetAcquisitionFrameRateLimitMode( void ) {}
     virtual void                        DoWriteUnifiedGain( double value ) const = 0;
-    virtual void                        DoWriteUnifiedBlackLevelData( double value ) = 0;
+    virtual void                        DoWriteUnifiedBlackLevelData( double value ) const = 0;
     void                                DoSetupFrameRateControls( double frameRateRangeMin, double frameRateRangeMax, double frameRate );
     void                                DoSetupExposureControls( double exposureMin, double exposureMax, double exposure, bool boHasStepWidth, double increment );
     void                                DoSetupGainControls( double gainUnifiedRangeMin, double gainUnifiedRangeMax, double gain );
     void                                DoSetupBlackLevelControls( double blackLevelUnifiedRangeMin, double blackLevelUnifiedRangeMax, double blackLevel );
     void                                DoSetupWhiteBalanceControls( double whiteBalanceRMin, double whiteBalanceRMax, double whiteBalanceR, double whiteBalanceBMin, double whiteBalanceBMax, double whiteBalanceB );
-    virtual double                      GetExposureTime( void ) = 0;
+    TOptimizationLevel                  GetOptimizationLevel( void ) const
+    {
+        return static_cast< TOptimizationLevel >( pSLOptimization_->GetValue() );
+    }
+    virtual double                      GetAutoExposureUpperLimit( void ) const = 0;
+    virtual double                      GetExposureTime( void ) const = 0;
+    virtual bool                        GetExposureOverlapped() const = 0;
     virtual bool                        GetFrameRateEnable( void ) const
     {
         return false;
     }
+    std::string                         GetFullPropertyName( Property prop ) const;
+    virtual std::string                 GetPixelClock( void ) const = 0;
     virtual std::string                 GetPixelFormat( void ) const = 0;
     virtual double                      GetWhiteBalance( TWhiteBalanceChannel channel ) = 0;
     virtual bool                        HasAEC( void ) const = 0;
     virtual bool                        HasAGC( void ) = 0;
     virtual bool                        HasAWB( void ) const = 0;
-    virtual bool                        HasAutoFrameRate( void ) const = 0;
+    virtual bool                        HasMaximumFrameRate( void ) const = 0;
     virtual bool                        HasBlackLevel( void ) const = 0;
     virtual bool                        HasColorFormat( void ) const = 0;
     virtual bool                        HasFactoryDefault( void ) const = 0;
@@ -129,6 +151,10 @@ public:
     {
         return false;
     }
+    bool                                HasPlatformIPPSupport( void ) const
+    {
+        return pIP_->colorTwistEnable.isValid();
+    }
 
     virtual void                        InitializeExposureParameters( DeviceSettings& devSettings, const SupportedWizardFeatures& features ) = 0;
     virtual void                        InitializeGainParameters( DeviceSettings& devSettings, const SupportedWizardFeatures& features ) = 0;
@@ -136,10 +162,14 @@ public:
     virtual void                        InitializeWhiteBalanceParameters( DeviceSettings& devSettings, const SupportedWizardFeatures& features ) = 0;
     virtual void                        QueryInterfaceLayoutSpecificSettings( DeviceSettings& devSettings ) = 0;
     virtual void                        RestoreFactoryDefault( void ) = 0;
-    virtual void                        SelectColorPixelFormat( void ) = 0;
-    virtual void                        SelectGreyscalePixelFormat( void ) = 0;
+    virtual void                        SelectOptimalPixelFormatColor( bool boHighQuality ) = 0;
+    virtual void                        SelectOptimalPixelFormatGray( bool boHighQuality ) = 0;
+    virtual void                        SelectOptimalAutoExposureSettings( bool boHighQuality ) = 0;
+    virtual void                        SelectOptimalPixelClock( bool boHighQuality ) = 0;
     virtual void                        SetExposureTime( double value ) = 0;
+    virtual void                        SetExposureOverlapped( bool boEnable ) = 0;
     virtual void                        SetAutoExposure( bool boEnable ) = 0;
+    virtual void                        SetAutoExposureUpperLimit( double exposureMax ) = 0;
     virtual void                        SetAutoGain( bool boEnable ) = 0;
     virtual void                        SetAutoWhiteBalance( bool /* boEnable */ ) {}
     virtual void                        SetupExposureControls( void ) = 0;
@@ -151,17 +181,18 @@ public:
     virtual void                        SetupFrameRateControls( void ) {}
     virtual void                        SetFrameRateEnable( bool /* boOn */ ) {}
     virtual void                        SetFrameRate( double /* value */ ) {}
+    virtual void                        SetPixelClock( const std::string& frequency ) = 0;
     virtual void                        SetPixelFormat( const std::string& format ) = 0;
     virtual void                        SetWhiteBalance( TWhiteBalanceChannel channel, double value ) = 0;
-    virtual void                        TryToReadFrameRate( double& /*value*/ ) {}
+    virtual void                        TryToReadFrameRate( double& /*value*/ ) = 0;
     virtual void                        WriteExposureFeatures( const DeviceSettings& devSettings, const SupportedWizardFeatures& features ) = 0;
     virtual void                        WriteGainFeatures( const DeviceSettings& devSettings, const SupportedWizardFeatures& features ) = 0;
     virtual void                        WriteWhiteBalanceFeatures( const DeviceSettings& devSettings, const SupportedWizardFeatures& features ) = 0;
-    void                                WriteQuickSetupWizardErrorMessage( const wxString& msg )
+    void                                WriteQuickSetupWizardErrorMessage( const wxString& msg ) const
     {
         pParentPropViewFrame_->WriteErrorMessage( wxString( wxT( "Quick Setup Wizard: " ) + msg + wxT( "\n" ) ) );
     }
-    void                                WriteQuickSetupWizardLogMessage( const wxString& msg )
+    void                                WriteQuickSetupWizardLogMessage( const wxString& msg ) const
     {
         pParentPropViewFrame_->WriteLogMessage( wxString( wxT( "Quick Setup Wizard: " ) + msg + wxT( "\n" ) ), wxTextAttr( *wxBLACK ) );
     }
@@ -172,9 +203,11 @@ private:
     {
         widMainFrame = wxID_HIGHEST,
         widBtnPresetColor,
-        //widBtnPresetColorHS,
-        widBtnPresetGrey,
-        //widBtnPresetGreyHS,
+        widBtnPresetGray,
+        widStaticBitmapQuality,
+        widStaticBitmapSpeed,
+        widStaticBitmapWarning,
+        widSLOptimization,
         widBtnPresetFactory,
         widSLExposure,
         widSCExposure,
@@ -195,22 +228,27 @@ private:
         widBtnWhiteBalanceAuto,
         widSLFrameRate,
         widSCFrameRate,
-        widBtnFrameRateAuto,
-        widCBShowDialogAtStartup
+        widBtnFrameRateMaximum,
+        widCBShowDialogAtStartup,
+        widBtnHistory,
+        widBtnClearHistory,
+        widTCHistory
     };
 
     //----------------------------------STATICS------------------------------------
-    static const double                 GAMMA_;
+    static const double                 EXPOSURE_SLIDER_GAMMA_;
     static const double                 SLIDER_GRANULARITY_;
     static const double                 GAMMA_CORRECTION_VALUE_;
 
     //----------------------------------GUI ELEMENTS-------------------------------
     wxBoxSizer*                         pTopDownSizer_;
     wxBitmapButton*                     pBtnPresetColor_;
-    //wxBitmapButton*                     pBtnPresetColorHS_;
     wxBitmapButton*                     pBtnPresetFactory_;
-    wxBitmapButton*                     pBtnPresetGrey_;
-    //wxBitmapButton*                     pBtnPresetGreyHS_;
+    wxBitmapButton*                     pBtnPresetGray_;
+    wxSlider*                           pSLOptimization_;
+    wxStaticBitmap*                     pStaticBitmapQuality_;
+    wxStaticBitmap*                     pStaticBitmapSpeed_;
+    wxStaticBitmap*                     pStaticBitmapWarning_;
     wxSlider*                           pSLExposure_;
     wxSpinCtrlDbl*                      pSCExposure_;
     wxToggleButton*                     pBtnExposureAuto_;
@@ -230,9 +268,13 @@ private:
     wxToggleButton*                     pBtnCCM_;
     wxSlider*                           pSLFrameRate_;
     wxSpinCtrlDbl*                      pSCFrameRate_;
-    wxToggleButton*                     pBtnFrameRateAuto_;
+    wxToggleButton*                     pBtnFrameRateMaximum_;
     wxStaticText*                       pFrameRateControlStaticText_;
     wxCheckBox*                         pCBShowDialogAtStartup_;
+    wxToggleButton*                     pBtnHistory_;
+    wxButton*                           pBtnClearHistory_;
+    wxTextCtrl*                         pTCHistory_;
+    wxBoxSizer*                         pInfoSizer_;
     bool                                boGUILocked_;
 
 protected:
@@ -246,21 +288,41 @@ protected:
     double                              analogBlackLevelMax_;
     double                              digitalBlackLevelMin_;
     double                              digitalBlackLevelMax_;
+    TWhiteBalanceChannel                boLastWBChannelRead_;
+
+    template<class _Ty, typename _Tx>
+    void                                LoggedWriteProperty( _Ty& prop, const _Tx& value ) const
+    {
+        prop.write( value );
+        std::ostringstream sstream;
+        sstream << "Property " << GetFullPropertyName( prop ) << " set to " << prop.readS() << std::endl;
+        propertyChangeHistory_ += sstream.str();
+    }
+    template<class _Ty>
+    void                                LoggedWriteProperty( _Ty& prop, const std::string& value ) const
+    {
+        prop.writeS( value );
+        std::ostringstream sstream;
+        sstream << "Property " << GetFullPropertyName( prop ) << " set to " << prop.readS() << std::endl;
+        propertyChangeHistory_ += sstream.str();
+    }
 
 private:
     std::map<std::string, DeviceSettings> propGridSettings_;
     PropViewFrame*                      pParentPropViewFrame_;
-
+    mutable std::string                 propertyChangeHistory_;
     ImageDestination*                   pID_;
 
     //----------------------------------GENERAL------------------------------------
     void                                AnalyzeDeviceAndGatherInformation( SupportedWizardFeatures& wizardSupportedFeatures );
+    void                                ApplyPreset( bool boColor, TOptimizationLevel optimizationLevel );
     void                                CleanUp( void );
     void                                CloseDlg( void );
+    void                                HandlePresetChanges( void );
+    void                                OnCBShowOnUseDevice( wxCommandEvent& e );
     virtual void                        OnClose( wxCloseEvent& );
     void                                QueryInitialDeviceSettings( DeviceSettings& settings );
-    void                                PresetColorHQ( void );
-    void                                PresetGreyHQ( void );
+    void                                PresetHiddenAdjustments( bool boColor, TOptimizationLevel optimizationLevel );
     void                                RefreshControls( void );
     void                                SelectLUTDependingOnPixelFormat( void );
     void                                SetAcquisitionFrameRateLimitMode( void );
@@ -269,6 +331,8 @@ private:
     void                                SetupDriverSettings( void );
     void                                SetupUnifiedData( bool newDevice );
     bool                                ShowFactoryResetPopup( void );
+    void                                ToggleDetails( bool boShow );
+    void                                UpdateDetailsTextControl( void );
     void                                UpdateExposureControlsFromCamera( void );
     void                                UpdateGainControlsFromCamera( void );
     void                                UpdateWhiteBalanceControlsFromCamera( void );
@@ -309,14 +373,14 @@ private:
 
     //----------------------------------FRAMERATE---------------------------------
     void                                ApplyFrameRate( void );
-    void                                ConfigureFrameRateAuto( bool boActive );
+    void                                ConfigureFrameRateMaximum( bool boActive );
     void                                HandleFrameRateSpinControlChanges( void );
 
     //----------------------------------BUTTONS------------------------------------
     void                                OnBtnPresetColor( wxCommandEvent& e );
+    void                                OnBtnPresetGray( wxCommandEvent& e );
     void                                OnBtnPresetCustom( wxCommandEvent& e );
     void                                OnBtnPresetFactory( wxCommandEvent& e );
-    void                                OnBtnPresetGrey( wxCommandEvent& e );
 
     void                                OnBtnExposureAuto( wxCommandEvent& e )
     {
@@ -343,10 +407,18 @@ private:
         ConfigureWhiteBalanceAuto( e.IsChecked() );
         RefreshControls();
     }
-    void                                OnBtnFrameRateAuto( wxCommandEvent& e )
+    void                                OnBtnFrameRateMaximum( wxCommandEvent& e )
     {
-        ConfigureFrameRateAuto( e.IsChecked() );
+        ConfigureFrameRateMaximum( e.IsChecked() );
         RefreshControls();
+    }
+    void                                OnBtnHistory( wxCommandEvent& e )
+    {
+        ToggleDetails( e.IsChecked() );
+    }
+    void                                OnBtnClearHistory( wxCommandEvent& )
+    {
+        pTCHistory_->Clear();
     }
 
     virtual void                        OnBtnCancel( wxCommandEvent& );
@@ -420,6 +492,7 @@ private:
     void                                OnSLWhiteBalanceB( wxScrollEvent& e );
     void                                OnSLSaturation( wxScrollEvent& e );
     void                                OnSLFrameRate( wxScrollEvent& e );
+    void                                OnSLOptimisation( wxScrollEvent& e );
     DECLARE_EVENT_TABLE()
 };
 
@@ -428,18 +501,26 @@ class WizardQuickSetupGenICam : public WizardQuickSetup
 //-----------------------------------------------------------------------------
 {
 public:
-    explicit                            WizardQuickSetupGenICam( PropViewFrame* pParent, const wxString& title, bool boShowAtStartup );
+    explicit                            WizardQuickSetupGenICam( PropViewFrame* pParent, const wxString& title );
 protected:
     virtual void                        CreateInterfaceLayoutSpecificControls( Device* pDev );
     virtual void                        DeleteInterfaceLayoutSpecificControls( void );
-    virtual void                        DoConfigureFrameRateAuto( bool boActive, double frameRateValue );
+    virtual double                      DetermineMaxFrameRateAtCurrentAOI( void );
+    virtual double                      DetermineOptimalHQFrameRateAtCurrentAOI( void );
+    virtual void                        DoConfigureFrameRateMaximum( bool boActive, double frameRateValue );
     virtual double                      DoReadUnifiedBlackLevel( void ) const;
     virtual double                      DoReadUnifiedGain( void ) const;
     virtual void                        DoSetAcquisitionFrameRateLimitMode( void );
     virtual void                        DoWriteUnifiedGain( double value ) const;
-    virtual void                        DoWriteUnifiedBlackLevelData( double value );
+    virtual void                        DoWriteUnifiedBlackLevelData( double value ) const;
+    virtual double                      GetAutoExposureUpperLimit( void ) const;
+    virtual bool                        GetExposureOverlapped() const
+    {
+        return false;
+    }
+    virtual std::string                 GetPixelClock( void ) const;
     virtual std::string                 GetPixelFormat( void ) const;
-    virtual double                      GetExposureTime( void )
+    virtual double                      GetExposureTime( void ) const
     {
         return pAcC_->exposureTime.read();
     }
@@ -451,7 +532,7 @@ protected:
     virtual bool                        HasAEC( void ) const;
     virtual bool                        HasAGC( void );
     virtual bool                        HasAWB( void ) const;
-    virtual bool                        HasAutoFrameRate( void ) const;
+    virtual bool                        HasMaximumFrameRate( void ) const;
     virtual bool                        HasBlackLevel( void ) const
     {
         return pAnC_->blackLevelSelector.isValid();
@@ -476,28 +557,36 @@ protected:
     virtual void                        InitializeWhiteBalanceParameters( DeviceSettings& devSettings, const SupportedWizardFeatures& features );
     virtual void                        QueryInterfaceLayoutSpecificSettings( DeviceSettings& devSettings );
     virtual void                        RestoreFactoryDefault( void );
-    virtual void                        SelectColorPixelFormat( void );
-    virtual void                        SelectGreyscalePixelFormat( void );
+    virtual void                        SelectOptimalPixelFormatColor( bool boHighQuality );
+    virtual void                        SelectOptimalPixelFormatGray( bool boHighQuality );
+    virtual void                        SelectOptimalAutoExposureSettings( bool boHighQuality );
+    virtual void                        SelectOptimalPixelClock( bool boHighQuality );
     virtual void                        SetExposureTime( double value )
     {
-        pAcC_->exposureTime.write( value );
+        LoggedWriteProperty( pAcC_->exposureTime, value );
     }
     virtual void                        SetAutoExposure( bool boEnable )
     {
-        pAcC_->exposureAuto.writeS( std::string( boEnable ? "Continuous" : "Off" ) );
+        LoggedWriteProperty( pAcC_->exposureAuto, std::string( boEnable ? "Continuous" : "Off" ) );
     }
+    virtual void                        SetAutoExposureUpperLimit( double exposureMax );
     virtual void                        SetAutoGain( bool boEnable );
     virtual void                        SetAutoWhiteBalance( bool boEnable )
     {
-        pAnC_->balanceWhiteAuto.writeS( std::string( boEnable ?  "Continuous" : "Off" ) );
+        LoggedWriteProperty( pAnC_->balanceWhiteAuto, std::string( boEnable ? "Continuous" : "Off" ) );
     }
+    virtual void                        SetExposureOverlapped( bool ) { }
     virtual void                        SetFrameRateEnable( bool boOn )
     {
-        pAcC_->mvAcquisitionFrameRateEnable.write( boOn ? bTrue : bFalse );
+        LoggedWriteProperty( pAcC_->mvAcquisitionFrameRateEnable, std::string( boOn ? "On" : "Off" ) );
+    }
+    virtual void                        SetPixelClock( const std::string& frequency )
+    {
+        LoggedWriteProperty( pDeC_->mvDeviceClockFrequency, frequency );
     }
     virtual void                        SetPixelFormat( const std::string& format )
     {
-        pIFC_->pixelFormat.writeS( format );
+        LoggedWriteProperty( pIFC_->pixelFormat, format );
     }
     virtual void                        SetupExposureControls( void );
     virtual void                        SetupGainControls( void );
@@ -513,6 +602,7 @@ protected:
     virtual void                        WriteWhiteBalanceFeatures( const DeviceSettings& devSettings, const SupportedWizardFeatures& features );
     virtual void                        SetFrameRate( double value );
 private:
+    GenICam::DeviceControl*             pDeC_;
     GenICam::AcquisitionControl*        pAcC_;
     GenICam::AnalogControl*             pAnC_;
     GenICam::ImageFormatControl*        pIFC_;
@@ -524,16 +614,24 @@ class WizardQuickSetupDeviceSpecific : public WizardQuickSetup
 //-----------------------------------------------------------------------------
 {
 public:
-    explicit                            WizardQuickSetupDeviceSpecific( PropViewFrame* pParent, const wxString& title, bool boShowAtStartup );
+    explicit                            WizardQuickSetupDeviceSpecific( PropViewFrame* pParent, const wxString& title );
 protected:
     virtual void                        CreateInterfaceLayoutSpecificControls( Device* pDev );
     virtual void                        DeleteInterfaceLayoutSpecificControls( void );
+    virtual double                      DetermineMaxFrameRateAtCurrentAOI( void );
+    virtual double                      DetermineOptimalHQFrameRateAtCurrentAOI( void );
     virtual double                      DoReadUnifiedBlackLevel( void ) const;
     virtual double                      DoReadUnifiedGain( void ) const;
     virtual void                        DoWriteUnifiedGain( double value ) const;
-    virtual void                        DoWriteUnifiedBlackLevelData( double value );
+    virtual void                        DoWriteUnifiedBlackLevelData( double value ) const;
+    virtual double                      GetAutoExposureUpperLimit( void ) const;
+    virtual bool                        GetExposureOverlapped() const
+    {
+        return pCSBF_->exposeMode.read() == cemOverlapped;
+    }
+    virtual std::string                 GetPixelClock( void ) const;
     virtual std::string                 GetPixelFormat( void ) const;
-    virtual double                      GetExposureTime( void )
+    virtual double                      GetExposureTime( void ) const
     {
         return pCSBF_->expose_us.read();
     }
@@ -550,7 +648,7 @@ protected:
     {
         return false;
     }
-    virtual bool                        HasAutoFrameRate( void ) const
+    virtual bool                        HasMaximumFrameRate( void ) const
     {
         return false;
     }
@@ -584,28 +682,41 @@ protected:
     virtual void                        InitializeWhiteBalanceParameters( DeviceSettings& devSettings, const SupportedWizardFeatures& features );
     virtual void                        QueryInterfaceLayoutSpecificSettings( DeviceSettings& devSettings );
     virtual void                        RestoreFactoryDefault( void );
-    virtual void                        SelectColorPixelFormat( void );
-    virtual void                        SelectGreyscalePixelFormat( void );
+    virtual void                        SelectOptimalPixelFormatColor( bool boHighQuality );
+    virtual void                        SelectOptimalPixelFormatGray( bool boHighQuality );
+    virtual void                        SelectOptimalAutoExposureSettings( bool boHighQuality );
+    virtual void                        SelectOptimalPixelClock( bool boHighQuality );
     virtual void                        SetExposureTime( double value )
     {
-        pCSBF_->expose_us.write( value );
+        LoggedWriteProperty( pCSBF_->expose_us, value );
     }
     virtual void                        SetAutoExposure( bool boEnable )
     {
-        pCSBF_->autoExposeControl.write( boEnable ? aecOn : aecOff );
+        LoggedWriteProperty( pCSBF_->autoExposeControl, std::string( boEnable ? "On" : "Off" ) );
     }
+    virtual void                        SetAutoExposureUpperLimit( double exposureMax );
     virtual void                        SetAutoGain( bool boEnable );
+    virtual void                        SetPixelClock( const std::string& frequency )
+    {
+        LoggedWriteProperty( pCSBF_->pixelClock_KHz, frequency );
+    }
     virtual void                        SetPixelFormat( const std::string& format )
     {
-        pCSBF_->pixelFormat.writeS( format );
+        LoggedWriteProperty( pCSBF_->pixelFormat, format );
     }
     virtual void                        SetupExposureControls( void );
+    virtual void                        SetExposureOverlapped( bool boEnable );
     virtual void                        SetupGainControls( void );
     virtual void                        SetupBlackLevelControls( void );
     virtual void                        SetupWhiteBalanceControls( void );
     virtual void                        SetupUnifiedGainData( void );
     virtual void                        SetupUnifiedBlackLevelData( void );
     virtual void                        SetWhiteBalance( TWhiteBalanceChannel channel, double value );
+    virtual void                        TryToReadFrameRate( double& /*value*/ )
+    {
+        //No auto-framerate for devices with deviceSpecific interface!
+        UpdateFramerateWarningBitmap( false );
+    }
     virtual void                        WriteExposureFeatures( const DeviceSettings& devSettings, const SupportedWizardFeatures& features );
     virtual void                        WriteGainFeatures( const DeviceSettings& devSettings, const SupportedWizardFeatures& features );
     virtual void                        WriteWhiteBalanceFeatures( const DeviceSettings& devSettings, const SupportedWizardFeatures& features );

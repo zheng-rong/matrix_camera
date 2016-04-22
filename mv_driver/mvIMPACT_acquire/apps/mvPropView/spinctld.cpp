@@ -10,7 +10,7 @@
 #    pragma implementation "spinctld.h"
 #endif
 
-// For compilers that support precompilation, includes "wx/wx.h".
+// For compilers that support pre-compilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
 
 #ifdef __BORLANDC__
@@ -82,7 +82,7 @@ inline int toInteger( const wxString& str, _Ty& result, bool boForceHex = false 
         }
     }
 
-    // only convert until the first invalid charater is encountered
+    // only convert until the first invalid character is encountered
     wxString absolutValue = str.substr( offset );
     wxString::size_type end = absolutValue.find_first_not_of( wxT( "0123456789abcdefABCDEF" ) );
     if( end != wxString::npos )
@@ -209,8 +209,6 @@ private:
 };
 
 BEGIN_EVENT_TABLE( wxSpinCtrlDblTextCtrl, wxTextCtrl )
-    //EVT_TEXT_ENTER( wxID_ANY, wxSpinCtrlDblTextCtrl::OnTextEnter ) // get them from spinctrldbl
-    //EVT_TEXT( wxID_ANY, wxSpinCtrlDblTextCtrl::OnTextUpdate )      // get them from spinctrldbl
     EVT_CHAR( wxSpinCtrlDblTextCtrl::OnChar )
     EVT_KILL_FOCUS( wxSpinCtrlDblTextCtrl::OnKillFocus )
 END_EVENT_TABLE()
@@ -251,11 +249,10 @@ IMPLEMENT_DYNAMIC_CLASS( wxSpinCtrlDbl, wxControl )
 
 BEGIN_EVENT_TABLE( wxSpinCtrlDbl, wxControl )
     EVT_COMMAND_SCROLL_THUMBTRACK( widSlider, wxSpinCtrlDbl::OnScrollThumbtrack )
-    EVT_SPIN_UP                  ( wxID_ANY, wxSpinCtrlDbl::OnSpinUp    )
-    EVT_SPIN_DOWN                ( wxID_ANY, wxSpinCtrlDbl::OnSpinDown  )
+    EVT_SPIN_UP                  ( wxID_ANY, wxSpinCtrlDbl::OnSpinUp )
+    EVT_SPIN_DOWN                ( wxID_ANY, wxSpinCtrlDbl::OnSpinDown )
     EVT_TEXT_ENTER               ( wxID_ANY, wxSpinCtrlDbl::OnTextEnter )
-    //EVT_TEXT                     ( wxID_ANY, wxSpinCtrlDbl::OnText      )
-    EVT_SET_FOCUS                ( wxSpinCtrlDbl::OnFocus     )
+    EVT_SET_FOCUS                ( wxSpinCtrlDbl::OnFocus )
     EVT_KILL_FOCUS               ( wxSpinCtrlDbl::OnKillFocus )
 END_EVENT_TABLE()
 
@@ -271,6 +268,8 @@ void wxSpinCtrlDbl::Init()
     m_snap_ticks = false;
     m_spinButton = NULL;
     m_slider = NULL;
+    m_boSliderWithLogarithmicBehaviour = false;
+    m_logScaleFactor = 1.;
     m_textCtrl = NULL;
     m_nRepeatCount = 0;
     m_LastChange = 0;
@@ -285,7 +284,8 @@ bool wxSpinCtrlDbl::Create( wxWindow* parent, wxWindowID id,
                             double increment, int digits,
                             const wxString& format,
                             const wxString& name,
-                            bool boWithSlider /* = false */ )
+                            bool boWithSlider /* = false */,
+                            bool boSliderWithLogarithmicBehaviour /* = false */ )
 {
     if ( !wxControl::Create( parent, id, pos, size, style | wxNO_BORDER, wxDefaultValidator, name ) )
     {
@@ -350,6 +350,8 @@ bool wxSpinCtrlDbl::Create( wxWindow* parent, wxWindowID id,
         const int sliderMin = static_cast<int>( min / ( increment * m_sliderCorrectionFactor ) );
         const int sliderMax = static_cast<int>( max / ( increment * m_sliderCorrectionFactor ) );
         m_slider = new wxSlider( this, widSlider, sliderValue, sliderMin, sliderMax, wxPoint( controlSize, 0 ), wxSize( -1, height ) );
+        m_boSliderWithLogarithmicBehaviour = boSliderWithLogarithmicBehaviour && ( sliderMin >= 1 );
+        m_logScaleFactor = ( log10( max ) - log10( min ) ) / static_cast<double>( sliderMax - sliderMin );
     }
     m_textCtrl = new wxSpinCtrlDblTextCtrl( this, id, value,
                                             wxPoint( 0, 0 ),
@@ -534,7 +536,14 @@ void wxSpinCtrlDbl::OnScrollThumbtrack( wxScrollEvent& e )
         SyncSpinToText( false );
     }
 
-    m_value = static_cast<double>( e.GetPosition() ) * m_increment * m_sliderCorrectionFactor;
+    if( m_boSliderWithLogarithmicBehaviour )
+    {
+        m_value = pow( 10, log10( m_min ) + m_logScaleFactor * static_cast<double>( e.GetPosition() - m_slider->GetMin() ) );
+    }
+    else
+    {
+        m_value = static_cast<double>( e.GetPosition() ) * m_increment * m_sliderCorrectionFactor;
+    }
     SetValue( m_value );
     SyncSpinToText( false );
     DoSendEvent();
@@ -690,7 +699,15 @@ void wxSpinCtrlDbl::SetValue( double value )
 
     if( m_slider )
     {
-        const int sliderValue = static_cast<int>( m_value / ( m_increment * m_sliderCorrectionFactor ) );
+        int sliderValue = 0;
+        if( m_boSliderWithLogarithmicBehaviour )
+        {
+            sliderValue = ( log10( m_value ) - log10( m_min ) ) / m_logScaleFactor + static_cast<double>( m_slider->GetMin() );
+        }
+        else
+        {
+            sliderValue = static_cast<int>( m_value / ( m_increment * m_sliderCorrectionFactor ) );
+        }
         if( sliderValue != m_slider->GetValue() )
         {
             m_slider->SetValue( sliderValue );

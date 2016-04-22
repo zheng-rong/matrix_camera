@@ -31,6 +31,7 @@ public:
     mvIMPACT::acquire::Device*                  GetActiveDevice( mvIMPACT::acquire::FunctionInterface** ppFI = 0, const mvIMPACT::acquire::Statistics** ppS = 0, CaptureThread** ppCT = 0 ) const;
     mvIMPACT::acquire::Property                 GetActiveDeviceAcquisitionMode( void ) const;
     mvIMPACT::acquire::PropertyI64              GetActiveDeviceAcquisitionFrameCount( void ) const;
+    mvIMPACT::acquire::PropertyI64              GetActiveDeviceAcquisitionMemoryFrameCount( void ) const;
     const WizardFeatureMap                      GetActiveDeviceSupportedWizards( void ) const;
     bool                                        GetDeviceData( mvIMPACT::acquire::Device* pDev, mvIMPACT::acquire::FunctionInterface** ppFI = 0, const mvIMPACT::acquire::Statistics** ppS = 0, CaptureThread** ppCT = 0 ) const;
     const mvIMPACT::acquire::DeviceManager&     GetDevMgr( void ) const

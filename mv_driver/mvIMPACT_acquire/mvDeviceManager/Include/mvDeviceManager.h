@@ -754,7 +754,7 @@ MVDMR_API TDMR_ERROR DMR_CALL DMR_WriteUserDataToHardware( HDEV hDev );
 MVIMPACT_DEPRECATED_C( MVDMR_API TDMR_ERROR DMR_CALL DMR_EventWaitFor( HDRV hDrv, int timeout_ms, TDeviceEventType mask, int reserved, int reserved2, TDeviceEventType* pResultType ) );
 MVIMPACT_DEPRECATED_C( MVDMR_API TDMR_ERROR DMR_CALL DMR_EventGetData( HDRV hDrv, TDeviceEventType type, int reserved, int reserved2, EventData* pResult, size_t resultSize ) );
 
-// device indepentdent image buffer related functions
+// device independent image buffer related functions
 MVDMR_API TDMR_ERROR DMR_CALL DMR_AllocImageRequestBufferDesc( ImageBuffer** ppBuffer, int channelCount );
 MVDMR_API TDMR_ERROR DMR_CALL DMR_ReleaseImageRequestBufferDesc( ImageBuffer** ppBuffer );
 MVDMR_API TDMR_ERROR DMR_CALL DMR_CopyImageRequestBufferDesc( const ImageBuffer* pSrc, ImageBuffer** ppDst, int flags );
@@ -781,6 +781,9 @@ MVDMR_API TPROPHANDLING_ERROR DMR_CALL OBJ_GetTypeS( HOBJ hObj, char* pBuf, size
 MVDMR_API TPROPHANDLING_ERROR DMR_CALL OBJ_GetVisibility( HOBJ hObj, TComponentVisibility* pVisibility );
 MVDMR_API TPROPHANDLING_ERROR DMR_CALL OBJ_GetVisibilityS( HOBJ hObj, char* pBuf, size_t bufSize );
 MVDMR_API TPROPHANDLING_ERROR DMR_CALL OBJ_VisibilityToString( TComponentVisibility visibility, char* pBuf, size_t bufSize );
+MVDMR_API TPROPHANDLING_ERROR DMR_CALL OBJ_GetRepresentation( HOBJ hObj, TComponentRepresentation* pRepresentation );
+MVDMR_API TPROPHANDLING_ERROR DMR_CALL OBJ_GetRepresentationS( HOBJ hObj, char* pBuf, size_t bufSize );
+MVDMR_API TPROPHANDLING_ERROR DMR_CALL OBJ_RepresentationToString( TComponentRepresentation representation, char* pBuf, size_t bufSize );
 MVDMR_API TPROPHANDLING_ERROR DMR_CALL OBJ_IsDefault( HOBJ hObj, unsigned int* pResult );
 MVDMR_API TPROPHANDLING_ERROR DMR_CALL OBJ_RestoreDefault( HOBJ hObj );
 MVIMPACT_DEPRECATED_C( MVDMR_API TPROPHANDLING_ERROR DMR_CALL OBJ_GetHandle( HLIST hList, const char* pPathAndObjName, HOBJ* phObj ) );
@@ -803,7 +806,7 @@ MVDMR_API TPROPHANDLING_ERROR DMR_CALL OBJ_CreateCallback( TCallbackType type, C
 MVDMR_API TPROPHANDLING_ERROR DMR_CALL OBJ_DeleteCallback( CallbackHandle hCallback );
 MVDMR_API TPROPHANDLING_ERROR DMR_CALL OBJ_AttachCallback( HOBJ hObj, CallbackHandle hCallback );
 MVDMR_API TPROPHANDLING_ERROR DMR_CALL OBJ_DetachCallback( HOBJ hObj, CallbackHandle hCallback );
-// navigation within object hierachies
+// navigation within object hierarchies
 MVDMR_API TPROPHANDLING_ERROR DMR_CALL OBJ_GetFirstSibling( HOBJ hObj, HOBJ* phFirstSibling );
 MVDMR_API TPROPHANDLING_ERROR DMR_CALL OBJ_GetNextSibling( HOBJ hObj, HOBJ* phNextSibling );
 MVDMR_API TPROPHANDLING_ERROR DMR_CALL OBJ_GetLastSibling( HOBJ hObj, HOBJ* phLastSibling );

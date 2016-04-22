@@ -644,14 +644,14 @@ void CEpcs::DbOutput( const char* pFormat, ... )
     va_list argptr;
 
     memset( string, 0, 256 );
-    va_start ( argptr, pFormat );
-    vsprintf ( string, pFormat, argptr );
+    va_start( argptr, pFormat );
+    vsprintf( string, pFormat, argptr );
 #   if defined(linux) || defined(__linux) || defined(__linux__)
     printf( string );
 #   else
     OutputDebugStringA( string );
 #   endif // #if defined(linux) || defined(__linux) || defined(__linux__)
-    va_end ( argptr );
+    va_end( argptr );
 #else
     pFormat = pFormat; // remove compiler warning
 #endif

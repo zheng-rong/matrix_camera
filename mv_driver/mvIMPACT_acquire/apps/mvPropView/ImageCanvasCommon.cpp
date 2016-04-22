@@ -41,6 +41,7 @@ BEGIN_EVENT_TABLE( ImageCanvas, DrawingCanvas )
     EVT_RIGHT_DOWN( ImageCanvas::OnRightDown )
     EVT_RIGHT_UP( ImageCanvas::OnRightUp )
     EVT_MENU( miPopUpFitToScreen, ImageCanvas::OnPopUpFitToScreen )
+    EVT_MENU( miPopUpOneToOneDisplay, ImageCanvas::OnPopUpOneToOneDisplay )
     EVT_MENU( miPopUpFullScreen, ImageCanvas::OnPopUpFullScreen )
     EVT_MENU( miPopUpScalerMode_NearestNeighbour, ImageCanvas::OnPopUp_ScalingMode_Changed )
     EVT_MENU( miPopUpScalerMode_Linear, ImageCanvas::OnPopUp_ScalingMode_Changed )
@@ -51,6 +52,8 @@ BEGIN_EVENT_TABLE( ImageCanvas, DrawingCanvas )
     EVT_MENU( miPopUpShowPerformanceWarnings, ImageCanvas::OnPopUpShowPerformanceWarnings )
     EVT_MENU( miPopUpShowImageModificationsWarning, ImageCanvas::OnPopUpShowImageModificationsWarning )
 END_EVENT_TABLE()
+
+const double ImageCanvas::s_zoomFactor_Min = 0.125;
 
 //-----------------------------------------------------------------------------
 template<typename _Ty>
@@ -392,50 +395,53 @@ void ImageCanvas::BlitPerformanceMessages( wxPaintDC& dc, int bmpXOff, int bmpYO
 {
     if( m_boShowPerformanceWarnings )
     {
+        wxString performanceMsg;
         const bool boFormatWarning = ( pixelFormat != ibpfMono8 ) && ( pixelFormat != ibpfRGBx888Packed );
-        dc.SetTextForeground( *wxRED );
-        wxString msg( wxT( " Performance loss because of" ) );
-        bool boMustShow = false;
         if( boFormatWarning )
         {
-            msg.Append( wxT( " pixel format conversion for display" ) );
-            boMustShow = true;
+            performanceMsg.Append( wxT( " pixel format conversion for display" ) );
         }
 
         if( m_boScaleToClientSize )
         {
-            if( boMustShow )
+            if( !performanceMsg.IsEmpty() )
             {
-                msg.Append( wxT( " and" ) );
+                performanceMsg.Append( wxT( " and" ) );
             }
-            msg.Append( wxT( " scaling to fit to client size" ) );
-            boMustShow = true;
+            performanceMsg.Append( wxT( " scaling to fit to client size" ) );
         }
 
         if( !m_boScaleToClientSize && ( m_currentZoomFactor != 1.0 ) )
         {
-            if( boMustShow )
+            if( !performanceMsg.IsEmpty() )
             {
-                msg.Append( wxT( " and" ) );
+                performanceMsg.Append( wxT( " and" ) );
             }
-            msg.Append( wxString::Format( wxT( " scaling (approx. zoom factor: %.1f)" ), m_currentZoomFactor ) );
-            boMustShow = true;
+            performanceMsg.Append( wxString::Format( wxT( " scaling (approx. zoom factor: %.3f)" ), m_currentZoomFactor ) );
         }
 
-        if( boMustShow )
+        if( !performanceMsg.IsEmpty() )
         {
-            dc.DrawText( msg, bmpXOff, bmpYOff + PERFORMANCE_WARNINGS_Y_OFFSET );
+            dc.SetTextForeground( *wxRED );
+            dc.DrawText( wxString::Format( wxT( " Performance loss because of%s" ), performanceMsg.c_str() ), bmpXOff, bmpYOff + PERFORMANCE_WARNINGS_Y_OFFSET );
         }
 
-        if( ( m_skippedImages > 0 ) || ( m_skippedPaintEvents > 0 ) )
+        wxString skippedMsg;
+        if( m_skippedImages > 0 )
         {
-            dc.DrawText( wxString::Format( wxT( "%8lu image%s and %8lu paint event%s skipped as the display engine was still busy" ),
-                                           static_cast<long unsigned int>( m_skippedImages ),
-                                           ( m_skippedImages == 1 ) ? wxT( "s" ) : wxT( "" ),
-                                           static_cast<long unsigned int>( m_skippedPaintEvents ),
-                                           ( m_skippedPaintEvents == 1 ) ? wxT( "s" ) : wxT( "" ) ),
-                         bmpXOff,
-                         bmpYOff + SKIPPED_IMAGE_MESSAGE_Y_OFFSET );
+            skippedMsg.Append( wxString::Format( wxT( "%8lu image%s skipped because internal processing was too slow" ), static_cast<long unsigned int>( m_skippedImages ), ( m_skippedImages == 1 ) ? wxT( "s" ) : wxT( "" ) ) );
+        }
+        if( m_skippedPaintEvents > 0 )
+        {
+            skippedMsg.Append( wxString::Format( wxT( "%s%8lu paint event%s skipped because the display engine was still busy" ),
+                                                 skippedMsg.IsEmpty() ? wxT( "" ) : wxT( " and " ),
+                                                 static_cast<long unsigned int>( m_skippedPaintEvents ),
+                                                 ( m_skippedPaintEvents == 1 ) ? wxT( "s" ) : wxT( "" ) ) );
+        }
+        if( !skippedMsg.IsEmpty() )
+        {
+            dc.SetTextForeground( *wxRED );
+            dc.DrawText( skippedMsg, bmpXOff, bmpYOff + SKIPPED_IMAGE_MESSAGE_Y_OFFSET );
         }
     }
 
@@ -458,8 +464,8 @@ void ImageCanvas::BlitPerformanceMessages( wxPaintDC& dc, int bmpXOff, int bmpYO
             maskedLSBs.Append( wxT( "x" ) );
         }
         dc.SetTextForeground( *wxRED );
-        wxString msg( wxString::Format( wxT( " Displayed bits: %sDDDDDDDD%s (shift value(>>): Applied: %d, selected: %d)" ), maskedMSBs.c_str(), maskedLSBs.c_str(), appliedShift, shiftValue ) );
-        dc.DrawText( msg, bmpXOff, bmpYOff + IMAGE_MODIFICATIONS_Y_OFFSET );
+        dc.DrawText( wxString::Format( wxT( " Displayed bits: %sDDDDDDDD%s (shift value(>>): Applied: %d, selected: %d)" ), maskedMSBs.c_str(), maskedLSBs.c_str(), appliedShift, shiftValue ),
+                     bmpXOff, bmpYOff + IMAGE_MODIFICATIONS_Y_OFFSET );
     }
 }
 
@@ -809,8 +815,8 @@ void ImageCanvas::OnLeftDblClick( wxMouseEvent& e )
 {
     if( m_boHandleMouseAndKeyboardEvents && !m_boDoubleClickDisabledAndPopupMenuPruned )
     {
-        wxCommandEvent e( toggleDisplayArea, m_pApp->GetId() );
-        ::wxPostEvent( m_pApp->GetEventHandler(), e );
+        wxCommandEvent eToggleDisplayArea( toggleDisplayArea, m_pApp->GetId() );
+        ::wxPostEvent( m_pApp->GetEventHandler(), eToggleDisplayArea );
     }
     else
     {
@@ -919,13 +925,13 @@ void ImageCanvas::OnMotion( wxMouseEvent& e )
         }
         if( boInformApplication )
         {
-            wxCommandEvent e( refreshAOIControls, m_pApp->GetId() );
-            e.SetInt( m_userData );
-            ::wxPostEvent( m_pApp->GetEventHandler(), e );
+            wxCommandEvent eRefreshAOIControls( refreshAOIControls, m_pApp->GetId() );
+            eRefreshAOIControls.SetInt( m_userData );
+            ::wxPostEvent( m_pApp->GetEventHandler(), eRefreshAOIControls );
         }
-        wxCommandEvent e( refreshCurrentPixelData, m_pApp->GetId() );
-        e.SetInt( m_userData );
-        ::wxPostEvent( m_pApp->GetEventHandler(), e );
+        wxCommandEvent eRefreshCurrentPixelData( refreshCurrentPixelData, m_pApp->GetId() );
+        eRefreshCurrentPixelData.SetInt( m_userData );
+        ::wxPostEvent( m_pApp->GetEventHandler(), eRefreshCurrentPixelData );
     }
 }
 
@@ -951,13 +957,6 @@ void ImageCanvas::OnMouseWheel( wxMouseEvent& e )
 }
 
 //-----------------------------------------------------------------------------
-void ImageCanvas::OnPopUpFitToScreen( wxCommandEvent& e )
-//-----------------------------------------------------------------------------
-{
-    SetScaling( e.IsChecked() );
-}
-
-//-----------------------------------------------------------------------------
 void ImageCanvas::OnPopUp_ScalingMode_Changed( wxCommandEvent& e )
 //-----------------------------------------------------------------------------
 {
@@ -977,10 +976,24 @@ void ImageCanvas::OnPopUp_ScalingMode_Changed( wxCommandEvent& e )
 }
 
 //-----------------------------------------------------------------------------
+void ImageCanvas::OnPopUpFitToScreen( wxCommandEvent& e )
+//-----------------------------------------------------------------------------
+{
+    SetScaling( e.IsChecked() );
+}
+
+//-----------------------------------------------------------------------------
+void ImageCanvas::OnPopUpOneToOneDisplay( wxCommandEvent& )
+//-----------------------------------------------------------------------------
+{
+    UpdateZoomFactor( zimFixedValue, 1.0 );
+}
+
+//-----------------------------------------------------------------------------
 void ImageCanvas::OnPopUpSetShiftValue( wxCommandEvent& )
 //-----------------------------------------------------------------------------
 {
-    int shift = static_cast<int>( ::wxGetNumberFromUser( wxT( "By default only the 8 msb of multibyte pixel data will be displayed.\nThis dialog can be used to define which 8 bits of multibyte image shall be displayed.\nThe value defined here will be subtracted from the value that would\nbe needed to display the 8 msb of a pixel, thus e.g. to see the 8 lsb\nof a 12 bit mono format enter 4 here.\n\nThe shift values can be displayed by enabling the 'Performance Warning Overlay'\nand the shift value can also be adjusted by clicking on a display and then\npressing the left/right arrow keys on the keyboard" ), wxT( "Bit Shift Value:" ), wxT( "Set Custom Bit Shift Value" ), GetShiftValue(), 0, 8, this ) );
+    int shift = static_cast<int>( ::wxGetNumberFromUser( wxT( "By default only the 8 MSBs of multi-byte pixel data will be displayed.\nThis dialog can be used to define which 8 bits of multi-byte image shall be displayed.\nThe value defined here will be subtracted from the value that would\nbe needed to display the 8 MSBs of a pixel, thus e.g. to see the 8 LSBs\nof a 12 bit mono format enter 4 here.\n\nThe shift values can be displayed by enabling the 'Performance Warning Overlay'\nand the shift value can also be adjusted by clicking on a display and then\npressing the left/right arrow keys on the keyboard" ), wxT( "Bit Shift Value:" ), wxT( "Set Custom Bit Shift Value" ), GetShiftValue(), 0, 8, this ) );
     if( shift >= 0 )
     {
         while( shift > GetShiftValue() )
@@ -1053,6 +1066,7 @@ void ImageCanvas::OnRightUp( wxMouseEvent& e )
         {
             wxMenu menu( wxT( "" ) );
             menu.Append( miPopUpFitToScreen, wxT( "Fit To Screen" ), wxT( "If active the captured image will be scaled to fit into the main display area(slower)" ), wxITEM_CHECK )->Check( IsScaled() );
+            menu.Append( miPopUpOneToOneDisplay, wxT( "1:1 Display (Zoom 100%)" ), wxT( "Will restore the zoom factor back to 1" ), wxITEM_NORMAL );
             if( m_boDoubleClickDisabledAndPopupMenuPruned )
             {
                 PopupMenu( &menu );
@@ -1082,12 +1096,12 @@ void ImageCanvas::OnRightUp( wxMouseEvent& e )
                 }
                 menu.Append( wxID_ANY, wxT( "Scaling Mode" ), pMenuScalingModes );
             }
-            menu.Append( miPopUpSetShiftValue, wxT( "Set Bit Shift Value" ), wxT( "Allows to define a custom shift value for the display of multibyte pixel data. This defines which 8 bits from a multibyte pixel will be displayed" ) );
+            menu.Append( miPopUpSetShiftValue, wxT( "Set Bit Shift Value" ), wxT( "Allows to define a custom shift value for the display of multi-byte pixel data. This defines which 8 bits from a multi-byte pixel will be displayed" ) );
             menu.AppendSeparator();
             menu.Append( miPopUpShowRequestInfoOverlay, wxT( "Request Info Overlay" ), wxT( "If active the various information returned together with the image will be displayed as an overlay in the main display area(This will cost some additional CPU time)" ), wxITEM_CHECK )->Check( InfoOverlayActive() );
             menu.Append( miPopUpSelectRequestInfoOverlayColor, wxT( "Select Request Info Overlay Color" ), wxT( "Select Request Info Overlay Color" ) );
-            menu.Append( miPopUpShowPerformanceWarnings, wxT( "Performance Warning Overlay" ), wxT( "If active various information will be blitted on top of the image in the main display area to inform e.g. about possible performance losses" ), wxITEM_CHECK )->Check( GetPerformanceWarningOutput() );
-            menu.Append( miPopUpShowImageModificationsWarning, wxT( "Warn On Modifications Applied To The Image By The Display (By An Overlay)" ), wxT( "If active a message will be blitted on top of the image in the main display area to inform e.g. about data modifications applied to the image by the display module" ), wxITEM_CHECK )->Check( GetImageModificationWarningOutput() );
+            menu.Append( miPopUpShowPerformanceWarnings, wxT( "Performance Warning Overlay" ), wxT( "If active various information will be drawn on top of the image in the main display area to inform e.g. about possible performance losses" ), wxITEM_CHECK )->Check( GetPerformanceWarningOutput() );
+            menu.Append( miPopUpShowImageModificationsWarning, wxT( "Warn On Modifications Applied To The Image By The Display (By An Overlay)" ), wxT( "If active a message will be drawn on top of the image in the main display area to inform e.g. about data modifications applied to the image by the display module" ), wxITEM_CHECK )->Check( GetImageModificationWarningOutput() );
             PopupMenu( &menu );
         }
     }
@@ -1158,6 +1172,14 @@ void ImageCanvas::ResetRequestInProgressFlag( void )
 {
     wxCriticalSectionLocker locker( m_critSect );
     m_boRefreshInProgress = false;
+}
+
+//-----------------------------------------------------------------------------
+void ImageCanvas::ResetSkippedImagesCounter( void )
+//-----------------------------------------------------------------------------
+{
+    wxCriticalSectionLocker locker( m_critSect );
+    m_skippedImages = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -1317,10 +1339,13 @@ void ImageCanvas::UpdateZoomFactor( TZoomIncrementMode zim, double value )
         }
         break;
     case zimDivide:
-        if( m_currentZoomFactor >= 2.0 )
+        if( m_currentZoomFactor > s_zoomFactor_Min )
         {
             m_currentZoomFactor /= value;
         }
+        break;
+    case zimFixedValue:
+        m_currentZoomFactor = 1.0;
         break;
     default:
         return;
@@ -1335,6 +1360,6 @@ void ImageCanvas::UpdateZoomFactor( TZoomIncrementMode zim, double value )
     if( m_boScaleToClientSize && ( zoomFactor != m_currentZoomFactor ) )
     {
         m_boScaleToClientSize = false;
-        //wxMessageBox( wxString::Format( wxT( "Current zoom factor set to %.2f, but this is currently shadowed by the 'fit to screen' mode thus won't have visual effect." ), m_currentZoomFactor ), wxString( wxT( "Zoom factor changed" ) ), wxOK | wxICON_INFORMATION, this );
+        //wxMessageBox( wxString::Format( wxT( "Current zoom factor set to %.3f, but this is currently shadowed by the 'fit to screen' mode thus won't have visual effect." ), m_currentZoomFactor ), wxString( wxT( "Zoom factor changed" ) ), wxOK | wxICON_INFORMATION, this );
     }
 }

@@ -1,6 +1,8 @@
 #include <apps/Common/wxAbstraction.h>
 #include <common/STLHelper.h>
 #include <math.h> // for 'pow'
+#include <algorithm> // for 'sort'
+#include "PropData.h"
 #include "WizardQuickSetup.h"
 #include <wx/slider.h>
 #include <wx/tglbtn.h>
@@ -8,24 +10,36 @@
 
 using namespace std;
 
-/// \todo Add handler for the top line of buttons
-/// \todo Add missing controls
-/// \todo Think about creating the wizard with a much larger default size to have larger sliders
-/// \todo wxPropView should start with the left toolbar and the property grid disabled on first go / add checkbox to configure this behaviour
+//-----------------------------------------------------------------------------
+class ObjectHandleMatches : public unary_function<std::pair<PropData*, wxString>*, bool>
+    //-----------------------------------------------------------------------------
+{
+    const HOBJ val_;
+public:
+    explicit ObjectHandleMatches( const HOBJ val ) : val_( val ) {}
+    bool operator()( const std::pair<PropData*, wxString>& data ) const
+    {
+        return data.first->GetComponent().hObj() == val_;
+    }
+};
 
 //=============================================================================
 //============== Implementation WizardQuickSetup ==============================
 //=============================================================================
 BEGIN_EVENT_TABLE( WizardQuickSetup, OkAndCancelDlg )
     EVT_BUTTON( widBtnPresetColor, WizardQuickSetup::OnBtnPresetColor )
+    EVT_BUTTON( widBtnPresetGray, WizardQuickSetup::OnBtnPresetGray )
     EVT_BUTTON( widBtnPresetFactory, WizardQuickSetup::OnBtnPresetFactory )
-    EVT_BUTTON( widBtnPresetGrey, WizardQuickSetup::OnBtnPresetGrey )
+    EVT_BUTTON( widBtnClearHistory, WizardQuickSetup::OnBtnClearHistory )
+    EVT_CHECKBOX( widCBShowDialogAtStartup, WizardQuickSetup::OnCBShowOnUseDevice )
     EVT_TOGGLEBUTTON( widBtnExposureAuto, WizardQuickSetup::OnBtnExposureAuto )
     EVT_TOGGLEBUTTON( widBtnGainAuto, WizardQuickSetup::OnBtnGainAuto )
     EVT_TOGGLEBUTTON( widBtnGamma, WizardQuickSetup::OnBtnGamma )
     EVT_TOGGLEBUTTON( widBtnWhiteBalanceAuto, WizardQuickSetup::OnBtnWhiteBalanceAuto )
     EVT_TOGGLEBUTTON( widBtnCCM, WizardQuickSetup::OnBtnCCM )
-    EVT_TOGGLEBUTTON( widBtnFrameRateAuto, WizardQuickSetup::OnBtnFrameRateAuto )
+    EVT_TOGGLEBUTTON( widBtnFrameRateMaximum, WizardQuickSetup::OnBtnFrameRateMaximum )
+    EVT_TOGGLEBUTTON( widBtnHistory, WizardQuickSetup::OnBtnHistory )
+    EVT_COMMAND_SCROLL_THUMBTRACK( widSLOptimization, WizardQuickSetup::OnSLOptimisation )
     EVT_COMMAND_SCROLL_THUMBTRACK( widSLExposure, WizardQuickSetup::OnSLExposure )
     EVT_COMMAND_SCROLL_THUMBTRACK( widSLGain, WizardQuickSetup::OnSLGain )
     EVT_COMMAND_SCROLL_THUMBTRACK( widSLBlackLevel, WizardQuickSetup::OnSLBlackLevel )
@@ -41,7 +55,7 @@ BEGIN_EVENT_TABLE( WizardQuickSetup, OkAndCancelDlg )
     EVT_SPINCTRL( widSCWhiteBalanceB, WizardQuickSetup::OnSCWhiteBalanceBChanged )
     EVT_SPINCTRL( widSCSaturation, WizardQuickSetup::OnSCSaturationChanged )
     EVT_SPINCTRL( widSCFrameRate, WizardQuickSetup::OnSCFrameRateChanged )
-#ifdef BUILD_WITH_TEXT_EVENTS_FOR_SPINCTRL // BAT: Unfortunately on linux wxWidgets 2.6.x - ??? handling these messages will cause problems, while on Windows not doing so will not always update the GUI as desired :-(
+#ifdef BUILD_WITH_TEXT_EVENTS_FOR_SPINCTRL // Unfortunately on Linux wxWidgets 2.6.x - ??? handling these messages will cause problems, while on Windows not doing so will not always update the GUI as desired :-(
     EVT_TEXT_ENTER( widSCExposure, WizardQuickSetup::OnSCExposureTextChanged )
     EVT_TEXT_ENTER( widSCGain, WizardQuickSetup::OnSCGainTextChanged )
     EVT_TEXT_ENTER( widSCBlackLevel, WizardQuickSetup::OnSCBlackLevelTextChanged )
@@ -52,13 +66,13 @@ BEGIN_EVENT_TABLE( WizardQuickSetup, OkAndCancelDlg )
 #endif // #ifdef BUILD_WITH_TEXT_EVENTS_FOR_SPINCTRL
 END_EVENT_TABLE()
 
-const double        WizardQuickSetup::GAMMA_ = 2.;
-const double        WizardQuickSetup::SLIDER_GRANULARITY_ = 100.;
-const double        WizardQuickSetup::GAMMA_CORRECTION_VALUE_ = 1.8;
+const double WizardQuickSetup::EXPOSURE_SLIDER_GAMMA_ = 2.;
+const double WizardQuickSetup::SLIDER_GRANULARITY_ = 100.;
+const double WizardQuickSetup::GAMMA_CORRECTION_VALUE_ = 1.8;
 
 //-----------------------------------------------------------------------------
 class SuspendAcquisitionScopeLock
-//-----------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------
 {
     PropViewFrame* pParent_;
 public:
@@ -74,12 +88,12 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-WizardQuickSetup::WizardQuickSetup( PropViewFrame* pParent, const wxString& title, bool boShowAtStartup )
+WizardQuickSetup::WizardQuickSetup( PropViewFrame* pParent, const wxString& title )
     : OkAndCancelDlg( pParent, widMainFrame, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxMINIMIZE_BOX ),
-      pTopDownSizer_( 0 ), pBtnPresetColor_( 0 )/*, pBtnPresetColorHS_( 0 )*/, pBtnPresetFactory_( 0 ), pBtnPresetGrey_( 0 )/*, pBtnPresetGreyHS_( 0 )*/,
-      pSLExposure_( 0 ), pSCExposure_( 0 ), pBtnExposureAuto_( 0 ), pCBShowDialogAtStartup_( 0 ), boGUILocked_( true ),
-      pDev_( 0 ), pIP_( 0 ), propGridSettings_(), pParentPropViewFrame_( pParent ), pID_( 0 )
-//-----------------------------------------------------------------------------
+      pTopDownSizer_( 0 ), pBtnPresetColor_( 0 ), pBtnPresetFactory_( 0 ), pBtnPresetGray_( 0 ), pSLOptimization_( 0 ),
+      pStaticBitmapQuality_( 0 ), pStaticBitmapSpeed_( 0 ), pSLExposure_( 0 ), pSCExposure_( 0 ), pBtnExposureAuto_( 0 ), pCBShowDialogAtStartup_( 0 ),
+      boGUILocked_( true ), pDev_( 0 ), pIP_( 0 ), boLastWBChannelRead_( wbcRed ), propGridSettings_(), pParentPropViewFrame_( pParent ), propertyChangeHistory_(), pID_( 0 )
+      //-----------------------------------------------------------------------------
 {
     /*
         |-------------------------------------|
@@ -105,21 +119,18 @@ WizardQuickSetup::WizardQuickSetup( PropViewFrame* pParent, const wxString& titl
 
     // In the future, if GUI layout problems occur, a FlexGridSizer approach has to be considered!
     // 'Presets' controls
-    //pBtnPresetColor_ = new wxButton( pPanel, widBtnPresetColor, wxT( "Color" ) );
     const wxBitmap colorPresetBitmap( wizard_color_preset_xpm );
     const wxBitmap colorPresetBitmapDisabled( wizard_color_preset_disabled_xpm );
     const wxBitmap grayPresetBitmap( wizard_gray_preset_xpm );
     const wxBitmap factoryPresetBitmap( wizard_factory_preset_xpm );
+    const wxBitmap speedBitmap( wizard_tacho_xpm );
+    const wxBitmap qualityBitmap( wizard_diamond_xpm );
+    const wxBitmap warningBitmap( wizard_warning_xpm );
     pBtnPresetColor_ = new wxBitmapButton( pPanel, widBtnPresetColor, colorPresetBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, wxT( "High-Quality color" ) );
-    pBtnPresetColor_->SetToolTip( wxT( "Will setup the device for optimal color fidelity.\nCurrent settings will be overwritten!" ) );
+    pBtnPresetColor_->SetToolTip( wxT( "Will setup the device for color image capture.\nCurrent settings will be overwritten!" ) );
     pBtnPresetColor_->SetBitmapDisabled( colorPresetBitmapDisabled );
-    pBtnPresetGrey_ = new wxBitmapButton( pPanel, widBtnPresetGrey, grayPresetBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, wxT( "High-Quality grayscale" ) );
-    pBtnPresetGrey_->SetToolTip( wxT( "Will setup the device for optimal gray-scale image capture.\nCurrent settings will be overwritten!" ) );
-    //pBtnPresetColorHS_ = new wxBitmapButton( pPanel, widBtnPresetColor, colorPresetBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, wxT( "High-Speed color" ) );
-    //pBtnPresetColorHS_->SetToolTip( wxT( "COLOR HIGH SPEED:\nWill setup the device for optimal color settings for high-speed acquisition.\nCurrent settings will be overwritten!" ) );
-    //pBtnPresetColorHS_->SetBitmapDisabled( colorPresetBitmapDisabled );
-    //pBtnPresetGreyHS_ = new wxBitmapButton( pPanel, widBtnPresetGrey, grayPresetBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, wxT( "High-Speed grayscale" ) );
-    //pBtnPresetGreyHS_->SetToolTip( wxT( "GRAYSCALE HIGH SPEED:\nWill setup the device for optimal gray-scalesettings for high-speed acquisition.\nCurrent settings will be overwritten!" ) );
+    pBtnPresetGray_ = new wxBitmapButton( pPanel, widBtnPresetGray, grayPresetBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, wxT( "High-Quality grayscale" ) );
+    pBtnPresetGray_->SetToolTip( wxT( "Will setup the device for gray-scale image capture.\nCurrent settings will be overwritten!" ) );
     pBtnPresetFactory_ = new wxBitmapButton( pPanel, widBtnPresetFactory, factoryPresetBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, wxT( "Factory preset" ) );
     pBtnPresetFactory_->SetToolTip( wxT( "Will restore the factory default settings for this device!\n" ) );
 
@@ -133,11 +144,32 @@ WizardQuickSetup::WizardQuickSetup( PropViewFrame* pParent, const wxString& titl
 
     wxFlexGridSizer* pGrayscaleFlexGridSizer = new wxFlexGridSizer( 3, 2 );
     pGrayscaleFlexGridSizer->AddSpacer( 10 );
-    pGrayscaleFlexGridSizer->Add( pBtnPresetGrey_, wxSizerFlags().Center().Align( wxALIGN_CENTRE ) );
+    pGrayscaleFlexGridSizer->Add( pBtnPresetGray_, wxSizerFlags().Center().Align( wxALIGN_CENTRE ) );
     pGrayscaleFlexGridSizer->AddSpacer( 10 );
     pGrayscaleFlexGridSizer->AddSpacer( 10 );
     pGrayscaleFlexGridSizer->Add( new wxStaticText( pPanel, wxID_ANY, wxT( " Grayscale" ) ), wxSizerFlags().Center().Align( wxALIGN_CENTRE ) );
     pGrayscaleFlexGridSizer->AddSpacer( 10 );
+
+    pSLOptimization_ = new wxSlider( pPanel, widSLOptimization, 0, 0, 1, wxDefaultPosition, wxSize( 120, -1 ), wxSL_HORIZONTAL );
+    pStaticBitmapQuality_ = new wxStaticBitmap( pPanel, widStaticBitmapQuality, qualityBitmap, wxDefaultPosition, wxDefaultSize, 0, wxT( "Quality" ) );
+    pStaticBitmapQuality_->SetToolTip( wxT( "Will setup the device for optimal image fidelity.\nCurrent settings will be overwritten!" ) );
+    pStaticBitmapSpeed_ = new wxStaticBitmap( pPanel, widStaticBitmapSpeed, speedBitmap, wxDefaultPosition, wxDefaultSize, 0, wxT( "Speed" ) );
+    pStaticBitmapSpeed_->SetToolTip( wxT( "Will setup the device for maximum speed.\nCurrent settings will be overwritten!" ) );
+
+    wxBoxSizer* pSliderDisplacementSizer = new wxBoxSizer( wxVERTICAL );
+    pSliderDisplacementSizer->AddSpacer( 5 );
+    pSliderDisplacementSizer->Add( pSLOptimization_, wxSizerFlags().Bottom().Align( wxALIGN_BOTTOM ) );
+
+    wxFlexGridSizer* pSliderFlexGridSizer = new wxFlexGridSizer( 3, 3 );
+    pSliderFlexGridSizer->AddSpacer( 1 );
+    pSliderFlexGridSizer->AddSpacer( 1 );
+    pSliderFlexGridSizer->AddSpacer( 1 );
+    pSliderFlexGridSizer->Add( pStaticBitmapQuality_, wxSizerFlags().Center().Align( wxALIGN_CENTRE ) );
+    pSliderFlexGridSizer->Add( pSliderDisplacementSizer );
+    pSliderFlexGridSizer->Add( pStaticBitmapSpeed_, wxSizerFlags().Center().Align( wxALIGN_CENTRE ) );
+    pSliderFlexGridSizer->Add( new wxStaticText( pPanel, wxID_ANY, wxT( "Best Quality" ) ), wxSizerFlags().Center().Align( wxALIGN_CENTRE ) );
+    pSliderFlexGridSizer->AddSpacer( 10 );
+    pSliderFlexGridSizer->Add( new wxStaticText( pPanel, wxID_ANY, wxT( "Highest Speed" ) ), wxSizerFlags().Center().Align( wxALIGN_CENTRE ) );
 
     wxFlexGridSizer* pFactoryFlexGridSizer = new wxFlexGridSizer( 3, 2 );
     pFactoryFlexGridSizer->AddSpacer( 10 );
@@ -149,8 +181,10 @@ WizardQuickSetup::WizardQuickSetup( PropViewFrame* pParent, const wxString& titl
 
     wxBoxSizer* pPresetsSizer = new wxStaticBoxSizer( wxHORIZONTAL, pPanel, wxT( "Presets: " ) );
     pPresetsSizer->Add( pColorFlexGridSizer );
-    pPresetsSizer->AddSpacer( 10 );
     pPresetsSizer->Add( pGrayscaleFlexGridSizer );
+    pPresetsSizer->AddSpacer( 46 );
+    pPresetsSizer->AddSpacer( 46 );
+    pPresetsSizer->Add( pSliderFlexGridSizer );
     pPresetsSizer->AddStretchSpacer( 100 );
     pPresetsSizer->Add( pFactoryFlexGridSizer, wxSizerFlags().Right().Align( wxALIGN_RIGHT ) );
 
@@ -160,6 +194,7 @@ WizardQuickSetup::WizardQuickSetup( PropViewFrame* pParent, const wxString& titl
     pSCExposure_->Create( pPanel, widSCExposure, wxEmptyString, wxDefaultPosition, wxSize( 80, -1 ), wxSP_ARROW_KEYS, -10., 10., 1., 100, wxSPINCTRLDBL_AUTODIGITS, wxT( "%.0f" ) );
     pSCExposure_->SetMode( mDouble );
     pBtnExposureAuto_ = new wxToggleButton( pPanel, widBtnExposureAuto, wxT( "Auto" ) );
+    pBtnExposureAuto_->SetToolTip( wxT( "Toggles Auto-Exposure" ) );
 
     wxBoxSizer* pExposureControlsSizer = new wxBoxSizer( wxHORIZONTAL );
     pExposureControlsSizer->Add( new wxStaticText( pPanel, wxID_ANY, wxT( " Exposure [us]:" ) ), wxSizerFlags( 3 ).Expand() );
@@ -172,6 +207,7 @@ WizardQuickSetup::WizardQuickSetup( PropViewFrame* pParent, const wxString& titl
     pSCGain_->Create( pPanel, widSCGain, wxEmptyString, wxDefaultPosition, wxSize( 80, -1 ), wxSP_ARROW_KEYS, -10., 10., 1., 0.001, wxSPINCTRLDBL_AUTODIGITS, wxT( "%.3f" ) );
     pSCGain_->SetMode( mDouble );
     pBtnGainAuto_ = new wxToggleButton( pPanel, widBtnGainAuto, wxT( "Auto" ) );
+    pBtnGainAuto_->SetToolTip( wxT( "Toggles Auto-Gain" ) );
 
     wxBoxSizer* pGainControlsSizer = new wxBoxSizer( wxHORIZONTAL );
     pGainControlsSizer->Add( new wxStaticText( pPanel, wxID_ANY, wxT( " Gain [dB]:" ) ), wxSizerFlags( 3 ).Expand() );
@@ -215,6 +251,7 @@ WizardQuickSetup::WizardQuickSetup( PropViewFrame* pParent, const wxString& titl
     pSCWhiteBalanceB_->SetMode( mDouble );
     pSCWhiteBalanceB_->SetToolTip( ttWB );
     pBtnWhiteBalanceAuto_ = new wxToggleButton( pPanel, widBtnWhiteBalanceAuto, wxT( "Auto" ) );
+    pBtnWhiteBalanceAuto_->SetToolTip( wxT( "Toggles Auto White Balance" ) );
 
     wxBoxSizer* pWhiteBalanceDoubleSliderSizer = new wxBoxSizer( wxVERTICAL );
     pWhiteBalanceDoubleSliderSizer->AddSpacer( 5 );
@@ -237,31 +274,38 @@ WizardQuickSetup::WizardQuickSetup( PropViewFrame* pParent, const wxString& titl
 
     wxBoxSizer* pWhiteBalanceControlsSizer = new wxBoxSizer( wxHORIZONTAL );
     pWhiteBalanceControlsSizer->Add( pWhiteBalanceDoubleTextControlSizer, wxSizerFlags( 2 ).Expand() );
+    pWhiteBalanceControlsSizer->AddSpacer( 28 );
     pWhiteBalanceControlsSizer->Add( pWhiteBalanceDoubleSpinControlSizer );
-    pWhiteBalanceControlsSizer->Add( pWhiteBalanceDoubleSliderSizer );
+    pWhiteBalanceControlsSizer->Add( pWhiteBalanceDoubleSliderSizer, wxSizerFlags( 5 ).Expand() );
     pWhiteBalanceControlsSizer->Add( pBtnWhiteBalanceAuto_, wxSizerFlags().Top().Expand() );
 
     pBtnCCM_ = new wxToggleButton( pPanel, widBtnCCM, wxT( "Color+" ) );
     pBtnCCM_->SetToolTip( wxT( "Will apply sensor-specific CCM & sRGB transformations. Only use with a monitor configured to display sRGB!" ) );
     pBtnGamma_ = new wxToggleButton( pPanel, widBtnGamma, wxT( "Gamma" ) );
+    pBtnGamma_->SetToolTip( wxT( "Will apply a gamma-correction transformation with a gamma value of 1.8" ) );
 
     wxBoxSizer* pButtonsSizer = new wxBoxSizer( wxHORIZONTAL );
     pButtonsSizer->Add( pBtnGamma_, wxSizerFlags().Expand() );
     pButtonsSizer->AddSpacer( 10 );
     pButtonsSizer->Add( pBtnCCM_, wxSizerFlags().Expand() );
 
+    pStaticBitmapWarning_ = new wxStaticBitmap( pPanel, widStaticBitmapWarning, warningBitmap, wxDefaultPosition, wxDefaultSize, 0, wxT( "" ) );
     pSLFrameRate_ = new wxSlider( pPanel, widSLFrameRate, 1000, -10000, 10000, wxDefaultPosition, wxSize( 250, -1 ), wxSL_HORIZONTAL );
     pSCFrameRate_ = new wxSpinCtrlDbl();
     pSCFrameRate_->Create( pPanel, widSCFrameRate, wxEmptyString, wxDefaultPosition, wxSize( 80, -1 ), wxSP_ARROW_KEYS, -10., 10., 1., 0.001, wxSPINCTRLDBL_AUTODIGITS, wxT( "%.3f" ) );
     pSCFrameRate_->SetMode( mDouble );
-    pBtnFrameRateAuto_ = new wxToggleButton( pPanel, widBtnFrameRateAuto, wxT( "Auto" ) );
+    pBtnFrameRateMaximum_ = new wxToggleButton( pPanel, widBtnFrameRateMaximum, wxT( "Maximum" ) );
+    pBtnFrameRateMaximum_->SetToolTip( wxT( "'Will toggle between maximum framerate and fixed framerate" ) );
 
     wxBoxSizer* pFrameRateControlsSizer = new wxBoxSizer( wxHORIZONTAL );
     pFrameRateControlStaticText_ = new wxStaticText( pPanel, wxID_ANY, wxT( " Frame Rate [Hz]:" ) );
-    pFrameRateControlsSizer->Add( pFrameRateControlStaticText_, wxSizerFlags( 3 ).Expand() );
+    pFrameRateControlsSizer->Add( pFrameRateControlStaticText_, wxSizerFlags( 2 ).Expand() );
+    pFrameRateControlsSizer->AddSpacer( 20 );
+    pFrameRateControlsSizer->Add( pStaticBitmapWarning_ );
+    pFrameRateControlsSizer->AddSpacer( 2 );
     pFrameRateControlsSizer->Add( pSCFrameRate_, wxSizerFlags().Expand() );
     pFrameRateControlsSizer->Add( pSLFrameRate_, wxSizerFlags( 6 ).Expand() );
-    pFrameRateControlsSizer->Add( pBtnFrameRateAuto_, wxSizerFlags().Expand() );
+    pFrameRateControlsSizer->Add( pBtnFrameRateMaximum_, wxSizerFlags().Expand() );
 
     wxBoxSizer* pParametersSizer = new wxStaticBoxSizer( wxVERTICAL, pPanel, wxT( "Parameters: " ) );
     pParametersSizer->Add( pExposureControlsSizer, wxSizerFlags().Expand() );
@@ -279,13 +323,26 @@ WizardQuickSetup::WizardQuickSetup( PropViewFrame* pParent, const wxString& titl
     pParametersSizer->Add( pFrameRateControlsSizer, wxSizerFlags().Expand() );
 
     // 'Settings' controls
-    pCBShowDialogAtStartup_ = new wxCheckBox( pPanel, widCBShowDialogAtStartup, wxT( "Show This Dialog When A Device Is Opened" ) );
-    pCBShowDialogAtStartup_->SetValue( boShowAtStartup );
+    pCBShowDialogAtStartup_ = new wxCheckBox( pPanel, widCBShowDialogAtStartup, wxString( pParent->HasEnforcedQSWBehavior() ?
+            wxT( "Show Quick Setup On Device Open ( Not available when the 'qsw' parameter is used! )" ) : wxT( "Show Quick Setup On Device Open" ) ) );
+    pCBShowDialogAtStartup_->SetValue( pParent->GetAutoShowQSWOnUseDevice() );
+    pCBShowDialogAtStartup_->Enable( !pParent->HasEnforcedQSWBehavior() );
 
-    wxBoxSizer* pSettingsSizer = new wxStaticBoxSizer( wxVERTICAL, pPanel, wxT( "Settings: " ) );
-    pSettingsSizer->AddSpacer( 5 );
+    wxBoxSizer* pSettingsSizer = new wxStaticBoxSizer( wxHORIZONTAL, pPanel, wxT( "Settings: " ) );
     pSettingsSizer->Add( pCBShowDialogAtStartup_, wxSizerFlags().Expand() );
-    pSettingsSizer->AddSpacer( 5 );
+
+    // History controls
+    pTCHistory_ = new wxTextCtrl( pPanel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 200, 240 ), wxTE_DONTWRAP | wxTE_MULTILINE | wxSUNKEN_BORDER | wxTE_RICH | wxTE_READONLY );
+    pTCHistory_->Hide();
+    pBtnHistory_ = new wxToggleButton( pPanel, widBtnHistory, wxT( "&History >>>" ) );
+    pBtnHistory_->SetToolTip( wxT( "Shows/Hides the History Window" ) );
+    pBtnClearHistory_ = new wxButton( pPanel, widBtnClearHistory, wxT( "Clear History" ) );
+    pBtnClearHistory_->SetToolTip( wxT( "Clears the History Window" ) );
+    pBtnClearHistory_->Hide();
+    wxBoxSizer* pHistoryButtonsSizer_ = new wxBoxSizer( wxHORIZONTAL );
+    pHistoryButtonsSizer_->Add( pBtnHistory_, wxSizerFlags().Left() );
+    pHistoryButtonsSizer_->AddSpacer( 12 );
+    pHistoryButtonsSizer_->Add( pBtnClearHistory_, wxSizerFlags().Left() );
 
     // putting it all together
     pTopDownSizer_ = new wxBoxSizer( wxVERTICAL );
@@ -296,8 +353,13 @@ WizardQuickSetup::WizardQuickSetup( PropViewFrame* pParent, const wxString& titl
     pTopDownSizer_->AddSpacer( 12 );
     pTopDownSizer_->Add( pSettingsSizer, wxSizerFlags().Expand() );
     pTopDownSizer_->AddSpacer( 12 );
+    pTopDownSizer_->Add( pHistoryButtonsSizer_ );
+    pTopDownSizer_->Add( pTCHistory_, wxSizerFlags().Expand() );
+    pTopDownSizer_->AddSpacer( 12 );
 
     AddButtons( pPanel, pTopDownSizer_, false );
+    pBtnOk_->SetToolTip( wxT( "Applies Current Settings And Exits" ) );
+    pBtnCancel_->SetToolTip( wxT( "Discards Current Settings And Exits" ) );
 
     wxBoxSizer* pOuterSizer = new wxBoxSizer( wxHORIZONTAL );
     pOuterSizer->AddSpacer( 5 );
@@ -323,8 +385,9 @@ void WizardQuickSetup::AnalyzeDeviceAndGatherInformation( SupportedWizardFeature
         supportedFeatures.boAutoExposureSupport = HasAEC();
         supportedFeatures.boAutoGainSupport = HasAGC();
         supportedFeatures.boAutoWhiteBalanceSupport = HasAWB();
-        supportedFeatures.boAutoFrameRateSupport = HasAutoFrameRate();
+        supportedFeatures.boMaximumFrameRateSupport = HasMaximumFrameRate();
         supportedFeatures.boRegulateFrameRateSupport = HasFrameRateEnable();
+        supportedFeatures.boPlatformIPPSuport = HasPlatformIPPSupport();
     }
     catch( const ImpactAcquireException& e )
     {
@@ -349,6 +412,7 @@ void WizardQuickSetup::CloseDlg( void )
     SuspendAcquisitionScopeLock suspendAcquisitionLock( pParentPropViewFrame_ );
     DeviceSettings devSettings = propGridSettings_[currentDeviceSerial_];
     SupportedWizardFeatures features = featuresSupported_[currentDeviceSerial_];
+
     try
     {
         if( pDev_->isOpen() &&
@@ -358,21 +422,24 @@ void WizardQuickSetup::CloseDlg( void )
             WriteUnifiedGainData( devSettings.unifiedGain );
             WriteGainFeatures( devSettings, features );
             WriteUnifiedBlackLevelData( devSettings.unifiedBlackLevel );
-            pIP_->LUTEnable.write( devSettings.boGammaEnabled ? bTrue : bFalse );
+            LoggedWriteProperty( pIP_->LUTEnable, devSettings.boGammaEnabled ? bTrue : bFalse );
 
             if( features.boColorOptionsSupport )
             {
                 WriteWhiteBalanceFeatures( devSettings, features );
                 SetFrameRateEnable( true );
                 WriteSaturationData( devSettings.saturation );
-                pIP_->colorTwistInputCorrectionMatrixEnable.write( devSettings.boCCMEnabled ? bTrue : bFalse );
-                pIP_->colorTwistEnable.write( devSettings.boCCMEnabled ? bTrue : bFalse );
-                pIP_->colorTwistOutputCorrectionMatrixEnable.write( devSettings.boCCMEnabled ? bTrue : bFalse );
+                if( features.boPlatformIPPSuport )
+                {
+                    LoggedWriteProperty( pIP_->colorTwistInputCorrectionMatrixEnable, devSettings.boCCMEnabled ? bTrue : bFalse );
+                    LoggedWriteProperty( pIP_->colorTwistEnable, devSettings.boCCMEnabled ? bTrue : bFalse );
+                    LoggedWriteProperty( pIP_->colorTwistOutputCorrectionMatrixEnable, devSettings.boCCMEnabled ? bTrue : bFalse );
+                }
             }
 
-            if( features.boAutoFrameRateSupport )
+            if( features.boMaximumFrameRateSupport )
             {
-                if( devSettings.boAutoFrameRateEnabled )
+                if( devSettings.boMaximumFrameRateEnabled )
                 {
                     SetFrameRateEnable( false );
                 }
@@ -384,7 +451,10 @@ void WizardQuickSetup::CloseDlg( void )
             }
 
             SetPixelFormat( devSettings.imageFormatControlPixelFormat );
-            pID_->pixelFormat.writeS( devSettings.imageDestinationPixelFormat );
+            SetPixelClock( devSettings.pixelClock );
+            SetExposureOverlapped( devSettings.boDeviceSpecificOverlappedExposure );
+            SetAutoExposureUpperLimit( devSettings.autoExposureUpperLimit );
+            LoggedWriteProperty( pID_->pixelFormat, devSettings.imageDestinationPixelFormat );
             SelectLUTDependingOnPixelFormat();
         }
     }
@@ -397,6 +467,7 @@ void WizardQuickSetup::CloseDlg( void )
     // current ones, otherwise there may be inconsistencies when calling the wizard again.
     currentSettings_[currentDeviceSerial_] = devSettings;
     Hide();
+    pTCHistory_->Clear();
     pParentPropViewFrame_->RestoreGUIStateAfterQuickSetupWizard();
 }
 
@@ -416,7 +487,7 @@ void WizardQuickSetup::ApplyExposure( void )
         }
     }
     // The exposure is a special case. It influences the FrameRate properties, thus the FrameRate controls have to be redrawn
-    if( !currentSettings_[currentDeviceSerial_].boAutoFrameRateEnabled )
+    if( !currentSettings_[currentDeviceSerial_].boMaximumFrameRateEnabled )
     {
         SetupFrameRateControls();
     }
@@ -593,6 +664,13 @@ void WizardQuickSetup::DoSetupFrameRateControls( double frameRateRangeMin, doubl
 }
 
 //-----------------------------------------------------------------------------
+void WizardQuickSetup::OnCBShowOnUseDevice( wxCommandEvent& e )
+//-----------------------------------------------------------------------------
+{
+    pParentPropViewFrame_->SetAutoShowQSWOnUseDevice( e.IsChecked() );
+}
+
+//-----------------------------------------------------------------------------
 void WizardQuickSetup::OnClose( wxCloseEvent& e )
 //-----------------------------------------------------------------------------
 {
@@ -607,11 +685,30 @@ void WizardQuickSetup::OnClose( wxCloseEvent& e )
 void WizardQuickSetup::OnBtnPresetColor( wxCommandEvent& )
 //-----------------------------------------------------------------------------
 {
+    currentSettings_[currentDeviceSerial_].boColorEnabled = true;
+    HandlePresetChanges();
+}
+
+//-----------------------------------------------------------------------------
+void WizardQuickSetup::OnBtnPresetGray( wxCommandEvent& )
+//-----------------------------------------------------------------------------
+{
+    currentSettings_[currentDeviceSerial_].boColorEnabled = false;
+    HandlePresetChanges();
+}
+
+//-----------------------------------------------------------------------------
+void WizardQuickSetup::ApplyPreset( bool boColor, TOptimizationLevel optimizationLevel )
+//-----------------------------------------------------------------------------
+{
     SuspendAcquisitionScopeLock suspendAcquisitionLock( pParentPropViewFrame_ );
     SetupDevice();
-    PresetColorHQ();
+    PresetHiddenAdjustments( boColor, optimizationLevel );
     SetupControls();
-    WriteQuickSetupWizardLogMessage( wxString::Format( wxT( "Using quality-optimized color presets for device %s(%s)" ), ConvertedString( currentProductString_ ).c_str(), ConvertedString( currentDeviceSerial_ ).c_str() ) );
+
+    WriteQuickSetupWizardLogMessage( wxString::Format( wxT( "Using %s-optimized %s presets for device %s(%s)" ), ( ( optimizationLevel == olBestQuality ) ? "quality" : "speed" ),
+                                     ( boColor ? "color" : "grayscale" ), ConvertedString( currentProductString_ ).c_str(), ConvertedString( currentDeviceSerial_ ).c_str() ) );
+
 }
 
 //-----------------------------------------------------------------------------
@@ -634,6 +731,10 @@ void WizardQuickSetup::OnBtnPresetFactory( wxCommandEvent& )
 
     try
     {
+        // Autogain has to manually be turned off prior to reverting to default, as the whole unified-gain functionality in combination with
+        // the regular updates for the GUI introduces problems with the invalidation. Particularly it has been observed, that after a loading
+        // of UserSetDefault, the autogain remains on auto, even though it should revert to off
+        ConfigureGainAuto( false );
         RestoreFactoryDefault();
         SetAcquisitionFrameRateLimitMode();
     }
@@ -660,17 +761,6 @@ void WizardQuickSetup::OnBtnPresetFactory( wxCommandEvent& )
     propGridSettings_[currentDeviceSerial_] = currentSettings_[currentDeviceSerial_];
     SelectLUTDependingOnPixelFormat();
     WriteQuickSetupWizardLogMessage( wxString::Format( wxT( "Restored factory presets for device %s(%s)" ), ConvertedString( currentProductString_ ).c_str(), ConvertedString( currentDeviceSerial_ ).c_str() ) );
-}
-
-//-----------------------------------------------------------------------------
-void WizardQuickSetup::OnBtnPresetGrey( wxCommandEvent& )
-//-----------------------------------------------------------------------------
-{
-    SuspendAcquisitionScopeLock suspendAcquisitionLock( pParentPropViewFrame_ );
-    SetupDevice();
-    PresetGreyHQ();
-    SetupControls();
-    WriteQuickSetupWizardLogMessage( wxString::Format( wxT( "Using quality-optimized grayscale presets for device %s(%s)" ), ConvertedString( currentProductString_ ).c_str(), ConvertedString( currentDeviceSerial_ ).c_str() ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -741,7 +831,7 @@ void WizardQuickSetup::ConfigureGamma( bool boActive )
     {
         try
         {
-            pIP_->LUTEnable.write( boActive ? bTrue : bFalse );
+            LoggedWriteProperty( pIP_->LUTEnable, boActive ? bTrue : bFalse );
             currentSettings_[currentDeviceSerial_].boGammaEnabled = boActive;
         }
         catch( const ImpactAcquireException& e )
@@ -789,9 +879,12 @@ void WizardQuickSetup::ConfigureCCM( bool boActive )
     {
         try
         {
-            pIP_->colorTwistInputCorrectionMatrixEnable.write( boActive ? bTrue : bFalse );
-            pIP_->colorTwistEnable.write( boActive ? bTrue : bFalse );
-            pIP_->colorTwistOutputCorrectionMatrixEnable.write( boActive ? bTrue : bFalse );
+            if( featuresSupported_[currentDeviceSerial_].boPlatformIPPSuport )
+            {
+                LoggedWriteProperty( pIP_->colorTwistInputCorrectionMatrixEnable, boActive ? bTrue : bFalse );
+                LoggedWriteProperty( pIP_->colorTwistEnable, boActive ? bTrue : bFalse );
+                LoggedWriteProperty( pIP_->colorTwistOutputCorrectionMatrixEnable, boActive ? bTrue : bFalse );
+            }
             currentSettings_[currentDeviceSerial_].boCCMEnabled = boActive;
         }
         catch( const ImpactAcquireException& e )
@@ -802,17 +895,17 @@ void WizardQuickSetup::ConfigureCCM( bool boActive )
 }
 
 //-----------------------------------------------------------------------------
-void WizardQuickSetup::ConfigureFrameRateAuto( bool boActive )
+void WizardQuickSetup::ConfigureFrameRateMaximum( bool boActive )
 //-----------------------------------------------------------------------------
 {
     if( boGUILocked_ == false )
     {
-        if( featuresSupported_[currentDeviceSerial_].boAutoFrameRateSupport )
+        if( featuresSupported_[currentDeviceSerial_].boMaximumFrameRateSupport )
         {
             try
             {
-                DoConfigureFrameRateAuto( boActive, pSCFrameRate_->GetValue() );
-                currentSettings_[currentDeviceSerial_].boAutoFrameRateEnabled = boActive;
+                DoConfigureFrameRateMaximum( boActive, pSCFrameRate_->GetValue() );
+                currentSettings_[currentDeviceSerial_].boMaximumFrameRateEnabled = boActive;
             }
             catch( const ImpactAcquireException& e )
             {
@@ -820,6 +913,20 @@ void WizardQuickSetup::ConfigureFrameRateAuto( bool boActive )
             }
         }
     }
+}
+
+//-----------------------------------------------------------------------------
+std::string WizardQuickSetup::GetFullPropertyName( Property prop ) const
+//-----------------------------------------------------------------------------
+{
+    const FeatureToNameMap::const_iterator itFeature = find_if( GlobalDataStorage::Instance()->featureToNameMap_.begin(), GlobalDataStorage::Instance()->featureToNameMap_.end(), ObjectHandleMatches( prop.hObj() ) );
+    static const wxString prefixToRemove( wxT( "Setting/Base/" ) );
+    if( ( itFeature != GlobalDataStorage::Instance()->featureToNameMap_.end() ) && itFeature->second.StartsWith( prefixToRemove ) )
+    {
+        // Only a substring is kept in order to get rid of the "Setting/Base" part...
+        return std::string( itFeature->second.mb_str() ).substr( prefixToRemove.Length() );
+    }
+    return prop.name();
 }
 
 //-----------------------------------------------------------------------------
@@ -928,32 +1035,55 @@ void WizardQuickSetup::HandleFrameRateSpinControlChanges( void )
 }
 
 //-----------------------------------------------------------------------------
+void WizardQuickSetup::HandlePresetChanges( void )
+//-----------------------------------------------------------------------------
+{
+    const bool boColorEnabled = currentSettings_[currentDeviceSerial_].boColorEnabled;
+    const TOptimizationLevel optimizationLevel = currentSettings_[currentDeviceSerial_].optimizationLevel;
+    ApplyPreset( boColorEnabled, optimizationLevel );
+}
+
+//-----------------------------------------------------------------------------
 void WizardQuickSetup::QueryInitialDeviceSettings( DeviceSettings& devSettings )
 //-----------------------------------------------------------------------------
 {
     devSettings.boAutoExposureEnabled = false;
     devSettings.boAutoGainEnabled = false;
     devSettings.boGammaEnabled = false;
-    devSettings.boAutoFrameRateEnabled = false;
+    devSettings.boMaximumFrameRateEnabled = false;
     devSettings.boColorEnabled = false;
     devSettings.boCCMEnabled = false;
+    devSettings.boDeviceSpecificOverlappedExposure = false;
+    devSettings.imageFormatControlPixelFormat = "NotInitialised";
 
     QueryInterfaceLayoutSpecificSettings( devSettings );
     if( HasUnifiedGain() )
     {
         devSettings.unifiedGain = ReadUnifiedGainData();
     }
+    if( HasColorFormat() )
+    {
+        devSettings.boColorEnabled = true;
+    }
     devSettings.boGammaEnabled = pIP_->LUTEnable.read() == bTrue;
-    devSettings.saturation = ReadSaturationData();
-    devSettings.boCCMEnabled = ( ( pIP_->colorTwistInputCorrectionMatrixEnable.read() == bTrue ) &&
-                                 ( pIP_->colorTwistEnable.read() == bTrue ) &&
-                                 ( pIP_->colorTwistOutputCorrectionMatrixEnable.read() == bTrue ) );
+    if( HasPlatformIPPSupport() )
+    {
+        devSettings.saturation = ReadSaturationData();
+        devSettings.boCCMEnabled = ( ( pIP_->colorTwistInputCorrectionMatrixEnable.read() == bTrue ) &&
+                                     ( pIP_->colorTwistEnable.read() == bTrue ) &&
+                                     ( pIP_->colorTwistOutputCorrectionMatrixEnable.read() == bTrue ) );
+    }
+    else
+    {
+        devSettings.saturation = 0.;
+        devSettings.boCCMEnabled = false;
+    }
 
     TryToReadFrameRate( devSettings.frameRate );
 
     if( HasFrameRateEnable() )
     {
-        devSettings.boAutoFrameRateEnabled = GetFrameRateEnable();
+        devSettings.boMaximumFrameRateEnabled = !GetFrameRateEnable();
     }
 
     devSettings.analogGainMin = analogGainMin_;
@@ -964,11 +1094,27 @@ void WizardQuickSetup::QueryInitialDeviceSettings( DeviceSettings& devSettings )
     devSettings.analogBlackLevelMax = analogBlackLevelMax_;
     devSettings.digitalBlackLevelMin = digitalBlackLevelMin_;
     devSettings.digitalBlackLevelMax = digitalBlackLevelMax_;
+
     devSettings.imageFormatControlPixelFormat = GetPixelFormat();
+    devSettings.autoExposureUpperLimit = GetAutoExposureUpperLimit();
+    devSettings.pixelClock = GetPixelClock();
+    devSettings.imageFormatControlPixelFormat = GetPixelFormat();
+    devSettings.boDeviceSpecificOverlappedExposure = GetExposureOverlapped();
+    devSettings.maxFrameRateAtCurrentAOI = DetermineMaxFrameRateAtCurrentAOI();
+    devSettings.maxAllowedHQFrameRateAtCurrentAOI = DetermineOptimalHQFrameRateAtCurrentAOI();
+
     if( pID_->pixelFormat.isValid() )
     {
-        devSettings.imageDestinationPixelFormat = pID_->pixelFormat.readS();
+        devSettings.imageDestinationPixelFormat = pID_->pixelFormat.read();
     }
+}
+
+//-----------------------------------------------------------------------------
+void WizardQuickSetup::OnSLOptimisation( wxScrollEvent& )
+//-----------------------------------------------------------------------------
+{
+    currentSettings_[currentDeviceSerial_].optimizationLevel = GetOptimizationLevel();
+    HandlePresetChanges();
 }
 
 //-----------------------------------------------------------------------------
@@ -977,7 +1123,7 @@ double WizardQuickSetup::ExposureFromSliderValue( void ) const
 {
     const int value = pSLExposure_->GetValue();
     const int valueMax = pSLExposure_->GetMax();
-    return pow( static_cast< double >( value ) / static_cast< double >( valueMax ), GAMMA_ ) * static_cast< double >( valueMax );
+    return pow( static_cast< double >( value ) / static_cast< double >( valueMax ), EXPOSURE_SLIDER_GAMMA_ ) * static_cast< double >( valueMax );
 }
 
 //-----------------------------------------------------------------------------
@@ -985,7 +1131,7 @@ int WizardQuickSetup::ExposureToSliderValue( const double exposure ) const
 //-----------------------------------------------------------------------------
 {
     const double exposureMax = pSCExposure_->GetMax();
-    return static_cast< int >( pow( exposure / exposureMax, 1. / GAMMA_ ) * exposureMax );
+    return static_cast< int >( pow( exposure / exposureMax, 1. / EXPOSURE_SLIDER_GAMMA_ ) * exposureMax );
 }
 
 //-----------------------------------------------------------------------------
@@ -1100,7 +1246,10 @@ double WizardQuickSetup::ReadSaturationData( void )
     double currentSaturation = 0.;
     try
     {
-        currentSaturation = ( ( pIP_->colorTwistRow0.read( 0 ) - 0.299 ) / 0.701 ) * 100.0;
+        if( featuresSupported_[currentDeviceSerial_].boPlatformIPPSuport )
+        {
+            currentSaturation = ( ( pIP_->colorTwistRow0.read( 0 ) - 0.299 ) / 0.701 ) * 100.0;
+        }
     }
     catch( const ImpactAcquireException& e )
     {
@@ -1115,11 +1264,17 @@ void WizardQuickSetup::WriteSaturationData( double saturation )
 {
     try
     {
-        if( pIP_->colorTwistEnable.readS() != string( "On" ) )
+        if( featuresSupported_[currentDeviceSerial_].boPlatformIPPSuport )
         {
-            pIP_->colorTwistEnable.writeS( "On" );
+            if( pIP_->colorTwistEnable.readS() != string( "On" ) )
+            {
+                LoggedWriteProperty( pIP_->colorTwistEnable, std::string( "On" ) );
+            }
+            pIP_->setSaturation( saturation / 100.0 );
         }
-        pIP_->setSaturation( saturation / 100.0 );
+        std::ostringstream sstream;
+        sstream << "Method setSaturation() called with parameter " << ( saturation / 100.0 ) << endl;
+        propertyChangeHistory_ += sstream.str();
     }
     catch( const ImpactAcquireException& e )
     {
@@ -1188,28 +1343,43 @@ void WizardQuickSetup::WriteUnifiedBlackLevelData( double unifiedBlackLevel )
 }
 
 //-----------------------------------------------------------------------------
-void WizardQuickSetup::PresetColorHQ( void )
+void WizardQuickSetup::PresetHiddenAdjustments( bool boColor, TOptimizationLevel optimizationLevel )
 //-----------------------------------------------------------------------------
 {
-    currentSettings_[currentDeviceSerial_].boColorEnabled = true;
-    WriteSaturationData( 100. );
-    ConfigureCCM( true );
-    ConfigureGamma( true );
-    SelectColorPixelFormat();
-    SelectLUTDependingOnPixelFormat();
-    pID_->pixelFormat.write( idpfRGBx888Packed );
-}
+    if( optimizationLevel == olBestQuality )
+    {
+        SetFrameRateEnable( true );
+        SetFrameRate( currentSettings_[currentDeviceSerial_].maxAllowedHQFrameRateAtCurrentAOI );
+        currentSettings_[currentDeviceSerial_].boMaximumFrameRateEnabled = false;
+    }
+    else if( featuresSupported_[currentDeviceSerial_].boMaximumFrameRateSupport )
+    {
+        SetAcquisitionFrameRateLimitMode();
+        currentSettings_[currentDeviceSerial_].boMaximumFrameRateEnabled = true;
+    }
+    else
+    {
+        // By entering a big number the maxValue of the Frame rate will be written
+        SetFrameRate( 10000. );
+        currentSettings_[currentDeviceSerial_].boMaximumFrameRateEnabled = false;
+    }
 
-//-----------------------------------------------------------------------------
-void WizardQuickSetup::PresetGreyHQ( void )
-//-----------------------------------------------------------------------------
-{
-    currentSettings_[currentDeviceSerial_].boColorEnabled = false;
-    ConfigureCCM( false );
-    ConfigureGamma( false );
-    SelectGreyscalePixelFormat();
+    ConfigureCCM( boColor );
+    ConfigureGamma( boColor );
+    SelectOptimalPixelClock( optimizationLevel == olBestQuality );
+    SelectOptimalAutoExposureSettings( optimizationLevel == olBestQuality );
+    if( boColor )
+    {
+        SelectOptimalPixelFormatColor( optimizationLevel == olBestQuality );
+        WriteSaturationData( 100. );
+        LoggedWriteProperty( pID_->pixelFormat, idpfRGBx888Packed );
+    }
+    else
+    {
+        SelectOptimalPixelFormatGray( optimizationLevel == olBestQuality );
+        LoggedWriteProperty( pID_->pixelFormat, idpfMono8 );
+    }
     SelectLUTDependingOnPixelFormat();
-    pID_->pixelFormat.write( idpfMono8 );
 }
 
 //-----------------------------------------------------------------------------
@@ -1218,7 +1388,8 @@ void WizardQuickSetup::ReferToNewDevice( Device* pDev )
 {
     currentDeviceSerial_ = pDev->serial.readS();
     currentProductString_ = pDev->product.readS();
-    currentDeviceFWVersion_ = static_cast<unsigned int>( pDev->firmwareVersion.read() );
+    currentDeviceFWVersion_ = static_cast< unsigned int >( pDev->firmwareVersion.read() );
+    pCBShowDialogAtStartup_->SetValue( pParentPropViewFrame_->GetAutoShowQSWOnUseDevice() );
     bool boFirstTimeDeviceStartsWizard = ( currentSettings_.find( currentDeviceSerial_ ) == currentSettings_.end() );
 
     CleanUp();
@@ -1228,12 +1399,18 @@ void WizardQuickSetup::ReferToNewDevice( Device* pDev )
     pIP_ = new ImageProcessing( pDev );
 
     SetupUnifiedData( boFirstTimeDeviceStartsWizard );
-    // Save PropGridState in case Cancel is pressed.
     DeviceSettings devSettings;
     QueryInitialDeviceSettings( devSettings );
+
+    // optimizationLevel is no camera property, but rather a quicksetup "setting", and has to be handled differently than everything else
+    devSettings.optimizationLevel = boFirstTimeDeviceStartsWizard ? olBestQuality : currentSettings_[currentDeviceSerial_].optimizationLevel;
+    // boSettingsHaveNotYetBeenSavedEvenOnce is no camera property, but rather a flag, and has to be handled differently than everything else
+    devSettings.boSettingsHaveNotYetBeenSavedEvenOnce = boFirstTimeDeviceStartsWizard ? true : currentSettings_[currentDeviceSerial_].boSettingsHaveNotYetBeenSavedEvenOnce;
+
+    // Save PropGridState in case Cancel is pressed.
     propGridSettings_[currentDeviceSerial_] = devSettings;
 
-    if( boFirstTimeDeviceStartsWizard )
+    if( boFirstTimeDeviceStartsWizard || devSettings.boSettingsHaveNotYetBeenSavedEvenOnce )
     {
         currentSettings_[currentDeviceSerial_] = devSettings;
         SupportedWizardFeatures supportedFeatures;
@@ -1241,18 +1418,11 @@ void WizardQuickSetup::ReferToNewDevice( Device* pDev )
         featuresSupported_[currentDeviceSerial_] = supportedFeatures;
     }
     SetupDriverSettings();
-    if( boFirstTimeDeviceStartsWizard )
+    if( boFirstTimeDeviceStartsWizard || devSettings.boSettingsHaveNotYetBeenSavedEvenOnce )
     {
         SuspendAcquisitionScopeLock suspendAcquisitionLock( pParentPropViewFrame_ );
         SetupDevice();
-        if( featuresSupported_[currentDeviceSerial_].boColorOptionsSupport )
-        {
-            PresetColorHQ();
-        }
-        else
-        {
-            PresetGreyHQ();
-        }
+        PresetHiddenAdjustments( featuresSupported_[currentDeviceSerial_].boColorOptionsSupport, olBestQuality );
     }
     else
     {
@@ -1322,9 +1492,9 @@ void WizardQuickSetup::RefreshControls( void )
         pBtnWhiteBalanceAuto_->SetValue( false );
     }
 
-    if( settings.boColorEnabled )
+    if( settings.boColorEnabled && features.boPlatformIPPSuport )
     {
-        const bool boCCMSupported = features.boColorOptionsSupport;
+        const bool boCCMSupported = features.boPlatformIPPSuport;
         const bool boCCMIsActive = settings.boCCMEnabled;
         pBtnCCM_->SetValue( boCCMIsActive );
         pBtnCCM_->Enable( boCCMSupported );
@@ -1339,13 +1509,13 @@ void WizardQuickSetup::RefreshControls( void )
         pBtnCCM_->SetValue( false );
     }
 
-    const bool boAutoFrameRateSupported = features.boAutoFrameRateSupport;
-    const bool boFrameRateAutoIsActive = settings.boAutoFrameRateEnabled;
+    const bool boMaximumFrameRateSupported = features.boMaximumFrameRateSupport;
+    const bool boFrameRateMaximumIsActive = settings.boMaximumFrameRateEnabled;
     const bool boFrameRateRegulationSupported = features.boRegulateFrameRateSupport;
-    pBtnFrameRateAuto_->SetValue( boFrameRateAutoIsActive );
-    pBtnFrameRateAuto_->Enable( boAutoFrameRateSupported );
-    pSLFrameRate_->Enable( boFrameRateRegulationSupported ? ( !boAutoFrameRateSupported || !boFrameRateAutoIsActive ) : false );
-    pSCFrameRate_->Enable( boFrameRateRegulationSupported ? ( !boAutoFrameRateSupported || !boFrameRateAutoIsActive ) : false );
+    pBtnFrameRateMaximum_->SetValue( boFrameRateMaximumIsActive );
+    pBtnFrameRateMaximum_->Enable( boMaximumFrameRateSupported );
+    pSLFrameRate_->Enable( boFrameRateRegulationSupported ? ( !boMaximumFrameRateSupported || !boFrameRateMaximumIsActive ) : false );
+    pSCFrameRate_->Enable( boFrameRateRegulationSupported ? ( !boMaximumFrameRateSupported || !boFrameRateMaximumIsActive ) : false );
     pFrameRateControlStaticText_->Enable( boFrameRateRegulationSupported );
     pBtnPresetColor_->Enable( features.boColorOptionsSupport );
 }
@@ -1394,15 +1564,21 @@ void WizardQuickSetup::RestoreWizardConfiguration( void )
 
         pSCFrameRate_->SetValue( settings.frameRate );
         HandleFrameRateSpinControlChanges();
-        if( featuresSupported_[currentDeviceSerial_].boAutoFrameRateSupport )
+        if( featuresSupported_[currentDeviceSerial_].boMaximumFrameRateSupport )
         {
-            ConfigureFrameRateAuto( settings.boAutoFrameRateEnabled );
+            ConfigureFrameRateMaximum( settings.boMaximumFrameRateEnabled );
         }
+
+        pSLOptimization_->SetValue( static_cast< int >( settings.optimizationLevel ) );
+        pSLOptimization_->Refresh();
     }
 
     RefreshControls();
+    SetAutoExposureUpperLimit( settings.autoExposureUpperLimit );
+    SetExposureOverlapped( settings.boDeviceSpecificOverlappedExposure );
+    SetPixelClock( settings.pixelClock );
     SetPixelFormat( settings.imageFormatControlPixelFormat );
-    pID_->pixelFormat.writeS( settings.imageDestinationPixelFormat );
+    LoggedWriteProperty( pID_->pixelFormat, settings.imageDestinationPixelFormat );
 }
 
 //-----------------------------------------------------------------------------
@@ -1421,41 +1597,51 @@ void WizardQuickSetup::SaveWizardConfiguration( void )
     currentSettings_[currentDeviceSerial_].saturation = pSCSaturation_->GetValue();
     currentSettings_[currentDeviceSerial_].boCCMEnabled = pBtnCCM_->GetValue();
     currentSettings_[currentDeviceSerial_].frameRate = pSCFrameRate_->GetValue();
-    currentSettings_[currentDeviceSerial_].boAutoFrameRateEnabled = pBtnFrameRateAuto_->GetValue();
+    currentSettings_[currentDeviceSerial_].boMaximumFrameRateEnabled = pBtnFrameRateMaximum_->GetValue();
     currentSettings_[currentDeviceSerial_].imageFormatControlPixelFormat = GetPixelFormat();
-    currentSettings_[currentDeviceSerial_].imageDestinationPixelFormat = pID_->pixelFormat.readS();
+    currentSettings_[currentDeviceSerial_].pixelClock = GetPixelClock();
+    currentSettings_[currentDeviceSerial_].autoExposureUpperLimit = GetAutoExposureUpperLimit();
+    currentSettings_[currentDeviceSerial_].boDeviceSpecificOverlappedExposure = GetExposureOverlapped();
+    currentSettings_[currentDeviceSerial_].imageDestinationPixelFormat = pID_->pixelFormat.read();
+    currentSettings_[currentDeviceSerial_].optimizationLevel = GetOptimizationLevel();
+
+    // Both current and propgrid settings have to remember the flag, to cover both 'OK' and 'Cancel' scenarios
+    currentSettings_[currentDeviceSerial_].boSettingsHaveNotYetBeenSavedEvenOnce = false;
+    propGridSettings_[currentDeviceSerial_].boSettingsHaveNotYetBeenSavedEvenOnce = false;
 }
 
 //-----------------------------------------------------------------------------
 void WizardQuickSetup::SelectLUTDependingOnPixelFormat( void )
 //-----------------------------------------------------------------------------
 {
-    string currentPixelFormat = currentSettings_[currentDeviceSerial_].imageFormatControlPixelFormat;
+    // We cannot use the currentSettings_ pixelformat information, as this function is also used when canceling,
+    // in which case it must use data from propGridSettings_ rather than currentSettings_
+    const std::string currentPixelFormat = GetPixelFormat();
 
     if( currentPixelFormat.find( "8", 0 ) != string::npos &&
         pIP_->LUTMappingSoftware.read() != LUTm8To8 )
     {
-        pIP_->LUTMappingSoftware.write( LUTm8To8 );
+        LoggedWriteProperty( pIP_->LUTMappingSoftware, LUTm8To8 );
     }
     else if( currentPixelFormat.find( "10", 0 ) != string::npos &&
              pIP_->LUTMappingSoftware.read() != LUTm10To10 )
     {
-        pIP_->LUTMappingSoftware.write( LUTm10To10 );
+        LoggedWriteProperty( pIP_->LUTMappingSoftware, LUTm10To10 );
     }
     else if( currentPixelFormat.find( "12", 0 ) != string::npos &&
              pIP_->LUTMappingSoftware.read() != LUTm12To12 )
     {
-        pIP_->LUTMappingSoftware.write( LUTm12To12 );
+        LoggedWriteProperty( pIP_->LUTMappingSoftware, LUTm12To12 );
     }
     else if( currentPixelFormat.find( "14", 0 ) != string::npos &&
              pIP_->LUTMappingSoftware.read() != LUTm14To14 )
     {
-        pIP_->LUTMappingSoftware.write( LUTm14To14 );
+        LoggedWriteProperty( pIP_->LUTMappingSoftware, LUTm14To14 );
     }
     else if( currentPixelFormat.find( "16", 0 ) != string::npos &&
              pIP_->LUTMappingSoftware.read() != LUTm16To16 )
     {
-        pIP_->LUTMappingSoftware.write( LUTm16To16 );
+        LoggedWriteProperty( pIP_->LUTMappingSoftware, LUTm16To16 );
     }
 }
 
@@ -1509,23 +1695,10 @@ void WizardQuickSetup::SetupDevice( void )
         InitializeExposureParameters( devSettings, features );
         InitializeGainParameters( devSettings, features );
         InitializeBlackLevelParameters( devSettings, features );
-        WriteUnifiedBlackLevelData( 0. );
 
         if( features.boColorOptionsSupport )
         {
             InitializeWhiteBalanceParameters( devSettings, features );
-        }
-
-        if( features.boAutoFrameRateSupport )
-        {
-            SetAcquisitionFrameRateLimitMode();
-            devSettings.boAutoFrameRateEnabled = true;
-        }
-        else
-        {
-            // By entering a big number the maxValue of the Frame rate will be written
-            SetFrameRate( 10000. );
-            devSettings.boAutoFrameRateEnabled = false;
         }
     }
     catch( const ImpactAcquireException& e )
@@ -1541,32 +1714,32 @@ void WizardQuickSetup::SetupDriverSettings( void )
 {
     if( pIP_->LUTEnable.isValid() && pIP_->LUTEnable.isWriteable() )
     {
-        pIP_->LUTEnable.write( bTrue );
-        pIP_->LUTMode.write( LUTmGamma );
+        LoggedWriteProperty( pIP_->LUTEnable, bTrue );
+        LoggedWriteProperty( pIP_->LUTMode, LUTmGamma );
         const unsigned int LUTCnt = pIP_->getLUTParameterCount();
         for( unsigned int i = 0; i < LUTCnt; i++ )
         {
             mvIMPACT::acquire::LUTParameters& lpm = pIP_->getLUTParameter( i );
-            lpm.gamma.write( GAMMA_CORRECTION_VALUE_ );
-            lpm.gammaMode.write( LUTgmLinearStart );
+            LoggedWriteProperty( lpm.gamma, GAMMA_CORRECTION_VALUE_ );
+            LoggedWriteProperty( lpm.gammaMode, LUTgmLinearStart );
         }
-        pIP_->LUTEnable.write( bFalse );
+        LoggedWriteProperty( pIP_->LUTEnable, bFalse );
     }
 
-    if( featuresSupported_[currentDeviceSerial_].boColorOptionsSupport )
+    if( featuresSupported_[currentDeviceSerial_].boColorOptionsSupport && featuresSupported_[currentDeviceSerial_].boPlatformIPPSuport )
     {
         if( ( pIP_->colorTwistInputCorrectionMatrixEnable.isValid() && pIP_->colorTwistInputCorrectionMatrixEnable.isWriteable() ) &&
             ( pIP_->colorTwistOutputCorrectionMatrixEnable.isValid() && pIP_->colorTwistOutputCorrectionMatrixEnable.isWriteable() ) )
         {
-            pIP_->colorTwistInputCorrectionMatrixEnable.write( bTrue );
-            pIP_->colorTwistOutputCorrectionMatrixEnable.write( bTrue );
-            pIP_->colorTwistInputCorrectionMatrixMode.write( cticmmDeviceSpecific );
-            pIP_->colorTwistOutputCorrectionMatrixMode.write( ctocmmXYZTosRGB_D50 );
-            pIP_->colorTwistInputCorrectionMatrixEnable.write( bFalse );
-            pIP_->colorTwistOutputCorrectionMatrixEnable.write( bFalse );
+            LoggedWriteProperty( pIP_->colorTwistInputCorrectionMatrixEnable, bTrue );
+            LoggedWriteProperty( pIP_->colorTwistOutputCorrectionMatrixEnable, bTrue );
+            LoggedWriteProperty( pIP_->colorTwistInputCorrectionMatrixMode, cticmmDeviceSpecific );
+            LoggedWriteProperty( pIP_->colorTwistOutputCorrectionMatrixMode, ctocmmXYZTosRGB_D50 );
+            LoggedWriteProperty( pIP_->colorTwistInputCorrectionMatrixEnable, bFalse );
+            LoggedWriteProperty( pIP_->colorTwistOutputCorrectionMatrixEnable, bFalse );
         }
     }
-    pID_->pixelFormat.writeS( currentSettings_[currentDeviceSerial_].imageDestinationPixelFormat );
+    LoggedWriteProperty( pID_->pixelFormat, currentSettings_[currentDeviceSerial_].imageDestinationPixelFormat );
 }
 
 //-----------------------------------------------------------------------------
@@ -1611,6 +1784,55 @@ void WizardQuickSetup::ShowImageTimeoutPopup( void )
 }
 
 //-----------------------------------------------------------------------------
+void WizardQuickSetup::ToggleDetails( bool boShow )
+//-----------------------------------------------------------------------------
+{
+    if( boShow )
+    {
+        pTCHistory_->Show();
+        pBtnClearHistory_->Show();
+        SetSize( GetSize().GetWidth(), GetSize().GetHeight() + pTCHistory_->GetSize().GetHeight() );
+        pBtnHistory_->SetLabel( wxT( "&History <<<" ) );
+    }
+    else
+    {
+        pTCHistory_->Hide();
+        pBtnClearHistory_->Hide();
+        SetSize( GetSize().GetWidth(), GetSize().GetHeight() - pTCHistory_->GetSize().GetHeight() );
+        pBtnHistory_->SetLabel( wxT( "&History >>>" ) );
+    }
+    pTopDownSizer_->Layout();
+}
+
+//-----------------------------------------------------------------------------
+void WizardQuickSetup::UpdateDetailsTextControl( void )
+//-----------------------------------------------------------------------------
+{
+    if( propertyChangeHistory_.length() != 0 )
+    {
+        wxFont fixedPitchFont( 8, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL );
+        fixedPitchFont.SetWeight( wxFONTWEIGHT_BOLD );
+        wxTextAttr fixedPitchStyle;
+        fixedPitchStyle.SetFont( fixedPitchFont );
+        WriteToTextCtrl( pTCHistory_, ConvertedString( propertyChangeHistory_ ), fixedPitchStyle );
+        propertyChangeHistory_.clear();
+        //Workaround for windows refresh issue
+        pTCHistory_->ScrollLines( 1 );
+    }
+}
+
+//-----------------------------------------------------------------------------
+void WizardQuickSetup::UpdateFramerateWarningBitmap( bool boIsFrameRateMax )
+//-----------------------------------------------------------------------------
+{
+    // Since wxWidgets in linux has trouble rendering the bitmap correctly after Show( boIsFrameRateMax )
+    // has been called, we are forced to use this workaround which provides the same functionality.
+    const wxBitmap currentBitmap( boIsFrameRateMax ? wizard_warning_xpm : wizard_empty_xpm );
+    pStaticBitmapWarning_->SetBitmap( currentBitmap );
+    pStaticBitmapWarning_->SetToolTip( boIsFrameRateMax ? wxT( "Auto-exposure too long (scene is too dark)!\nFPS may be slower than anticipated!" ) : wxT( "" ) );
+}
+
+//-----------------------------------------------------------------------------
 void WizardQuickSetup::UpdateExposureControlsFromCamera( void )
 //-----------------------------------------------------------------------------
 {
@@ -1624,10 +1846,6 @@ void WizardQuickSetup::UpdateExposureControlsFromCamera( void )
 void WizardQuickSetup::UpdateGainControlsFromCamera( void )
 //-----------------------------------------------------------------------------
 {
-    // ReadUnifiedGain leads to stuttering. Since DigitalGain is set to 0 on pressing AutoGain Button,
-    // one could rely on analog gain values alone to update the current gain when auto-gain is in use.
-    // This option however has to be investigated further before using.
-    // double const unifiedGain = pAnC_->gain.read();
     double const unifiedGain = ReadUnifiedGainData();
     pSCGain_->SetValue( unifiedGain );
     pSLGain_->SetValue( static_cast< int >( unifiedGain * SLIDER_GRANULARITY_ ) );
@@ -1638,8 +1856,21 @@ void WizardQuickSetup::UpdateGainControlsFromCamera( void )
 void WizardQuickSetup::UpdateWhiteBalanceControlsFromCamera( void )
 //-----------------------------------------------------------------------------
 {
-    double const whiteBalanceRed = GetWhiteBalance( wbcRed ) * 100.;
-    double const whiteBalanceBlue = GetWhiteBalance( wbcBlue ) * 100.;
+    double whiteBalanceRed;
+    double whiteBalanceBlue;
+    if( boLastWBChannelRead_ == wbcRed )
+    {
+        whiteBalanceRed = GetWhiteBalance( wbcRed ) * 100.;
+        whiteBalanceBlue = GetWhiteBalance( wbcBlue ) * 100.;
+        boLastWBChannelRead_ = wbcBlue;
+    }
+    else
+    {
+        whiteBalanceBlue = GetWhiteBalance( wbcBlue ) * 100.;
+        whiteBalanceRed = GetWhiteBalance( wbcRed ) * 100.;
+        boLastWBChannelRead_ = wbcRed;
+    }
+
     pSCWhiteBalanceR_->SetValue( whiteBalanceRed );
     pSLWhiteBalanceR_->SetValue( static_cast< int >( whiteBalanceRed * SLIDER_GRANULARITY_ ) );
     currentSettings_[currentDeviceSerial_].whiteBalanceRed = whiteBalanceRed;
@@ -1652,6 +1883,7 @@ void WizardQuickSetup::UpdateWhiteBalanceControlsFromCamera( void )
 void WizardQuickSetup::UpdateControlsData( void )
 //-----------------------------------------------------------------------------
 {
+
     if( featuresSupported_[currentDeviceSerial_].boAutoExposureSupport &&
         currentSettings_[currentDeviceSerial_].boAutoExposureEnabled )
     {
@@ -1669,12 +1901,12 @@ void WizardQuickSetup::UpdateControlsData( void )
     {
         UpdateWhiteBalanceControlsFromCamera();
     }
-    if( featuresSupported_[currentDeviceSerial_].boAutoFrameRateSupport &&
-        currentSettings_[currentDeviceSerial_].boAutoFrameRateEnabled )
+    if( featuresSupported_[currentDeviceSerial_].boMaximumFrameRateSupport )
     {
         SetupFrameRateControls();
         currentSettings_[currentDeviceSerial_].frameRate = pSCFrameRate_->GetMax();
     }
+    UpdateDetailsTextControl();
     RefreshControls();
 }
 
@@ -1693,14 +1925,15 @@ void WizardQuickSetup::OnBtnOk( wxCommandEvent& )
     SaveWizardConfiguration();
     pParentPropViewFrame_->RestoreGUIStateAfterQuickSetupWizard();
     Hide();
+    pTCHistory_->Clear();
 }
 
 //=============================================================================
 //================= Implementation WizardQuickSetupGenICam ====================
 //=============================================================================
 //-----------------------------------------------------------------------------
-WizardQuickSetupGenICam::WizardQuickSetupGenICam( PropViewFrame* pParent, const wxString& title, bool boShowAtStartup ) :
-    WizardQuickSetup( pParent, title, boShowAtStartup ), pAcC_( 0 ), pAnC_( 0 ), pIFC_( 0 ), pUSC_( 0 )
+WizardQuickSetupGenICam::WizardQuickSetupGenICam( PropViewFrame* pParent, const wxString& title ) :
+    WizardQuickSetup( pParent, title ), pDeC_( 0 ), pAcC_( 0 ), pAnC_( 0 ), pIFC_( 0 ), pUSC_( 0 )
 //-----------------------------------------------------------------------------
 {
 
@@ -1710,6 +1943,7 @@ WizardQuickSetupGenICam::WizardQuickSetupGenICam( PropViewFrame* pParent, const 
 void WizardQuickSetupGenICam::CreateInterfaceLayoutSpecificControls( Device* pDev )
 //-----------------------------------------------------------------------------
 {
+    pDeC_ = new GenICam::DeviceControl( pDev );
     pAcC_ = new GenICam::AcquisitionControl( pDev );
     pAnC_ = new GenICam::AnalogControl( pDev );
     pIFC_ = new GenICam::ImageFormatControl( pDev );
@@ -1720,6 +1954,7 @@ void WizardQuickSetupGenICam::CreateInterfaceLayoutSpecificControls( Device* pDe
 void WizardQuickSetupGenICam::DeleteInterfaceLayoutSpecificControls( void )
 //-----------------------------------------------------------------------------
 {
+    DeleteElement( pDeC_ );
     DeleteElement( pAcC_ );
     DeleteElement( pAnC_ );
     DeleteElement( pIFC_ );
@@ -1727,7 +1962,93 @@ void WizardQuickSetupGenICam::DeleteInterfaceLayoutSpecificControls( void )
 }
 
 //-----------------------------------------------------------------------------
-void WizardQuickSetupGenICam::DoConfigureFrameRateAuto( bool boActive, double frameRateValue )
+double WizardQuickSetupGenICam::DetermineMaxFrameRateAtCurrentAOI( void )
+//-----------------------------------------------------------------------------
+{
+    double maxFrameRateAtCurrentAOI = 5.;
+    try
+    {
+        // this has to be done in order to get the original value of the mvResultingFramerate before changes are made.
+        pAcC_->mvResultingFrameRate.read();
+        const string originalPixelFormat = pIFC_->pixelFormat.readS();
+        const string originalPixelClock = pDeC_->mvDeviceClockFrequency.readS();
+        const double originalExposure = pAcC_->exposureTime.read();
+        SetAutoExposure( false );
+        if( HasColorFormat() )
+        {
+            SelectOptimalPixelFormatColor( false );
+        }
+        else
+        {
+            SelectOptimalPixelFormatGray( false );
+        }
+        SelectOptimalPixelClock( false );
+        LoggedWriteProperty( pAcC_->exposureTime, 1000 );
+        maxFrameRateAtCurrentAOI = pAcC_->mvResultingFrameRate.read();
+
+        //Revert values after the max framerate has been calculated
+        LoggedWriteProperty( pIFC_->pixelFormat, std::string( originalPixelFormat ) );
+        LoggedWriteProperty( pDeC_->mvDeviceClockFrequency, std::string( originalPixelClock ) );
+        LoggedWriteProperty( pAcC_->exposureTime, originalExposure );
+
+        //This has to be done since SelectOptimalPixelFormat overwrite the currentSettings internally
+        currentSettings_[currentDeviceSerial_].imageFormatControlPixelFormat = originalPixelFormat;
+    }
+    catch( const ImpactAcquireException& e )
+    {
+        WriteQuickSetupWizardErrorMessage( wxString::Format( wxT( "Error while determining the maximum framerate! (Error: %s(%s))" ), ConvertedString( e.getErrorString() ).c_str(), ConvertedString( e.getErrorCodeAsString() ).c_str() ) );
+    }
+    return maxFrameRateAtCurrentAOI;
+}
+
+//-----------------------------------------------------------------------------
+double WizardQuickSetupGenICam::DetermineOptimalHQFrameRateAtCurrentAOI( void )
+//-----------------------------------------------------------------------------
+{
+    double optimalHQFrameRateAtCurrentAOI = 5.;
+    try
+    {
+        const string originalPixelFormat = pIFC_->pixelFormat.readS();
+        if( HasColorFormat() )
+        {
+            SelectOptimalPixelFormatColor( true );
+        }
+        else
+        {
+            SelectOptimalPixelFormatGray( true );
+        }
+
+        GenICam::TransportLayerControl tlc( pDev_ );
+        const double payLoad = static_cast<double>( tlc.payloadSize.read() );
+        if( pDeC_->deviceLinkSpeed.isValid() )
+        {
+            //U3V
+            const double linkThroughput = pDeC_->deviceLinkSpeed.read();
+            optimalHQFrameRateAtCurrentAOI = static_cast< double > ( linkThroughput / payLoad ) * 0.5;
+        }
+        else
+        {
+            //GEV
+            tlc.mvGevSCBWControl.writeS( "mvGevSCBW" );
+            const double linkThroughput = tlc.mvGevSCBW.read() * 1000;
+            optimalHQFrameRateAtCurrentAOI = static_cast< double > ( linkThroughput / payLoad ) * 0.8;
+        }
+
+        //Revert values after the max framerate has been calculated
+        LoggedWriteProperty( pIFC_->pixelFormat, std::string( originalPixelFormat ) );
+
+        //This has to be done since SelectOptimalPixelFormat overwrite the currentSettings internally
+        currentSettings_[currentDeviceSerial_].imageFormatControlPixelFormat = originalPixelFormat;
+    }
+    catch( const ImpactAcquireException& e )
+    {
+        WriteQuickSetupWizardErrorMessage( wxString::Format( wxT( "Error while determining the optimal HQ framerate! (Error: %s(%s))" ), ConvertedString( e.getErrorString() ).c_str(), ConvertedString( e.getErrorCodeAsString() ).c_str() ) );
+    }
+    return optimalHQFrameRateAtCurrentAOI;
+}
+
+//-----------------------------------------------------------------------------
+void WizardQuickSetupGenICam::DoConfigureFrameRateMaximum( bool boActive, double frameRateValue )
 //-----------------------------------------------------------------------------
 {
     if( boActive )
@@ -1735,7 +2056,7 @@ void WizardQuickSetupGenICam::DoConfigureFrameRateAuto( bool boActive, double fr
         currentSettings_[currentDeviceSerial_].frameRate = frameRateValue;
         if( pAcC_->acquisitionFrameRate.hasMaxValue() )
         {
-            pAcC_->acquisitionFrameRate.write( pAcC_->acquisitionFrameRate.getMaxValue() );
+            LoggedWriteProperty( pAcC_->acquisitionFrameRate, pAcC_->acquisitionFrameRate.getMaxValue() );
         }
         SetFrameRateEnable( false );
     }
@@ -1746,22 +2067,22 @@ void WizardQuickSetupGenICam::DoConfigureFrameRateAuto( bool boActive, double fr
         {
             // In the case of FrameRate, checks have to be done first, as due to changes in exposure, the desired value
             // may be out of range (e.g. writing the maximum frame rate value after exposure has increased dramatically)
-            double frameRateValue = currentSettings_[currentDeviceSerial_].frameRate;
+            frameRateValue = currentSettings_[currentDeviceSerial_].frameRate;
             double frameRateMin = pAcC_->acquisitionFrameRate.getMinValue();
             double frameRateMax = pAcC_->acquisitionFrameRate.getMaxValue();
             if( frameRateValue <= frameRateMin )
             {
-                pAcC_->acquisitionFrameRate.write( frameRateMin );
+                LoggedWriteProperty( pAcC_->acquisitionFrameRate, frameRateMin );
                 currentSettings_[currentDeviceSerial_].frameRate = frameRateMin;
             }
             else if( frameRateValue >= frameRateMax )
             {
-                pAcC_->acquisitionFrameRate.write( frameRateMax );
+                LoggedWriteProperty( pAcC_->acquisitionFrameRate, frameRateMax );
                 currentSettings_[currentDeviceSerial_].frameRate = frameRateMax;
             }
             else
             {
-                pAcC_->acquisitionFrameRate.write( frameRateValue );
+                LoggedWriteProperty( pAcC_->acquisitionFrameRate, frameRateValue );
             }
         }
         SetupFrameRateControls();
@@ -1772,12 +2093,9 @@ void WizardQuickSetupGenICam::DoConfigureFrameRateAuto( bool boActive, double fr
 double WizardQuickSetupGenICam::DoReadUnifiedBlackLevel( void ) const
 //-----------------------------------------------------------------------------
 {
-    //const string originalSetting = pAnC_->blackLevelSelector.readS();
-    pAnC_->blackLevelSelector.writeS( "All" );
     double currentBlackLevel = pAnC_->blackLevel.read();
-    pAnC_->blackLevelSelector.writeS( "DigitalAll" );
+    pAnC_->blackLevelSelector.writeS( ( pAnC_->blackLevelSelector.readS() == "DigitalAll" ) ? "All" : "DigitalAll" );
     currentBlackLevel += pAnC_->blackLevel.read();
-    //pAnC_->blackLevelSelector.writeS( originalSetting );
     return currentBlackLevel;
 }
 
@@ -1785,12 +2103,23 @@ double WizardQuickSetupGenICam::DoReadUnifiedBlackLevel( void ) const
 double WizardQuickSetupGenICam::DoReadUnifiedGain( void ) const
 //-----------------------------------------------------------------------------
 {
-    //const string originalSetting = pAnC_->gainSelector.readS();
-    pAnC_->gainSelector.writeS( "AnalogAll" );
-    double currentGain = pAnC_->gain.read();
-    pAnC_->gainSelector.writeS( "DigitalAll" );
-    currentGain += pAnC_->gain.read();
-    //pAnC_->gainSelector.writeS( originalSetting );
+    double currentGain = 0.;
+    if( currentSettings_.find( currentDeviceSerial_ )->second.boAutoGainEnabled == true )
+    {
+        // ReadUnifiedGain leads to stuttering. Since DigitalGain is set to 0 on pressing AutoGain Button,
+        // one could rely on analog gain values alone to update the current gain when auto-gain is in use.
+        if( pAnC_->gainSelector.readS() == "DigitalAll" )
+        {
+            pAnC_->gainSelector.writeS( "AnalogAll" );
+        }
+        currentGain = pAnC_->gain.read();
+    }
+    else
+    {
+        currentGain = pAnC_->gain.read();
+        pAnC_->gainSelector.writeS( ( pAnC_->gainSelector.readS() == "DigitalAll" ) ? "AnalogAll" : "DigitalAll" );
+        currentGain += pAnC_->gain.read();
+    }
     return currentGain;
 }
 
@@ -1798,40 +2127,64 @@ double WizardQuickSetupGenICam::DoReadUnifiedGain( void ) const
 void WizardQuickSetupGenICam::DoSetAcquisitionFrameRateLimitMode( void )
 //-----------------------------------------------------------------------------
 {
-    pAcC_->mvAcquisitionFrameRateLimitMode.writeS( "mvDeviceLinkThroughput" );
+    LoggedWriteProperty( pAcC_->mvAcquisitionFrameRateLimitMode, std::string( "mvDeviceLinkThroughput" ) );
     SetFrameRateEnable( true );
     if( pAcC_->acquisitionFrameRate.hasMaxValue() )
     {
-        pAcC_->acquisitionFrameRate.write( pAcC_->acquisitionFrameRate.getMaxValue() );
+        LoggedWriteProperty( pAcC_->acquisitionFrameRate, pAcC_->acquisitionFrameRate.getMaxValue() );
     }
     SetFrameRateEnable( false );
-    currentSettings_[currentDeviceSerial_].boAutoFrameRateEnabled = true;
+    currentSettings_[currentDeviceSerial_].boMaximumFrameRateEnabled = true;
 }
 
 //-----------------------------------------------------------------------------
-void WizardQuickSetupGenICam::DoWriteUnifiedBlackLevelData( double value )
+void WizardQuickSetupGenICam::DoWriteUnifiedBlackLevelData( double value ) const
 //-----------------------------------------------------------------------------
 {
     try
     {
-        //const string originalSetting = pAnC_->blackLevelSelector.readS();
-        pAnC_->blackLevelSelector.writeS( "All" );
-        if( value >= analogBlackLevelMin_ && value <= analogBlackLevelMax_ )
+        if( pAnC_->blackLevelSelector.readS() == std::string( "All" ) )
         {
-            pAnC_->blackLevel.write( value );
+            if( value >= analogBlackLevelMin_ && value <= analogBlackLevelMax_ )
+            {
+                LoggedWriteProperty( pAnC_->blackLevel, value );
+                pAnC_->blackLevelSelector.writeS( "DigitalAll" );
+                pAnC_->blackLevel.write( 0. );
+            }
+            else if( value < analogBlackLevelMin_ )
+            {
+                LoggedWriteProperty( pAnC_->blackLevel, analogBlackLevelMin_ );
+                LoggedWriteProperty( pAnC_->blackLevelSelector, std::string( "DigitalAll" ) );
+                LoggedWriteProperty( pAnC_->blackLevel, value - analogBlackLevelMin_ );
+            }
+            else if( value > analogBlackLevelMax_ )
+            {
+                LoggedWriteProperty( pAnC_->blackLevel, analogBlackLevelMax_ );
+                LoggedWriteProperty( pAnC_->blackLevelSelector, std::string( "DigitalAll" ) );
+                LoggedWriteProperty( pAnC_->blackLevel, value - analogBlackLevelMax_ );
+            }
         }
-        else if( value < analogBlackLevelMin_ )
+        else
         {
-            pAnC_->blackLevel.write( analogBlackLevelMin_ );
+            if( value >= analogBlackLevelMin_ && value <= analogBlackLevelMax_ )
+            {
+                pAnC_->blackLevel.write( 0. );
+                pAnC_->blackLevelSelector.writeS( "All" );
+                LoggedWriteProperty( pAnC_->blackLevel, value );
+            }
+            else if( value < analogBlackLevelMin_ )
+            {
+                LoggedWriteProperty( pAnC_->blackLevel, value - analogBlackLevelMin_ );
+                LoggedWriteProperty( pAnC_->blackLevelSelector, std::string( "All" ) );
+                LoggedWriteProperty( pAnC_->blackLevel, analogBlackLevelMin_ );
+            }
+            else if( value > analogBlackLevelMax_ )
+            {
+                LoggedWriteProperty( pAnC_->blackLevel, analogBlackLevelMax_ );
+                LoggedWriteProperty( pAnC_->blackLevelSelector, std::string( "All" ) );
+                LoggedWriteProperty( pAnC_->blackLevel, value - analogBlackLevelMax_ );
+            }
         }
-        else if( value > analogBlackLevelMax_ )
-        {
-            pAnC_->blackLevel.write( analogBlackLevelMax_ );
-        }
-        double diff = value - pAnC_->blackLevel.read();
-        pAnC_->blackLevelSelector.writeS( "DigitalAll" );
-        pAnC_->blackLevel.write( diff );
-        //pAnC_->blackLevelSelector.writeS( originalSetting );
     }
     catch( const ImpactAcquireException& e )
     {
@@ -1843,24 +2196,69 @@ void WizardQuickSetupGenICam::DoWriteUnifiedBlackLevelData( double value )
 void WizardQuickSetupGenICam::DoWriteUnifiedGain( double value ) const
 //-----------------------------------------------------------------------------
 {
-    //const string originalSetting = pAnC_->gainSelector.readS();
-    pAnC_->gainSelector.writeS( "AnalogAll" );
-    if( ( value >= analogGainMin_ ) && ( value <= analogGainMax_ ) )
+    try
     {
-        pAnC_->gain.write( value );
+        if( ( pAnC_->gainSelector.readS() == std::string( "AnalogAll" ) ) )
+        {
+            if( ( value >= analogGainMin_ ) && ( value <= analogGainMax_ ) )
+            {
+                LoggedWriteProperty( pAnC_->gain, value );
+                pAnC_->gainSelector.writeS( "DigitalAll" );
+                pAnC_->gain.write( 0. );
+            }
+            else if( value < analogGainMin_ )
+            {
+                LoggedWriteProperty( pAnC_->gain, analogGainMin_ );
+                LoggedWriteProperty( pAnC_->gainSelector, std::string( "DigitalAll" ) );
+                LoggedWriteProperty( pAnC_->gain, value - analogGainMin_ );
+            }
+            else if( value > analogGainMax_ )
+            {
+                LoggedWriteProperty( pAnC_->gain, analogGainMax_ );
+                LoggedWriteProperty( pAnC_->gainSelector, std::string( "DigitalAll" ) );
+                LoggedWriteProperty( pAnC_->gain, value - analogGainMax_ );
+            }
+        }
+        else
+        {
+            if( ( value >= analogGainMin_ ) && ( value <= analogGainMax_ ) )
+            {
+                pAnC_->gain.write( 0. );
+                pAnC_->gainSelector.writeS( "AnalogAll" );
+                LoggedWriteProperty( pAnC_->gain, value );
+            }
+            else if( value < analogGainMin_ )
+            {
+                LoggedWriteProperty( pAnC_->gain, value - analogGainMin_ );
+                LoggedWriteProperty( pAnC_->gainSelector, std::string( "AnalogAll" ) );
+                LoggedWriteProperty( pAnC_->gain, analogGainMin_ );
+            }
+            else if( value > analogGainMax_ )
+            {
+                LoggedWriteProperty( pAnC_->gain, value - analogGainMax_ );
+                LoggedWriteProperty( pAnC_->gainSelector, std::string( "AnalogAll" ) );
+                LoggedWriteProperty( pAnC_->gain, analogGainMax_ );
+            }
+        }
     }
-    else if( value < analogGainMin_ )
+    catch( const ImpactAcquireException& e )
     {
-        pAnC_->gain.write( analogGainMin_ );
+        WriteQuickSetupWizardErrorMessage( wxString::Format( wxT( "Failed to write combined analog and digital gain values:\n%s(%s)" ), ConvertedString( e.getErrorString() ).c_str(), ConvertedString( e.getErrorCodeAsString() ).c_str() ) );
     }
-    else if( value > analogGainMax_ )
-    {
-        pAnC_->gain.write( analogGainMax_ );
-    }
-    double diff = value - pAnC_->gain.read();
-    pAnC_->gainSelector.writeS( "DigitalAll" );
-    pAnC_->gain.write( diff );
-    //pAnC_->gainSelector.writeS( originalSetting );
+}
+
+//-----------------------------------------------------------------------------
+double WizardQuickSetupGenICam::GetAutoExposureUpperLimit( void ) const
+//-----------------------------------------------------------------------------
+{
+    return ( pAcC_->mvExposureAutoUpperLimit.isValid() ) ? pAcC_->mvExposureAutoUpperLimit.read() : 100000.;
+}
+
+//-----------------------------------------------------------------------------
+string WizardQuickSetupGenICam::GetPixelClock( void ) const
+//-----------------------------------------------------------------------------
+{
+    return ( pDeC_->mvDeviceClockFrequency.isValid() ) ? pDeC_->mvDeviceClockFrequency.readS() : string( "NoClockFound" );
 }
 
 //-----------------------------------------------------------------------------
@@ -1894,8 +2292,7 @@ bool WizardQuickSetupGenICam::HasAEC( void ) const
             {
                 vector<string> mvExposureAutoModes;
                 pAcC_->mvExposureAutoMode.getTranslationDictStrings( mvExposureAutoModes );
-                vector<string>::iterator itEND = mvExposureAutoModes.end();
-                if( find( mvExposureAutoModes.begin(), itEND, "mvDevice" ) != itEND )
+                if( find( mvExposureAutoModes.begin(), mvExposureAutoModes.end(), "mvDevice" ) != mvExposureAutoModes.end() )
                 {
                     return true;
                 }
@@ -1927,8 +2324,7 @@ bool WizardQuickSetupGenICam::HasAGC( void )
             {
                 vector<string> mvGainAutoModes;
                 pAnC_->mvGainAutoMode.getTranslationDictStrings( mvGainAutoModes );
-                vector<string>::iterator itEND = mvGainAutoModes.end();
-                if( find( mvGainAutoModes.begin(), itEND, "mvDevice" ) != itEND )
+                if( find( mvGainAutoModes.begin(), mvGainAutoModes.end(), "mvDevice" ) != mvGainAutoModes.end() )
                 {
                     return true;
                 }
@@ -1948,7 +2344,7 @@ bool WizardQuickSetupGenICam::HasAGC( void )
 }
 
 //-----------------------------------------------------------------------------
-bool WizardQuickSetupGenICam::HasAutoFrameRate( void ) const
+bool WizardQuickSetupGenICam::HasMaximumFrameRate( void ) const
 //-----------------------------------------------------------------------------
 {
     return pAcC_->mvAcquisitionFrameRateLimitMode.isValid() && pAcC_->mvAcquisitionFrameRateLimitMode.isWriteable();
@@ -2013,21 +2409,28 @@ bool WizardQuickSetupGenICam::HasFactoryDefault( void ) const
 void WizardQuickSetupGenICam::InitializeExposureParameters( DeviceSettings& devSettings, const SupportedWizardFeatures& features )
 //-----------------------------------------------------------------------------
 {
-    if( features.boAutoExposureSupport )
+    try
     {
-        pAcC_->exposureAuto.writeS( string( "Continuous" ) );
-        pAcC_->mvExposureAutoUpperLimit.write( 200000. );
-        pAcC_->mvExposureAutoAverageGrey.write( 50 );
-        if( pAcC_->mvExposureAutoMode.isValid() )
+        if( features.boAutoExposureSupport )
         {
-            pAcC_->mvExposureAutoMode.writeS( "mvDevice" );
+            LoggedWriteProperty( pAcC_->exposureAuto, string( "Continuous" ) );
+            LoggedWriteProperty( pAcC_->mvExposureAutoUpperLimit, 200000. );
+            LoggedWriteProperty( pAcC_->mvExposureAutoAverageGrey, 50. );
+            if( pAcC_->mvExposureAutoMode.isValid() )
+            {
+                LoggedWriteProperty( pAcC_->mvExposureAutoMode, std::string( "mvDevice" ) );
+            }
+            devSettings.boAutoExposureEnabled = true;
         }
-        devSettings.boAutoExposureEnabled = true;
+        else
+        {
+            SetExposureTime( 25000 );
+            devSettings.boAutoExposureEnabled = false;
+        }
     }
-    else
+    catch( const ImpactAcquireException& e )
     {
-        SetExposureTime( 25000 );
-        devSettings.boAutoExposureEnabled = false;
+        WriteQuickSetupWizardErrorMessage( wxString::Format( wxT( "Failed to Initialize Exposure Parameters(Error: %s(%s))!" ), ConvertedString( e.getErrorString() ).c_str(), ConvertedString( e.getErrorCodeAsString() ).c_str() ) );
     }
 }
 
@@ -2035,17 +2438,24 @@ void WizardQuickSetupGenICam::InitializeExposureParameters( DeviceSettings& devS
 void WizardQuickSetupGenICam::InitializeGainParameters( DeviceSettings& devSettings, const SupportedWizardFeatures& features )
 //-----------------------------------------------------------------------------
 {
-    if( features.boAutoGainSupport )
+    try
     {
-        DoWriteUnifiedGain( 0. );
-        pAnC_->gainSelector.writeS( string( "AnalogAll" ) );
-        pAnC_->gainAuto.writeS( string( "Continuous" ) );
-        devSettings.boAutoGainEnabled = true;
+        if( features.boAutoGainSupport )
+        {
+            DoWriteUnifiedGain( 0. );
+            pAnC_->gainSelector.writeS( std::string( "AnalogAll" ) );
+            LoggedWriteProperty( pAnC_->gainAuto, std::string( "Continuous" ) );
+            devSettings.boAutoGainEnabled = true;
+        }
+        else
+        {
+            DoWriteUnifiedGain( 0. );
+            devSettings.boAutoGainEnabled = false;
+        }
     }
-    else
+    catch( const ImpactAcquireException& e )
     {
-        DoWriteUnifiedGain( 0. );
-        devSettings.boAutoGainEnabled = false;
+        WriteQuickSetupWizardErrorMessage( wxString::Format( wxT( "Failed to Initialize Gain Parameters(Error: %s(%s))!" ), ConvertedString( e.getErrorString() ).c_str(), ConvertedString( e.getErrorCodeAsString() ).c_str() ) );
     }
 }
 
@@ -2053,23 +2463,37 @@ void WizardQuickSetupGenICam::InitializeGainParameters( DeviceSettings& devSetti
 void WizardQuickSetupGenICam::InitializeBlackLevelParameters( DeviceSettings& /*devSettings*/, const SupportedWizardFeatures& /*features*/ )
 //-----------------------------------------------------------------------------
 {
-    DoWriteUnifiedBlackLevelData( 0. );
+    try
+    {
+        DoWriteUnifiedBlackLevelData( 0. );
+    }
+    catch( const ImpactAcquireException& e )
+    {
+        WriteQuickSetupWizardErrorMessage( wxString::Format( wxT( "Failed to Initialize Blacklevel Parameters(Error: %s(%s))!" ), ConvertedString( e.getErrorString() ).c_str(), ConvertedString( e.getErrorCodeAsString() ).c_str() ) );
+    }
 }
 
 //-----------------------------------------------------------------------------
 void WizardQuickSetupGenICam::InitializeWhiteBalanceParameters( DeviceSettings& devSettings, const SupportedWizardFeatures& features )
 //-----------------------------------------------------------------------------
 {
-    if( features.boAutoWhiteBalanceSupport )
+    try
     {
-        SetAutoWhiteBalance( true );
-        devSettings.boAutoWhiteBalanceEnabled = true;
+        if( features.boAutoWhiteBalanceSupport )
+        {
+            SetAutoWhiteBalance( true );
+            devSettings.boAutoWhiteBalanceEnabled = true;
+        }
+        else
+        {
+            SetWhiteBalance( wbcRed, 1.4 );
+            SetWhiteBalance( wbcBlue, 2. );
+            devSettings.boAutoWhiteBalanceEnabled = false;
+        }
     }
-    else
+    catch( const ImpactAcquireException& e )
     {
-        SetWhiteBalance( wbcRed, 1.4 );
-        SetWhiteBalance( wbcBlue, 2. );
-        devSettings.boAutoWhiteBalanceEnabled = false;
+        WriteQuickSetupWizardErrorMessage( wxString::Format( wxT( "Failed to Initialize WhiteBalance Parameters(Error: %s(%s))!" ), ConvertedString( e.getErrorString() ).c_str(), ConvertedString( e.getErrorCodeAsString() ).c_str() ) );
     }
 }
 
@@ -2118,13 +2542,13 @@ void WizardQuickSetupGenICam::RestoreFactoryDefault( void )
 }
 
 //-----------------------------------------------------------------------------
-void WizardQuickSetupGenICam::SelectColorPixelFormat( void )
+void WizardQuickSetupGenICam::SelectOptimalPixelFormatColor( bool boHighQuality )
 //-----------------------------------------------------------------------------
 {
-    static const string rg = string( "BayerRG10" );
-    static const string gr = string( "BayerGR10" );
-    static const string bg = string( "BayerBG10" );
-    static const string gb = string( "BayerGB10" );
+    const string rg = string( boHighQuality ? "BayerRG10" : "BayerRG8" );
+    const string gr = string( boHighQuality ? "BayerGR10" : "BayerGR8" );
+    const string bg = string( boHighQuality ? "BayerBG10" : "BayerBG8" );
+    const string gb = string( boHighQuality ? "BayerGB10" : "BayerGB8" );
     static const string defaultValue = string( "RGB8" );
 
     vector<string> pixelFormatStrings;
@@ -2133,38 +2557,38 @@ void WizardQuickSetupGenICam::SelectColorPixelFormat( void )
     const vector<string>::const_iterator itEND = pixelFormatStrings.end();
     if( find( itBEGIN, itEND, rg ) != itEND )
     {
-        pIFC_->pixelFormat.writeS( rg );
+        LoggedWriteProperty( pIFC_->pixelFormat, rg );
         currentSettings_[currentDeviceSerial_].imageFormatControlPixelFormat = rg;
     }
     else if( find( itBEGIN, itEND, gr ) != itEND )
     {
-        pIFC_->pixelFormat.writeS( gr );
+        LoggedWriteProperty( pIFC_->pixelFormat, gr );
         currentSettings_[currentDeviceSerial_].imageFormatControlPixelFormat = gr;
     }
     else if( find( itBEGIN, itEND, bg ) != itEND )
     {
-        pIFC_->pixelFormat.writeS( bg );
+        LoggedWriteProperty( pIFC_->pixelFormat, bg );
         currentSettings_[currentDeviceSerial_].imageFormatControlPixelFormat = bg;
     }
     else if( find( itBEGIN, itEND, gb ) != itEND )
     {
-        pIFC_->pixelFormat.writeS( gb );
+        LoggedWriteProperty( pIFC_->pixelFormat, gb );
         currentSettings_[currentDeviceSerial_].imageFormatControlPixelFormat = gb;
     }
     else
     {
-        pIFC_->pixelFormat.writeS( defaultValue );
+        LoggedWriteProperty( pIFC_->pixelFormat, defaultValue );
         currentSettings_[currentDeviceSerial_].imageFormatControlPixelFormat = defaultValue;
     }
 }
 
 //-----------------------------------------------------------------------------
-void WizardQuickSetupGenICam::SelectGreyscalePixelFormat( void )
+void WizardQuickSetupGenICam::SelectOptimalPixelFormatGray( bool boHighQuality )
 //-----------------------------------------------------------------------------
 {
     if( !featuresSupported_[currentDeviceSerial_].boColorOptionsSupport )
     {
-        const string mono = string( "Mono10" );
+        const string mono = string( boHighQuality ? "Mono10" : "Mono8" );
         const string defaultValue = string( "Mono8" );
 
         vector<string> pixelFormatStrings;
@@ -2172,14 +2596,48 @@ void WizardQuickSetupGenICam::SelectGreyscalePixelFormat( void )
         vector<string>::iterator itEND = pixelFormatStrings.end();
         if( find( pixelFormatStrings.begin(), itEND, mono ) != itEND )
         {
-            pIFC_->pixelFormat.writeS( mono );
+            LoggedWriteProperty( pIFC_->pixelFormat, mono );
             currentSettings_[currentDeviceSerial_].imageFormatControlPixelFormat = mono;
         }
         else
         {
-            pIFC_->pixelFormat.writeS( "Mono8" );
+            LoggedWriteProperty( pIFC_->pixelFormat, std::string( "Mono8" ) );
             currentSettings_[currentDeviceSerial_].imageFormatControlPixelFormat = defaultValue;
         }
+    }
+    else
+    {
+        SelectOptimalPixelFormatColor( boHighQuality );
+    }
+}
+
+//-----------------------------------------------------------------------------
+void WizardQuickSetupGenICam::SelectOptimalAutoExposureSettings( bool boHighQuality )
+//-----------------------------------------------------------------------------
+{
+    if( boHighQuality == true )
+    {
+        SetAutoExposureUpperLimit( 200000. );
+    }
+    else
+    {
+        // We write the 95% of the target value in order to compensate for delays introduced by the readout time,
+        // especially when the sensor is operating at the highest allowed auto-exposure limit.
+        SetAutoExposureUpperLimit( ( 1000000. / currentSettings_[currentDeviceSerial_].maxFrameRateAtCurrentAOI ) * 0.95 );
+    }
+}
+
+//-----------------------------------------------------------------------------
+void WizardQuickSetupGenICam::SelectOptimalPixelClock( bool boHighQuality )
+//-----------------------------------------------------------------------------
+{
+    if( pDeC_->mvDeviceClockFrequency.isValid() )
+    {
+        vector<int64_type> pixelClocks;
+        pDeC_->mvDeviceClockFrequency.getTranslationDictValues( pixelClocks );
+        sort( pixelClocks.begin(), pixelClocks.end() );
+        const int64_type optimalPixelClock = boHighQuality ? pixelClocks.front() : pixelClocks.back();
+        LoggedWriteProperty( pDeC_->mvDeviceClockFrequency, optimalPixelClock );
     }
 }
 
@@ -2273,6 +2731,8 @@ void WizardQuickSetupGenICam::SetupFrameRateControls( void )
             frameRateRangeMin = propFrameRate.hasMinValue() ? ( propFrameRate.getMinValue() >= 5. ? propFrameRate.getMinValue() : 5. ) : 2.;
             frameRateRangeMax = propFrameRate.hasMaxValue() ? propFrameRate.getMaxValue() : 100.;
             frameRate = propFrameRate.read();
+
+            UpdateFramerateWarningBitmap ( ( 1000000. / pAcC_->exposureTime.read() ) < frameRate );
         }
         else
         {
@@ -2283,6 +2743,10 @@ void WizardQuickSetupGenICam::SetupFrameRateControls( void )
             frameRateRangeMin = 5;
             frameRateRangeMax = ( pAcC_->mvResultingFrameRate.isValid() && pAcC_->mvResultingFrameRate.hasMaxValue() ) ? pAcC_->mvResultingFrameRate.getMaxValue() : 100.;
             frameRate = pAcC_->mvResultingFrameRate.read();
+
+            // This may only happen in High-Quality modes, since in High-Speed modes the maximum auto-exposure value allowed is
+            // limited according to the cameras maximum fps value in function DetermineMaxFrameRateAtCurrentAOI()
+            UpdateFramerateWarningBitmap( ( 1000000. / pAcC_->exposureTime.read() ) < pAcC_->mvResultingFrameRate.read() );
         }
         DoSetupFrameRateControls( frameRateRangeMin, frameRateRangeMax, frameRate );
     }
@@ -2292,8 +2756,11 @@ void WizardQuickSetupGenICam::SetupFrameRateControls( void )
 void WizardQuickSetupGenICam::SetWhiteBalance( TWhiteBalanceChannel channel, double value )
 //-----------------------------------------------------------------------------
 {
-    pAnC_->balanceRatioSelector.writeS( ( channel == wbcRed ) ? "Red" : "Blue" );
-    pAnC_->balanceRatio.write( value );
+    if( pAnC_->balanceRatioSelector.readS() == std::string( channel == wbcRed ? "Blue" : "Red" ) )
+    {
+        LoggedWriteProperty( pAnC_->balanceRatioSelector, std::string( channel == wbcRed ? "Red" : "Blue" ) );
+    }
+    LoggedWriteProperty( pAnC_->balanceRatio, value );
 }
 
 //-----------------------------------------------------------------------------
@@ -2306,12 +2773,36 @@ void WizardQuickSetupGenICam::SetFrameRate( double value )
         double currentMaxFrameRate = pAcC_->acquisitionFrameRate.getMaxValue();
         if( value > currentMaxFrameRate )
         {
-            pAcC_->acquisitionFrameRate.write( currentMaxFrameRate );
+            LoggedWriteProperty( pAcC_->acquisitionFrameRate, currentMaxFrameRate );
         }
         else
         {
-            pAcC_->acquisitionFrameRate.write( value );
+            LoggedWriteProperty( pAcC_->acquisitionFrameRate, value );
         }
+    }
+}
+
+//-----------------------------------------------------------------------------
+void WizardQuickSetupGenICam::SetAutoExposureUpperLimit( double exposureMax )
+//-----------------------------------------------------------------------------
+{
+    try
+    {
+        if( pAcC_->mvExposureAutoUpperLimit.isValid() )
+        {
+            LoggedWriteProperty( pAcC_->mvExposureAutoUpperLimit, exposureMax );
+
+            // This must be done here until the AEC/AGC algorithm on MV GenICam devices checks
+            // the Exposure Upper Limit even if Gain is not zero.
+            if( pAcC_->exposureTime.read() > pAcC_->mvExposureAutoUpperLimit.read() )
+            {
+                LoggedWriteProperty( pAcC_->exposureTime, pAcC_->mvExposureAutoUpperLimit.read() );
+            }
+        }
+    }
+    catch( const ImpactAcquireException& e )
+    {
+        WriteQuickSetupWizardErrorMessage( wxString::Format( wxT( "Failed to write mvExposureAutoUpperLimit value(Error: %s(%s))!" ), ConvertedString( e.getErrorString() ).c_str(), ConvertedString( e.getErrorCodeAsString() ).c_str() ) );
     }
 }
 
@@ -2319,12 +2810,12 @@ void WizardQuickSetupGenICam::SetFrameRate( double value )
 void WizardQuickSetupGenICam::SetAutoGain( bool boEnable )
 //-----------------------------------------------------------------------------
 {
-    string originalSelection = pAnC_->gainSelector.readS();
+    const string originalSelection = pAnC_->gainSelector.readS();
     if( originalSelection != "AnalogAll" )
     {
         pAnC_->gainSelector.writeS( "AnalogAll" );
     }
-    pAnC_->gainAuto.writeS( string( boEnable ? "Continuous" : "Off" ) );
+    LoggedWriteProperty( pAnC_->gainAuto, std::string( boEnable ? "Continuous" : "Off" ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -2403,7 +2894,7 @@ void WizardQuickSetupGenICam::TryToReadFrameRate( double& value )
         // what capabilities it supports, and crucially whether it supports Auto frame rate or not. Maybe there
         // is another way to do this, or the sequence of QueryInitialSettings and AnalyzeDeviceAndGatherInformation
         // should be reworked...? As of now it is not clear what will happen with third-party devices.
-        pAcC_->mvAcquisitionFrameRateLimitMode.writeS( "mvDeviceLinkThroughput" );
+        LoggedWriteProperty( pAcC_->mvAcquisitionFrameRateLimitMode, std::string( "mvDeviceLinkThroughput" ) );
         const bool boPreviousSetting = GetFrameRateEnable();
         SetFrameRateEnable( true );
         value = pAcC_->acquisitionFrameRate.read();
@@ -2415,10 +2906,10 @@ void WizardQuickSetupGenICam::TryToReadFrameRate( double& value )
 void WizardQuickSetupGenICam::WriteExposureFeatures( const DeviceSettings& devSettings, const SupportedWizardFeatures& features )
 //-----------------------------------------------------------------------------
 {
-    pAcC_->exposureTime.write( devSettings.exposureTime );
+    LoggedWriteProperty( pAcC_->exposureTime, devSettings.exposureTime );
     if( features.boAutoExposureSupport )
     {
-        pAcC_->exposureAuto.writeS( string( devSettings.boAutoExposureEnabled ? "Continuous" : "Off" ) );
+        LoggedWriteProperty( pAcC_->exposureAuto, std::string( devSettings.boAutoExposureEnabled ? "Continuous" : "Off" ) );
     }
 }
 
@@ -2432,7 +2923,7 @@ void WizardQuickSetupGenICam::WriteGainFeatures( const DeviceSettings& devSettin
         {
             pAnC_->gainSelector.writeS( "AnalogAll" );
         }
-        pAnC_->gainAuto.writeS( string( devSettings.boAutoGainEnabled ? "Continuous" : "Off" ) );
+        LoggedWriteProperty( pAnC_->gainAuto, std::string( devSettings.boAutoGainEnabled ? "Continuous" : "Off" ) );
     }
 }
 
@@ -2440,13 +2931,21 @@ void WizardQuickSetupGenICam::WriteGainFeatures( const DeviceSettings& devSettin
 void WizardQuickSetupGenICam::WriteWhiteBalanceFeatures( const DeviceSettings& devSettings, const SupportedWizardFeatures& features )
 //-----------------------------------------------------------------------------
 {
-    pAnC_->balanceRatioSelector.writeS( "Red" );
-    pAnC_->balanceRatio.write( devSettings.whiteBalanceRed / 100. );
-    pAnC_->balanceRatioSelector.writeS( "Blue" );
-    pAnC_->balanceRatio.write( devSettings.whiteBalanceBlue / 100. );
+    if( pAnC_->balanceRatioSelector.readS() == "Red" )
+    {
+        LoggedWriteProperty( pAnC_->balanceRatio, devSettings.whiteBalanceRed / 100. );
+        LoggedWriteProperty( pAnC_->balanceRatioSelector, std::string( "Blue" ) );
+        LoggedWriteProperty( pAnC_->balanceRatio, devSettings.whiteBalanceBlue / 100. );
+    }
+    else
+    {
+        LoggedWriteProperty( pAnC_->balanceRatio, devSettings.whiteBalanceBlue / 100. );
+        LoggedWriteProperty( pAnC_->balanceRatioSelector, std::string( "Red" ) );
+        LoggedWriteProperty( pAnC_->balanceRatio, devSettings.whiteBalanceRed / 100. );
+    }
     if( features.boAutoWhiteBalanceSupport )
     {
-        pAnC_->balanceWhiteAuto.writeS( string( devSettings.boAutoWhiteBalanceEnabled ? "Continuous" : "Off" ) );
+        LoggedWriteProperty( pAnC_->balanceWhiteAuto, std::string( devSettings.boAutoWhiteBalanceEnabled ? "Continuous" : "Off" ) );
     }
 }
 
@@ -2455,8 +2954,8 @@ void WizardQuickSetupGenICam::WriteWhiteBalanceFeatures( const DeviceSettings& d
 //============== Implementation WizardQuickSetupDeviceSpecific ================
 //=============================================================================
 //-----------------------------------------------------------------------------
-WizardQuickSetupDeviceSpecific::WizardQuickSetupDeviceSpecific( PropViewFrame* pParent, const wxString& title, bool boShowAtStartup ) :
-    WizardQuickSetup( pParent, title, boShowAtStartup ), pCSBF_( 0 )
+WizardQuickSetupDeviceSpecific::WizardQuickSetupDeviceSpecific( PropViewFrame* pParent, const wxString& title ) :
+    WizardQuickSetup( pParent, title ), pCSBF_( 0 )
 //-----------------------------------------------------------------------------
 {
 
@@ -2477,6 +2976,27 @@ void WizardQuickSetupDeviceSpecific::DeleteInterfaceLayoutSpecificControls( void
 }
 
 //-----------------------------------------------------------------------------
+double WizardQuickSetupDeviceSpecific::DetermineMaxFrameRateAtCurrentAOI( void )
+//-----------------------------------------------------------------------------
+{
+    // Devices supporting the DeviceSpecific Interface have no way of calculating the maximum
+    // framerate by themselves. This means we have to settle with a worst-case scenario approach (mvBF-220aC/G).
+    // Iterating over the entire product-gamut with a switch-case construct could be another approach
+    return 100.;
+}
+
+//-----------------------------------------------------------------------------
+double WizardQuickSetupDeviceSpecific::DetermineOptimalHQFrameRateAtCurrentAOI( void )
+//-----------------------------------------------------------------------------
+{
+    // Devices supporting the DeviceSpecific Interface have no way of calculating the maximum
+    // framerate by themselves. This means we have to settle with a framerate that allows relatively
+    // long exposures on one hand, and on the other also allows a stutter free live image.
+    // Iterating over the entire product-gamut with a switch-case construct could be another approach
+    return 25.;
+}
+
+//-----------------------------------------------------------------------------
 double WizardQuickSetupDeviceSpecific::DoReadUnifiedBlackLevel( void ) const
 //-----------------------------------------------------------------------------
 {
@@ -2484,9 +3004,9 @@ double WizardQuickSetupDeviceSpecific::DoReadUnifiedBlackLevel( void ) const
     {
         if( pIP_->gainOffsetKneeEnable.read() == bFalse )
         {
-            pIP_->gainOffsetKneeEnable.write( bTrue );
+            LoggedWriteProperty( pIP_->gainOffsetKneeEnable, bTrue );
         }
-        return pIP_->gainOffsetKneeMasterOffset_pc.read();
+        return  pIP_->gainOffsetKneeMasterOffset_pc.read();
     }
     return 0.;
 }
@@ -2495,7 +3015,7 @@ double WizardQuickSetupDeviceSpecific::DoReadUnifiedBlackLevel( void ) const
 double WizardQuickSetupDeviceSpecific::DoReadUnifiedGain( void ) const
 //-----------------------------------------------------------------------------
 {
-    if ( pCSBF_->gain_dB.isValid() )
+    if( pCSBF_->gain_dB.isValid() )
     {
         return pCSBF_->gain_dB.read();
     }
@@ -2503,7 +3023,7 @@ double WizardQuickSetupDeviceSpecific::DoReadUnifiedGain( void ) const
 }
 
 //-----------------------------------------------------------------------------
-void WizardQuickSetupDeviceSpecific::DoWriteUnifiedBlackLevelData( double value )
+void WizardQuickSetupDeviceSpecific::DoWriteUnifiedBlackLevelData( double value ) const
 //-----------------------------------------------------------------------------
 {
     try
@@ -2512,9 +3032,9 @@ void WizardQuickSetupDeviceSpecific::DoWriteUnifiedBlackLevelData( double value 
         {
             if( pIP_->gainOffsetKneeEnable.read() == bFalse )
             {
-                pIP_->gainOffsetKneeEnable.write( bTrue );
+                LoggedWriteProperty( pIP_->gainOffsetKneeEnable, bTrue );
             }
-            pIP_->gainOffsetKneeMasterOffset_pc.write( value );
+            LoggedWriteProperty( pIP_->gainOffsetKneeMasterOffset_pc, value );
         }
     }
     catch( const ImpactAcquireException& e )
@@ -2529,14 +3049,47 @@ void WizardQuickSetupDeviceSpecific::DoWriteUnifiedGain( double value ) const
 {
     if( pCSBF_->gain_dB.isValid() && pCSBF_->gain_dB.isVisible() )
     {
-        pCSBF_->gain_dB.write( value );
+        LoggedWriteProperty( pCSBF_->gain_dB, value );
     }
 }
+
+//-----------------------------------------------------------------------------
+void WizardQuickSetupDeviceSpecific::SetExposureOverlapped( bool boEnable )
+//-----------------------------------------------------------------------------
+{
+    if( pCSBF_->exposeMode.isValid() )
+    {
+        vector<TCameraExposeMode> exposeModes;
+        pCSBF_->exposeMode.getTranslationDictValues( exposeModes );
+        vector<TCameraExposeMode>::iterator itEND = exposeModes.end();
+        vector<TCameraExposeMode>::iterator itBEGIN = exposeModes.begin();
+
+        if( find( itBEGIN, itEND, cemOverlapped ) != itEND )
+        {
+            LoggedWriteProperty( pCSBF_->exposeMode, std::string( boEnable ? "Overlapped" : "Standard" ) );
+        }
+    }
+}
+
+//-----------------------------------------------------------------------------
+double WizardQuickSetupDeviceSpecific::GetAutoExposureUpperLimit( void ) const
+//-----------------------------------------------------------------------------
+{
+    return ( pCSBF_->autoControlParameters.exposeUpperLimit_us.isValid() ) ? pCSBF_->autoControlParameters.exposeUpperLimit_us.read() : 100000.;
+}
+
 //-----------------------------------------------------------------------------
 string WizardQuickSetupDeviceSpecific::GetPixelFormat( void ) const
 //-----------------------------------------------------------------------------
 {
-    return ( pCSBF_->pixelFormat.isValid() ) ? pCSBF_->pixelFormat.readS() : string( "Mono8" );
+    return ( pCSBF_->pixelFormat.isValid() ) ? pCSBF_->pixelFormat.readS() : std::string( "Mono8" );
+}
+
+//-----------------------------------------------------------------------------
+string WizardQuickSetupDeviceSpecific::GetPixelClock( void ) const
+//-----------------------------------------------------------------------------
+{
+    return ( pCSBF_->pixelClock_KHz.isValid() ) ? pCSBF_->pixelClock_KHz.readS() : string( "NoClockFound" );
 }
 
 //-----------------------------------------------------------------------------
@@ -2555,10 +3108,10 @@ void WizardQuickSetupDeviceSpecific::InitializeExposureParameters( DeviceSetting
     if( features.boAutoExposureSupport )
     {
         AutoControlParameters ACP = pCSBF_->getAutoControlParameters();
-        ACP.aoiMode.writeS( "Full" );
-        pCSBF_->autoExposeControl.writeS( "On" );
-        ACP.exposeUpperLimit_us.write( 200000. );
-        ACP.desiredAverageGreyValue.write( 70 );
+        LoggedWriteProperty( ACP.aoiMode, std::string( "Full" ) );
+        LoggedWriteProperty( pCSBF_->autoExposeControl, std::string( "On" ) );
+        LoggedWriteProperty( ACP.exposeUpperLimit_us, 200000 );
+        LoggedWriteProperty( ACP.desiredAverageGreyValue, 70 );
         devSettings.boAutoExposureEnabled = true;
     }
     else
@@ -2574,7 +3127,7 @@ void WizardQuickSetupDeviceSpecific::InitializeGainParameters( DeviceSettings& d
 {
     if( features.boAutoGainSupport )
     {
-        pCSBF_->autoGainControl.writeS( "On" );
+        LoggedWriteProperty( pCSBF_->autoGainControl, std::string( "On" ) );
         devSettings.boAutoGainEnabled = true;
     }
     else
@@ -2588,7 +3141,7 @@ void WizardQuickSetupDeviceSpecific::InitializeGainParameters( DeviceSettings& d
 void WizardQuickSetupDeviceSpecific::InitializeBlackLevelParameters( DeviceSettings&, const SupportedWizardFeatures& )
 //-----------------------------------------------------------------------------
 {
-    pCSBF_->offsetAutoCalibration.write( aocOn );
+    LoggedWriteProperty( pCSBF_->offsetAutoCalibration, std::string( "On" ) );
     DoWriteUnifiedBlackLevelData( 0. );
 }
 
@@ -2597,9 +3150,9 @@ void WizardQuickSetupDeviceSpecific::InitializeWhiteBalanceParameters( DeviceSet
 //-----------------------------------------------------------------------------
 {
     WhiteBalanceSettings& wbs = pIP_->getWBUserSetting( 0 );
-    wbs.WBAoiMode.write( amFull );
-    pIP_->whiteBalance.write( wbpUser1 );
-    pIP_->whiteBalanceCalibration.write( wbcmNextFrame );
+    LoggedWriteProperty( wbs.WBAoiMode, std::string( "Full" ) );
+    LoggedWriteProperty( pIP_->whiteBalance, wbpUser1 );
+    LoggedWriteProperty( pIP_->whiteBalanceCalibration, std::string( "Calibrate Next Frame" ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -2639,67 +3192,106 @@ void WizardQuickSetupDeviceSpecific::RestoreFactoryDefault( void )
 {
     pCSBF_->restoreDefault();
     WhiteBalanceSettings& wbs = pIP_->getWBUserSetting( 0 );
-    wbs.redGain.write( 1.0 );
-    wbs.blueGain.write( 1.0 );
+    LoggedWriteProperty( wbs.redGain, 1.0 );
+    LoggedWriteProperty( wbs.blueGain, 1.0 );
 }
 
 //-----------------------------------------------------------------------------
-void WizardQuickSetupDeviceSpecific::SelectColorPixelFormat( void )
+void WizardQuickSetupDeviceSpecific::SelectOptimalPixelFormatColor( bool boHighQuality )
 //-----------------------------------------------------------------------------
 {
-    static const string m10 = string( "Mono10" );
-    static const string m8 = string( "Mono8" );
-    static const string defaultValue = string( "Auto" );
+    static const std::string m10 = std::string( "Mono10" );
+    static const std::string m8 = std::string( "Mono8" );
+    static const std::string defaultValue = std::string( "Auto" );
 
-    vector<string> pixelFormatStrings;
+    vector<std::string> pixelFormatStrings;
     pCSBF_->pixelFormat.getTranslationDictStrings( pixelFormatStrings );
-    const vector<string>::const_iterator itBEGIN = pixelFormatStrings.begin();
-    const vector<string>::const_iterator itEND = pixelFormatStrings.end();
-    if( find( itBEGIN, itEND, m10 ) != itEND )
+    const vector<std::string>::const_iterator itBEGIN = pixelFormatStrings.begin();
+    const vector<std::string>::const_iterator itEND = pixelFormatStrings.end();
+    if( find( itBEGIN, itEND, m10 ) != itEND &&
+        boHighQuality )
     {
-        pCSBF_->pixelFormat.writeS( m10 );
+        LoggedWriteProperty( pCSBF_->pixelFormat, m10 );
         currentSettings_[currentDeviceSerial_].imageFormatControlPixelFormat = m10;
     }
     else if( find( itBEGIN, itEND, m8 ) != itEND )
     {
-        pCSBF_->pixelFormat.writeS( m8 );
+        LoggedWriteProperty( pCSBF_->pixelFormat, m8 );
         currentSettings_[currentDeviceSerial_].imageFormatControlPixelFormat = m8;
     }
     else
     {
-        pCSBF_->pixelFormat.writeS( defaultValue );
+        LoggedWriteProperty( pCSBF_->pixelFormat, defaultValue );
         currentSettings_[currentDeviceSerial_].imageFormatControlPixelFormat = defaultValue;
     }
 }
 
 //-----------------------------------------------------------------------------
-void WizardQuickSetupDeviceSpecific::SelectGreyscalePixelFormat( void )
+void WizardQuickSetupDeviceSpecific::SelectOptimalPixelFormatGray( bool boHighQuality )
 //-----------------------------------------------------------------------------
 {
     if( !featuresSupported_[currentDeviceSerial_].boColorOptionsSupport )
     {
-        static const string m10 = string( "Mono10" );
-        static const string m8 = string( "Mono8" );
-        static const string defaultValue = string( "Auto" );
+        static const std::string m10 = std::string( "Mono10" );
+        static const std::string m8 = std::string( "Mono8" );
+        static const std::string defaultValue = std::string( "Auto" );
 
-        vector<string> pixelFormatStrings;
+        vector<std::string> pixelFormatStrings;
         pCSBF_->pixelFormat.getTranslationDictStrings( pixelFormatStrings );
-        vector<string>::iterator itEND = pixelFormatStrings.end();
-        if( find( pixelFormatStrings.begin(), itEND, m10 ) != itEND )
+        vector<std::string>::iterator itEND = pixelFormatStrings.end();
+        if( find( pixelFormatStrings.begin(), itEND, m10 ) != itEND  &&
+            boHighQuality )
         {
-            pCSBF_->pixelFormat.writeS( m10 );
+            LoggedWriteProperty( pCSBF_->pixelFormat, m10 );
             currentSettings_[currentDeviceSerial_].imageFormatControlPixelFormat = m10;
         }
         else if( find( pixelFormatStrings.begin(), itEND, m8 ) != itEND )
         {
-            pCSBF_->pixelFormat.writeS( m8 );
+            LoggedWriteProperty( pCSBF_->pixelFormat, m8 );
             currentSettings_[currentDeviceSerial_].imageFormatControlPixelFormat = m8;
         }
         else
         {
-            pCSBF_->pixelFormat.writeS( defaultValue );
+            LoggedWriteProperty( pCSBF_->pixelFormat, defaultValue );
             currentSettings_[currentDeviceSerial_].imageFormatControlPixelFormat = defaultValue;
         }
+    }
+    else
+    {
+        SelectOptimalPixelFormatColor( boHighQuality );
+    }
+}
+
+//-----------------------------------------------------------------------------
+void WizardQuickSetupDeviceSpecific::SelectOptimalAutoExposureSettings( bool boHighQuality )
+//-----------------------------------------------------------------------------
+{
+    if( boHighQuality == true )
+    {
+        SetAutoExposureUpperLimit( 200000. );
+    }
+    else
+    {
+        // We write the 95% of the target value in order to compensate for delays introduced by the readout time,
+        // especially when the sensor is operating at the highest allowed auto-exposure limit.
+        SetAutoExposureUpperLimit( ( 1000000. / currentSettings_[currentDeviceSerial_].maxFrameRateAtCurrentAOI ) * 0.95 );
+    }
+
+    //When speed is preferred, the ExposeMode overlapped might help, if available!
+    SetExposureOverlapped( !boHighQuality );
+}
+
+//-----------------------------------------------------------------------------
+void WizardQuickSetupDeviceSpecific::SelectOptimalPixelClock( bool boHighQuality )
+//-----------------------------------------------------------------------------
+{
+    if( pCSBF_->pixelClock_KHz.isValid() )
+    {
+        vector<TCameraPixelClock> pixelClocks;
+        pCSBF_->pixelClock_KHz.getTranslationDictValues( pixelClocks );
+        sort( pixelClocks.begin(), pixelClocks.end() );
+        const TCameraPixelClock optimalPixelClock = boHighQuality ? pixelClocks.front() : pixelClocks.back();
+        LoggedWriteProperty( pCSBF_->pixelClock_KHz, optimalPixelClock );
     }
 }
 
@@ -2713,7 +3305,7 @@ void WizardQuickSetupDeviceSpecific::SetupExposureControls( void )
         const double exposureMax = ( pCSBF_->expose_us.hasMaxValue() && ( pCSBF_->expose_us.getMaxValue() < 200000. ) ) ? pCSBF_->expose_us.getMaxValue() : 200000.;
         const double exposure = pCSBF_->expose_us.read();
         const bool boHasStepWidth = pCSBF_->expose_us.hasStepWidth();
-        const double increment = boHasStepWidth ? static_cast<double>( pCSBF_->expose_us.getStepWidth() ) : 1.;
+        const double increment = boHasStepWidth ? static_cast< double >( pCSBF_->expose_us.getStepWidth() ) : 1.;
         DoSetupExposureControls( exposureMin, exposureMax, exposure, boHasStepWidth, increment );
     }
 }
@@ -2775,17 +3367,17 @@ void WizardQuickSetupDeviceSpecific::SetWhiteBalance( TWhiteBalanceChannel chann
     try
     {
         WhiteBalanceSettings& wbs = pIP_->getWBUserSetting( 0 );
-        if( pIP_->whiteBalance.read() != wbpUser1 )
+        if( pIP_->whiteBalance.readS() != std::string( "User1" ) )
         {
-            pIP_->whiteBalance.write( wbpUser1 );
+            LoggedWriteProperty( pIP_->whiteBalance, std::string( "User1" ) );
         }
         if( channel == wbcRed )
         {
-            wbs.redGain.write( value );
+            LoggedWriteProperty( wbs.redGain, value );
         }
         else if( channel == wbcBlue )
         {
-            wbs.blueGain.write( value );
+            LoggedWriteProperty( wbs.blueGain, value );
         }
     }
     catch( const ImpactAcquireException& e )
@@ -2795,10 +3387,21 @@ void WizardQuickSetupDeviceSpecific::SetWhiteBalance( TWhiteBalanceChannel chann
 }
 
 //-----------------------------------------------------------------------------
+void WizardQuickSetupDeviceSpecific::SetAutoExposureUpperLimit( double exposureMax )
+//-----------------------------------------------------------------------------
+{
+    if( pCSBF_->autoControlParameters.exposeUpperLimit_us.isValid() )
+    {
+        LoggedWriteProperty( pCSBF_->autoControlParameters.exposeUpperLimit_us, exposureMax );
+    }
+    LoggedWriteProperty( pCSBF_->expose_us, exposureMax / 2 );
+}
+
+//-----------------------------------------------------------------------------
 void WizardQuickSetupDeviceSpecific::SetAutoGain( bool boEnable )
 //-----------------------------------------------------------------------------
 {
-    pCSBF_->autoGainControl.write( boEnable ? agcOn : agcOff );
+    LoggedWriteProperty( pCSBF_->autoGainControl, std::string( boEnable ? "On" : "Off" ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -2826,7 +3429,7 @@ void WizardQuickSetupDeviceSpecific::SetupUnifiedBlackLevelData( void )
     {
         if( pIP_->gainOffsetKneeEnable.read() == bFalse )
         {
-            pIP_->gainOffsetKneeEnable.write( bTrue );
+            LoggedWriteProperty( pIP_->gainOffsetKneeEnable, bTrue );
         }
         currentSettings_[currentDeviceSerial_].analogBlackLevelMax = pIP_->gainOffsetKneeMasterOffset_pc.getMaxValue();
         currentSettings_[currentDeviceSerial_].analogBlackLevelMin = pIP_->gainOffsetKneeMasterOffset_pc.getMinValue();
@@ -2843,10 +3446,10 @@ void WizardQuickSetupDeviceSpecific::SetupUnifiedBlackLevelData( void )
 void WizardQuickSetupDeviceSpecific::WriteExposureFeatures( const DeviceSettings& devSettings, const SupportedWizardFeatures& features )
 //-----------------------------------------------------------------------------
 {
-    pCSBF_->expose_us.write( devSettings.exposureTime );
+    LoggedWriteProperty( pCSBF_->expose_us, devSettings.exposureTime );
     if( features.boAutoExposureSupport )
     {
-        pCSBF_->autoExposeControl.write( devSettings.boAutoExposureEnabled ? aecOn : aecOff );
+        LoggedWriteProperty( pCSBF_->autoExposeControl, std::string( devSettings.boAutoExposureEnabled ? "On" : "Off" ) );
     }
 }
 
@@ -2856,7 +3459,7 @@ void WizardQuickSetupDeviceSpecific::WriteGainFeatures( const DeviceSettings& de
 {
     if( features.boAutoGainSupport )
     {
-        pCSBF_->autoGainControl.write( devSettings.boAutoGainEnabled ? agcOn : agcOff );
+        LoggedWriteProperty( pCSBF_->autoGainControl, std::string( devSettings.boAutoGainEnabled ? "On" : "Off" ) );
     }
 }
 
@@ -2865,8 +3468,8 @@ void WizardQuickSetupDeviceSpecific::WriteWhiteBalanceFeatures( const DeviceSett
 //-----------------------------------------------------------------------------
 {
     WhiteBalanceSettings& wbs = pIP_->getWBUserSetting( 0 );
-    wbs.redGain.write( devSettings.whiteBalanceRed / 100. );
-    wbs.blueGain.write( devSettings.whiteBalanceBlue / 100. );
+    LoggedWriteProperty( wbs.redGain, devSettings.whiteBalanceRed / 100. );
+    LoggedWriteProperty( wbs.blueGain, devSettings.whiteBalanceBlue / 100. );
     if( features.boAutoWhiteBalanceSupport )
     {
         // In case continuous auto white balancing is implemented:

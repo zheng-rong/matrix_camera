@@ -59,9 +59,21 @@ public:
     }
     void                                EndFullScreenMode( void );
     void                                EnsureAcquisitionState( bool boAcquire );
+    bool                                GetAutoShowQSWOnUseDevice( void )
+    {
+        return m_pMISettings_ShowQuickSetupOnUse->IsChecked();
+    }
+    bool                                HasEnforcedQSWBehavior( void )
+    {
+        return m_QuickSetupWizardEnforce != qswiDefaultBehaviour;
+    }
     bool                                LoadActiveDeviceFromFile( const wxString& path );
     void                                RestoreGUIStateAfterQuickSetupWizard( void );
     bool                                SetCurrentImage( const wxFileName& fileName, ImageCanvas* pImageCanvas );
+    void                                SetAutoShowQSWOnUseDevice( bool boShow )
+    {
+        m_pMISettings_ShowQuickSetupOnUse->Check( boShow );
+    }
     void                                WriteErrorMessage( const wxString& msg )
     {
         WriteLogMessage( msg, m_errorStyle );
@@ -109,6 +121,7 @@ protected:
     }
     void OnAnalysisPlotCBAOIFullMode( wxCommandEvent& e );
     void OnAnalysisPlotCBProcessBayerParity( wxCommandEvent& e );
+    void OnCapture_DefaultImageProcessingMode_Changed( wxCommandEvent& e );
     void OnCBEnableInfoPlot( wxCommandEvent& );
     void OnCBInfoPlotDifferences( wxCommandEvent& );
     void OnClose( wxCloseEvent& e );
@@ -345,6 +358,10 @@ protected:
     {
         Wizard_QuickSetup();
     }
+    void OnSettings_ShowQuickSetupOnUse( wxCommandEvent& )
+    {
+        Settings_ShowQuickSetupOnUse();
+    }
     void OnSetupCaptureQueueDepth( wxCommandEvent& e );
     void OnSetupRecordSequenceSize( wxCommandEvent& e );
     void OnSetupHardDiscRecording( wxCommandEvent& e );
@@ -436,6 +453,8 @@ private:
         miCapture_Acquire,
         miCapture_Abort,
         miCapture_Unlock,
+        miCapture_DefaultImageProcessingMode_ProcessAll,
+        miCapture_DefaultImageProcessingMode_ProcessLatestOnly,
         miCapture_Record,
         miCapture_Forward,
         miCapture_Backward,
@@ -466,6 +485,7 @@ private:
         miSettings_ShowLeftToolBar,
         miSettings_ShowUpperToolBar,
         miSettings_ShowStatusBar,
+        miSettings_ShowQuickSetupOnUse,
         miSettings_ToggleFullScreenMode,
         miSettings_Analysis_ShowControls,
         miSettings_Analysis_SynchronizeAOIs,
@@ -540,15 +560,21 @@ private:
     enum TStatusBarField
     //-----------------------------------------------------------------------------
     {
-        sbfFramePerSecond,
+        sbfFramesPerSecond,
         sbfBandwidthConsumed,
         sbfFramesDelivered,
         sbfStatistics,
         sbfImageFormat,
-        sbfExposeTime,
-        sbfGain,
         sbfPixelData,
         NO_OF_STATUSBAR_FIELDS
+    };
+    //-----------------------------------------------------------------------------
+    enum TQuickSetupWizardInvocation
+    //-----------------------------------------------------------------------------
+    {
+        qswiDefaultBehaviour,
+        qswiForceShow,
+        qswiForceHide
     };
     //-----------------------------------------------------------------------------
     struct HardDiscRecordingParameters
@@ -565,6 +591,8 @@ private:
             //-----------------------------------------------------------------------------
     {
         double                          verticalSplitterPosition_;
+        double                          horizontalSplitterPosition_;
+        bool                            boDisplayShown_;
         bool                            boPropertyGridShown_;
         bool                            boLeftToolBarShown_;
         bool                            boUpperToolbarShown_;
@@ -625,7 +653,8 @@ private:
     WizardQuickSetup*                   m_pQuickSetupDlgCurrent;
     WizardQuickSetup*                   m_pQuickSetupDlgGenICam;
     WizardQuickSetup*                   m_pQuickSetupDlgDeviceSpecific;
-    bool                                m_boMustShowQuickSetupWizard;
+    bool                                m_boShowQuickSetupWizardCurrentProcess;
+    TQuickSetupWizardInvocation         m_QuickSetupWizardEnforce;
     wxSplitterWindow*                   m_pHorizontalSplitter;
     PlotCanvasInfo*                     m_pInfoPlotArea;
     wxComboBox*                         m_pInfoPlotSelectionCombo;
@@ -653,6 +682,8 @@ private:
     wxMenuItem*                         m_pMICapture_Acquire;
     wxMenuItem*                         m_pMICapture_Abort;
     wxMenuItem*                         m_pMICapture_Unlock;
+    wxMenuItem*                         m_pMICapture_DefaultImageProcessingMode_ProcessAll;
+    wxMenuItem*                         m_pMICapture_DefaultImageProcessingMode_ProcessLatestOnly;
     wxMenuItem*                         m_pMICapture_Record;
     wxMenuItem*                         m_pMICapture_Forward;
     wxMenuItem*                         m_pMICapture_Backward;
@@ -686,6 +717,7 @@ private:
     wxMenuItem*                         m_pMISettings_ShowLeftToolBar;
     wxMenuItem*                         m_pMISettings_ShowUpperToolBar;
     wxMenuItem*                         m_pMISettings_ShowStatusBar;
+    wxMenuItem*                         m_pMISettings_ShowQuickSetupOnUse;
     wxMenuItem*                         m_pMISettings_WarnOnOutdatedFirmware;
     wxMenuItem*                         m_pMISettings_WarnOnReducedDriverPerformance;
     wxMenuItem*                         m_pMISettings_WarnOnUnreachableDevices;
@@ -713,6 +745,7 @@ private:
     int                                 m_VerticalSplitterPos;
     DevicePropertyHandler::TViewMode    m_ViewMode;
     wxString                            m_defaultDeviceInterfaceLayout;
+    TImageProcessingMode                m_defaultImageProcessingMode;
     HardDiscRecordingParameters         m_HardDiscRecordingParameters;
     GUISetup                            m_GUIBeforeQuickSetupWizard;
 
@@ -787,9 +820,11 @@ private:
     void                                SearchAndSelectImageCanvas( ImageCanvas* pImageCanvas );
     void                                SelectImageCanvas( int index );
     void                                SetCommonToolBarProperties( wxToolBar* pToolBar );
+    void                                SetupGUIOnFirstRun( void );
     void                                SetupAcquisitionControls( const bool boDevOpen, const bool boDevPresent, const bool boDevLive );
     void                                SetupCaptureSettingsUsageMode( TCaptureSettingUsageMode mode );
     void                                SetupDisplayLogSplitter( bool boForceSplit = false );
+    void                                SetupImageProcessingMode( void );
     void                                SetupUpdateFrequencies( bool boCurrentValue );
     void                                SetupVerSplitter( void );
     bool                                UpdateAcquisitionModes( void );
@@ -808,6 +843,7 @@ private:
     void                                UpdateStatusBar( void );
     void                                UpdateTitle( void );
     void                                UpdateToolTipWindowAndWizardStatus( wxPGId prop );
+    void                                UpdateUserControlledImageProcessingEnableProperties( void );
     void                                UpdateUserExperience( const wxString& userExperience );
     void                                ToggleCurrentDevice( void );
     void                                Wizard_FileAccessControl( bool boUpload );
@@ -815,6 +851,10 @@ private:
     void                                Wizard_LUTControl( void );
     void                                Wizard_ColorCorrection( void );
     void                                Wizard_QuickSetup( void );
+    void                                Settings_ShowQuickSetupOnUse( void )
+    {
+        m_boShowQuickSetupWizardCurrentProcess = HasEnforcedQSWBehavior() ? true : m_pMISettings_ShowQuickSetupOnUse->IsChecked() ;
+    }
 };
 
 #endif // PropViewFrameH

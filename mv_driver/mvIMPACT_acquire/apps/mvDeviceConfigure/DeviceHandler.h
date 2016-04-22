@@ -48,6 +48,7 @@ public:
     {
         return urFeatureUnsupported;
     }
+    virtual void SetCustomFirmwareFile( const wxString& /* customFirmwareFile */ ) {}
     virtual void SetCustomFirmwarePath( const wxString& /* customFirmwarePath */ ) {}
     virtual void SetCustomGenICamFile( const wxString& /* customGenICamFile */ ) {}
     //-----------------------------------------------------------------------------

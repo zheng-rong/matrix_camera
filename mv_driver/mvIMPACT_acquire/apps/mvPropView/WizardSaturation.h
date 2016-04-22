@@ -56,6 +56,7 @@ private:
     void ApplySaturation( void );
     void ApplySaturation( const bool boEnable, const double K );
     void CreateGUI( void );
+    void EnableDeviceColorCorrection( const bool boEnable );
     virtual void OnBtnCancel( wxCommandEvent& )
     {
         Hide();
@@ -73,7 +74,10 @@ private:
         WriteToDevice();
     }
     void OnBtnWriteToDeviceAndSwitchOffHost( wxCommandEvent& );
-    void OnCBEnableDeviceColorCorrection( wxCommandEvent& e );
+    void OnCBEnableDeviceColorCorrection( wxCommandEvent& e )
+    {
+        EnableDeviceColorCorrection( e.IsChecked() );
+    }
     void OnCBEnableInputCorrectionMatrix( wxCommandEvent& e )
     {
         ip_.colorTwistInputCorrectionMatrixEnable.write( e.IsChecked() ? bTrue : bFalse );

@@ -208,7 +208,6 @@ int main( int argc, char* argv[] )
     {
         cout << "Available command line parameters:" << endl
              << endl
-             << "-sf to store every 100th frame in raw format" << endl
              << "-a<mode> to set the acquisition mode" << endl
              << "-h<height> to set the AOI width" << endl
              << "-p<pixelFormat> to set the pixel format" << endl

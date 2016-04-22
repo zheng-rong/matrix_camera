@@ -16,7 +16,7 @@ BEGIN_EVENT_TABLE( WizardColorCorrection, OkAndCancelDlg )
     EVT_CHECKBOX( widCBSaturationEnable, WizardColorCorrection::OnCBSaturationEnable )
     EVT_COMMAND_SCROLL_THUMBTRACK( widSLSaturation, WizardColorCorrection::OnSLSaturation )
     EVT_SPINCTRL( widSCSaturation, WizardColorCorrection::OnSCSaturationChanged )
-#ifdef BUILD_WITH_TEXT_EVENTS_FOR_SPINCTRL // BAT: Unfortunately on linux wxWidgets 2.6.x - ??? handling these messages will cause problems, while on Windows not doing so will not always update the GUI as desired :-(
+#ifdef BUILD_WITH_TEXT_EVENTS_FOR_SPINCTRL // Unfortunately on Linux wxWidgets 2.6.x - ??? handling these messages will cause problems, while on Windows not doing so will not always update the GUI as desired :-(
     EVT_TEXT( widSCSaturation, WizardColorCorrection::OnSCSaturationTextChanged )
 #endif // #ifdef BUILD_WITH_TEXT_EVENTS_FOR_SPINCTRL
     EVT_TOGGLEBUTTON( widTBSaturationDetails, WizardColorCorrection::OnBtnSaturationDetails )
@@ -218,14 +218,15 @@ void WizardColorCorrection::OnBtnWriteToDeviceAndSwitchOffHost( wxCommandEvent& 
         }
         catch( const ImpactAcquireException& e )
         {
-            wxMessageBox( wxString::Format( wxT( "Failed to modifiy driver properties(Error: %s)" ), ConvertedString( e.getErrorCodeAsString() ).c_str() ), wxT( "Failed To Write To Device" ), wxOK | wxICON_INFORMATION, this );
+            wxMessageBox( wxString::Format( wxT( "Failed to modify driver properties(Error: %s)" ), ConvertedString( e.getErrorCodeAsString() ).c_str() ), wxT( "Failed To Write To Device" ), wxOK | wxICON_INFORMATION, this );
         }
+        EnableDeviceColorCorrection( true );
         RefreshControls();
     }
 }
 
 //-----------------------------------------------------------------------------
-void WizardColorCorrection::OnCBEnableDeviceColorCorrection( wxCommandEvent& e )
+void WizardColorCorrection::EnableDeviceColorCorrection( const bool boEnable )
 //-----------------------------------------------------------------------------
 {
     if( !pctc_ )
@@ -241,7 +242,7 @@ void WizardColorCorrection::OnCBEnableDeviceColorCorrection( wxCommandEvent& e )
 
     try
     {
-        pctc_->colorTransformationEnable.write( e.IsChecked() ? bTrue : bFalse );
+        pctc_->colorTransformationEnable.write( boEnable ? bTrue : bFalse );
     }
     catch( const ImpactAcquireException& e )
     {

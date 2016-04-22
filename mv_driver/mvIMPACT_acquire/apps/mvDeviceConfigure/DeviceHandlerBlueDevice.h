@@ -27,7 +27,7 @@ class DeviceHandlerBlueDevice : public DeviceHandler
     wxString firmwareUpdateFolderDevelopment_;
     wxString GenICamFile_;
     wxString temporaryFolder_;
-    int numberOfUserSets_;
+    std::vector<std::string> userSetsToKeepDuringUpdate_;
     int CheckForIncompatibleFirmwareVersions_BlueCOUGAR_X( bool boSilentMode, const wxString& serial, const FileEntryContainer& fileEntries, const wxString& selection, const Version& currentFirmwareVersion );
     TUpdateResult DoFirmwareUpdate_BlueCOUGAR_X( bool boSilentMode, const wxString& serial, const char* pBuf, const size_t bufSize );
     TUpdateResult DoFirmwareUpdate_BlueFOX3( bool boSilentMode, const wxString& serial, const char* pBuf, const size_t bufSize );
@@ -44,7 +44,8 @@ class DeviceHandlerBlueDevice : public DeviceHandler
     int UpdateLYNX_M7AndCOUGAR_PDevice( const wxString& updateFileName, const wxString& fileExtension, bool boSilentMode );
     int UploadFile( const wxString& fullPath, const wxString& descriptionFile );
     void UserSetBackup( void );
-    void UserSetRestore( void );
+    void UserSetRestore( const wxString& previousUserSetDefaultValueToRestore );
+    wxString SetUserSetDefault( const wxString& userSetDefaultValue );
 public:
     DeviceHandlerBlueDevice( mvIMPACT::acquire::Device* pDev );
     static DeviceHandler* Create( mvIMPACT::acquire::Device* pDev )
@@ -55,6 +56,7 @@ public:
     virtual int GetLatestFirmwareVersion( Version& latestFirmwareVersion ) const;
     virtual bool SupportsFirmwareUpdate( void ) const;
     virtual int UpdateFirmware( bool boSilentMode, bool boPersistentUserSets );
+    virtual void SetCustomFirmwareFile( const wxString& customFirmwareFile );
     virtual void SetCustomFirmwarePath( const wxString& customFirmwarePath );
     virtual void SetCustomGenICamFile( const wxString& customGenICamFile );
 };

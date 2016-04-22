@@ -37,11 +37,9 @@ class CaptureThread : public wxThread
     mutable wxCriticalSection                   m_critSect;
     mutable wxCriticalSection                   m_critSectConfig;
     mutable int                                 m_currentRequest;
-    int                                         m_discardedImages;
     static unsigned int                         m_instanceCnt;
     unsigned int                                m_instanceNr;
     wxString                                    m_lastErrorMessage;
-    wxString                                    m_lastRequestResult;
     std::string                                 m_currentPlotInfoPath;
     mutable int                                 m_nextPendingRequest;           // for legacy mode used for a single display. DO NOT REMOVE UNTIL YOU ARE ABSOLUTELY SURE THAT THIS DOESN'T BREAK ANYTHING
     std::list<int>::size_type                   m_pendingRequestsForDisplayMax; // for new mode used with 2 or more displays
@@ -50,6 +48,8 @@ class CaptureThread : public wxThread
     mvIMPACT::acquire::Device*                  m_pDev;
     mvIMPACT::acquire::FunctionInterface*       m_pFuncInterface;
     mvIMPACT::acquire::ImageRequestControl      m_ImageRequestControl;
+    mvIMPACT::acquire::SystemSettings           m_SystemSettings;
+    mvIMPACT::acquire::TImageProcessingMode     m_ImageProcessingMode;
 #if MULTI_SETTING_HACK
     int                                         m_SettingIndex;
     std::vector<std::pair<std::string, int> >   m_Settings;
@@ -68,17 +68,28 @@ class CaptureThread : public wxThread
     size_t                                      m_maxNumberToRequest;
     size_t                                      m_numberRequested;
     size_t                                      m_numberReturned;
-    size_t                                      m_SkippedImageCount;
+    size_t                                      m_skippedImageCount;
+    mutable size_t                              m_capturedImagesCount;
+    mutable size_t                              m_capturedImagesSentToDisplayCount;
+    mutable double                              m_percentageOfImagesSentToDisplay;
     int                                         m_captureQueueDepth;
     int                                         m_currentlyActiveRequests;
 
     bool                                        CheckSequenceRestart( bool boInformUserOnRecordStart ) const;
-    void                                        CollectBufferInfo( ComponentIterator it, std::vector<wxString>& infoStrings, const wxString& path = wxT( "" ) ) const;
+    void                                        CollectBufferInfo( ComponentIterator it, ComponentIterator itImageProcessingResults, std::vector<wxString>& infoStrings, const wxString& path = wxT( "" ) ) const;
+    void                                        CollectBufferInfo_ImageProcessingResults( ComponentIterator it, std::vector<wxString>& infoStrings ) const;
     int                                         FreeLastRequestFromSequence( int requestNotToUnlock );
     void                                        GetRequestInfoData( RequestInfoData* pReqInfo, const Request* pReq, HOBJ settingUsed ) const;
+    int                                         GetSettingUsedForRequest( const Request* pRequest ) const
+    {
+        return ( pRequest->infoSettingUsed.isValid() ) ? pRequest->infoSettingUsed.read() : INVALID_ID;
+    }
+
     bool                                        InternalSetLiveMode( bool boOn, bool boInformUserOnRecordStart = true );
     bool                                        InternalSetRecordMode( bool boOn, bool boUnlockCurrentRequest );
     int                                         RequestImages( int* pFramesRequested = 0 );
+    void                                        SendImageSkippedEvent( const int settingUsed );
+    void                                        SendImageReadyEvent( void );
     void                                        UnlockPendingRequests( void );
 protected:
     void*                                       Entry( void );
@@ -103,7 +114,6 @@ public:
     }
     mvIMPACT::acquire::TRequestResult           GetImageData( RequestData& requestData ) const;
     void                                        GetImageInfo( bool boFillInfoVector, std::vector<wxString>& infoStrings ) const;
-    wxString                                    GetLastRequestResult( void ) const;
     bool                                        GetLiveMode( void ) const
     {
         return m_boLive;
@@ -125,6 +135,7 @@ public:
         return m_totalCountToRecord;
     }
     size_t                                      GetSkippedImageCount( void );
+    double                                      GetPercentageOfImagesSentToDisplay( void ) const;
     int                                         RecordSequence( void );
     int                                         RequestSingle( bool boInformUserOnRecordStart );
     void                                        SetActive( void );
@@ -135,6 +146,7 @@ public:
 #endif // #if MULTI_SETTING_HACK
     void                                        SetContinuousRecording( bool boContinuous );
     void                                        SetCurrentPlotInfoPath( const std::string& currentPlotInfoPath );
+    void                                        SetImageProcessingMode( TImageProcessingMode mode );
     bool                                        SetLiveMode( bool boOn, bool boInformUserOnRecordStart = true );
     void                                        SetMultiFrameSequenceSize( size_t sequenceSize );
     bool                                        SetRecordMode( bool boOn );

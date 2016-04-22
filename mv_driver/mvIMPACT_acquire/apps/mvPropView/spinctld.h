@@ -127,7 +127,8 @@ public:
                  double increment = 1.0, int digits = wxSPINCTRLDBL_AUTODIGITS,
                  const wxString& format = wxT( "" ),
                  const wxString& name = wxT( "wxSpinCtrlDbl" ),
-                 bool boWithSlider = false );
+                 bool boWithSlider = false,
+                 bool boSliderWithLogarithmicBehaviour = false );
 
     virtual ~wxSpinCtrlDbl();
 
@@ -274,6 +275,8 @@ protected:
 
     wxSpinButton*          m_spinButton;
     wxSlider*              m_slider;
+    bool                   m_boSliderWithLogarithmicBehaviour;
+    double                 m_logScaleFactor;
     wxSpinCtrlDblTextCtrl* m_textCtrl;
 
     double   m_min;           // min allowed value

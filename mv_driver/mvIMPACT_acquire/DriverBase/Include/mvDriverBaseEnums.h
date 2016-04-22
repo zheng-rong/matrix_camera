@@ -1363,6 +1363,10 @@ enum TClampMode
  *  - 0x0019: Sony ICX625 sensor
  *  - 0x001a: Aptina MT9F002 sensor
  *  - 0x001b: Sony IMX249 sensor
+ *  - 0x001c: Sony IMX250 sensor
+ *  - 0x001d: Sony IMX252 sensor
+ *  - 0x001e: Sony IMX264 sensor
+ *  - 0x001f: Sony IMX265 sensor
  *  - ...
  *  - 0x1000: User defined correction matrix
  *  - 0x2000: Driver automatically selects the matching sensor matrix if available
@@ -1393,8 +1397,12 @@ enum TColorTwistInputCorrectionMatrixMode
     cticmmBlueCOUGAR_Xx04bC_WPPLS   = 0x00020000 | 0x10000000 | 0x0005,
     /// \brief The WPPLS correction matrix for mvBlueCOUGAR-Xx04fC devices.
     cticmmBlueCOUGAR_Xx04fC_WPPLS   = 0x00020000 | 0x10000000 | 0x001b,
+    /// \brief The WPPLS correction matrix for mvBlueCOUGAR-Xx04iC devices.
+    cticmmBlueCOUGAR_Xx04iC_WPPLS   = 0x00020000 | 0x10000000 | 0x001f,
     /// \brief The WPPLS correction matrix for mvBlueCOUGAR-Xx05C devices.
     cticmmBlueCOUGAR_Xx05C_WPPLS    = 0x00020000 | 0x10000000 | 0x0006,
+    /// \brief The WPPLS correction matrix for mvBlueCOUGAR-Xx05bC devices.
+    cticmmBlueCOUGAR_Xx05bC_WPPLS   = 0x00020000 | 0x10000000 | 0x001e,
     /// \brief The WPPLS correction matrix for mvBlueCOUGAR-Xx20aC devices.
     cticmmBlueCOUGAR_Xx20aC_WPPLS   = 0x00020000 | 0x10000000 | 0x0007,
     /// \brief The WPPLS correction matrix for mvBlueCOUGAR-Xx20bC devices.
@@ -1412,7 +1420,7 @@ enum TColorTwistInputCorrectionMatrixMode
     /// \brief The WPPLS correction matrix for mvBlueCOUGAR-Xx25aC devices.
     cticmmBlueCOUGAR_Xx25aC_WPPLS   = 0x00020000 | 0x10000000 | 0x000d,
     /// \brief The WPPLS correction matrix for mvBlueCOUGAR-Xx25C devices.
-    cticmmBlueCOUGAR_Xx25C_WPPLS   = 0x00020000 | 0x10000000 | 0x0019,
+    cticmmBlueCOUGAR_Xx25C_WPPLS    = 0x00020000 | 0x10000000 | 0x0019,
     /// \brief The WPPLS correction matrix for mvBlueCOUGAR-Xx04C and mvBlueCOUGAR-XDx04C devices.
     cticmmBlueCOUGAR_Xx04C_WPPLS    = 0x00020000 | 0x10000000 | 0x0012,
     /// \brief The WPPLS correction matrix for mvBlueCOUGAR-Xx04aC and mvBlueCOUGAR-XDx04aC devices.
@@ -1420,15 +1428,19 @@ enum TColorTwistInputCorrectionMatrixMode
     /// \brief The WPPLS correction matrix for mvBlueCOUGAR-Xx04eC devices.
     cticmmBlueCOUGAR_Xx04eC_WPPLS   = 0x00020000 | 0x10000000 | 0x0014,
     /// \brief The WPPLS correction matrix for mvBlueCOUGAR-XDx04dC devices.
-    cticmmBlueCOUGAR_XDx04dC_WPPLS = 0x00030000 | 0x10000000 | 0x0017,
+    cticmmBlueCOUGAR_XDx04dC_WPPLS  = 0x00030000 | 0x10000000 | 0x0017,
     /// \brief The WPPLS correction matrix for mvBlueCOUGAR-XDx212aC and mvBlueCOUGAR-XDx212C devices.
-    cticmmBlueCOUGAR_XDx212C_WPPLS = 0x00030000 | 0x10000000 | 0x0018,
+    cticmmBlueCOUGAR_XDx212C_WPPLS  = 0x00030000 | 0x10000000 | 0x0018,
     /// \brief The WPPLS correction matrix for mvBlueCOUGAR-XDx24aC and mvBlueCOUGAR-XDx24bC devices.
     cticmmBlueCOUGAR_XDx24aC_WPPLS  = 0x00030000 | 0x10000000 | 0x000e,
     /// \brief The WPPLS correction matrix for mvBlueCOUGAR-XDx26C and mvBlueCOUGAR-XDx26aC devices.
     cticmmBlueCOUGAR_XDx26C_WPPLS   = 0x00030000 | 0x10000000 | 0x000f,
     /// \brief The WPPLS correction matrix for mvBlueCOUGAR-XDx29C and mvBlueCOUGAR-XDx29aC devices.
     cticmmBlueCOUGAR_XDx29C_WPPLS   = 0x00030000 | 0x10000000 | 0x0010,
+    /// \brief The WPPLS correction matrix for mvBlueCOUGAR-XDx05aC devices.
+    cticmmBlueCOUGAR_XDx05aC_WPPLS  = 0x00030000 | 0x10000000 | 0x001c,
+    /// \brief The WPPLS correction matrix for mvBlueCOUGAR-XDx04hC devices.
+    cticmmBlueCOUGAR_XDx04hC_WPPLS  = 0x00030000 | 0x10000000 | 0x001d,
     /// \brief The WPPLS correction matrix for mvBlueFOX-x00wC devices.
     cticmmBlueFOX_x00wC_WPPLS       = 0x00040000 | 0x10000000 | 0x0001,
     /// \brief The WPPLS correction matrix for mvBlueFOX-x02bC devices.
@@ -1462,7 +1474,15 @@ enum TColorTwistInputCorrectionMatrixMode
     /// \brief The WPPLS correction matrix for mvBlueFOX3-x140C devices.
     cticmmBlueFOX3_x140C_WPPLS      = 0x00050000 | 0x10000000 | 0x001a,
     /// \brief The WPPLS correction matrix for mvBlueFOX3-x024C devices.
-    cticmmBlueFOX3_x024aC_WPPLS      = 0x00050000 | 0x10000000 | 0x001b
+    cticmmBlueFOX3_x024aC_WPPLS      = 0x00050000 | 0x10000000 | 0x001b,
+    /// \brief The WPPLS correction matrix for mvBlueFOX3-x051C devices.
+    cticmmBlueFOX3_x051C_WPPLS       = 0x00050000 | 0x10000000 | 0x001c,
+    /// \brief The WPPLS correction matrix for mvBlueFOX3-x051aC devices.
+    cticmmBlueFOX3_x051aC_WPPLS      = 0x00050000 | 0x10000000 | 0x001e,
+    /// \brief The WPPLS correction matrix for mvBlueFOX3-x032C devices.
+    cticmmBlueFOX3_x032C_WPPLS       = 0x00050000 | 0x10000000 | 0x001d,
+    /// \brief The WPPLS correction matrix for mvBlueFOX3-x032aC devices.
+    cticmmBlueFOX3_x032aC_WPPLS      = 0x00050000 | 0x10000000 | 0x001f
 };
 
 //-----------------------------------------------------------------------------
@@ -1702,7 +1722,14 @@ enum TDeviceAdvancedOptions // flags_attribute, uint_type
      *  be with in ADC digitizer range thus an over-saturated image will contain pixels that do \b NOT contain the maximum
      *  value for the given pixel format.
     */
-    daoUseRawSensorGain = 0x80
+    daoUseRawSensorGain = 0x80,
+    /// \brief Trigger sensor column correction.
+    /**
+     * When switched on this triggers a single column correction calibration process when requesting an image.
+     * To do it again switch it off and on again. This should be done while no acquisition is running.
+     * Changing gain or AOI could make such a recalibration necessary.
+    */
+    daoTriggerSensorColumnCalibration = 0x100
 };
 
 //-----------------------------------------------------------------------------
@@ -1945,9 +1972,6 @@ enum TDeviceLoadSettings
     dlsAuto = 0,
     /// \brief No stored settings will be loaded at start-up. The device will be initialized with the drivers default values.
     dlsNoLoad
-    //, dlsFamily,
-    //dlsProduct,
-    //dlsCameraLocal
 };
 
 #ifndef IGNORE_MVBLUEFOX_SPECIFIC_DOCUMENTATION
@@ -3898,6 +3922,28 @@ enum TImageProcessingFilter
 };
 
 //-----------------------------------------------------------------------------
+/// \brief Defines valid modes the internal image processing pipeline can be operated in.
+/// \ingroup CommonInterface
+enum TImageProcessingMode
+//-----------------------------------------------------------------------------
+{
+    /// \brief The default mode where every image is processed in the order they have been acquired
+    ipmDefault = 0,
+    /// \brief This mode can be useful for applications where processing on the host takes longer than the average time between two consecutive frames transmitted by the device.
+    /**
+     *  This might be useful for applications that display the processed result but that also want to
+     *  capture data at the highest possible frame rate and is not important that EVERY image gets processed.
+     *
+     *  \attention This mode might result in images being returned without the expected processing on the host.
+     *
+     *  \sa \b mvIMPACT::acquire::Device::userControlledImageProcessingEnable, \n
+     *      \b mvIMPACT::acquire::Request::hasProcessingBeenSkipped, \n
+     *      \b mvIMPACT::acquire::Request::getImageProcessingResultsIterator
+     */
+    ipmProcessLatestOnly = 1
+};
+
+//-----------------------------------------------------------------------------
 /// \brief Defines valid modes the internal image processing algorithms can be operated in.
 /// \ingroup CommonInterface
 enum TImageProcessingOptimization
@@ -3912,6 +3958,35 @@ enum TImageProcessingOptimization
      *  fragmentation should be considered!
      */
     ipoMinimizeMemoryUsage = 1
+};
+
+//------------------------------------------------------------------------------
+/// \brief Defines valid values for the result of a certain image processing algorithm applied to a request.
+/// \ingroup CommonInterface
+enum TImageProcessingResult
+//------------------------------------------------------------------------------
+{
+    /// \brief This algorithm was either switched off or not needed when applied to this request object.
+    /**
+     *  When an algorithm is switched on and this result is returned this can indicate e.g. that for a format conversion
+     *  the input and output format where identical.
+     */
+    iprNotActive = 0,
+    /// \brief This algorithm has been applied to this request object.
+    iprApplied,
+    /// \brief A problem was encountered when this algorithm has been applied to this request object.
+    /**
+     *  One reason for this result might be that an unsupported pixel format was fed into this algorithm. The log-file
+     *  will provide additional information then.
+     */
+    iprFailure,
+    /// \brief This algorithm has NOT been applied because of a lack of processing time.
+    /**
+     *  In most cases the acquisition frame rate(thus the frame rate generated on the device) was higher
+     *  than the processing frame rate the host can handle and the user has explicitly
+     *  configured the image processing mode to skip images then.
+     */
+    iprSkipped
 };
 
 //-----------------------------------------------------------------------------
@@ -4932,7 +5007,9 @@ typedef enum TImageBufferFormatReinterpreterMode TImageBufferFormatReinterpreter
 typedef enum TImageBufferPixelFormat TImageBufferPixelFormat;
 typedef enum TImageDestinationPixelFormat TImageDestinationPixelFormat;
 typedef enum TImageProcessingFilter TImageProcessingFilter;
+typedef enum TImageProcessingMode TImageProcessingMode;
 typedef enum TImageProcessingOptimization TImageProcessingOptimization;
+typedef enum TImageProcessingResult TImageProcessingResult;
 typedef enum TImageRequestControlMode TImageRequestControlMode;
 typedef enum TInfoSensorColorMode TInfoSensorColorMode;
 typedef enum TInfoSensorColorPattern TInfoSensorColorPattern;

@@ -1026,7 +1026,7 @@ bool wxSystemColourPropertyClass::OnEvent( wxPropertyGrid* propgrid, wxWindow* p
 }
 
 
-void wxSystemColourPropertyClass::OnCustomPaint( wxDC& dc, const wxRect& rect,
+void wxSystemColourPropertyClass::OnCustomPaint( wxDC* pDC, const wxRect& rect,
                                                  wxPGPaintData& paintdata )
 {
     if ( paintdata.m_choiceItem >= 0 &&
@@ -1039,14 +1039,14 @@ void wxSystemColourPropertyClass::OnCustomPaint( wxDC& dc, const wxRect& rect,
             colInd = values[paintdata.m_choiceItem];
         else
             colInd = paintdata.m_choiceItem;
-        dc.SetBrush ( wxColour ( GetColour ( colInd ) ) );
+        pDC->SetBrush ( wxColour ( GetColour ( colInd ) ) );
     }
     else if ( !(m_flags & wxPG_PROP_UNSPECIFIED) )
-        dc.SetBrush ( m_value.m_colour );
+        pDC->SetBrush ( m_value.m_colour );
     else
-        dc.SetBrush ( *wxWHITE );
+        pDC->SetBrush ( *wxWHITE );
 
-    dc.DrawRectangle ( rect );
+    pDC->DrawRectangle ( rect );
 }
 
 
@@ -1267,17 +1267,17 @@ wxSize wxCursorPropertyClass::GetImageSize() const
 
 #if wxPG_CAN_DRAW_CURSOR
 
-void wxCursorPropertyClass::OnCustomPaint( wxDC& dc,
+void wxCursorPropertyClass::OnCustomPaint( wxDC* pDC,
                                            const wxRect& rect,
                                            wxPGPaintData& paintdata )
 {
 
     // Background brush
-    dc.SetBrush( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE ) );
+    pDC->SetBrush( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE ) );
 
     if ( paintdata.m_choiceItem >= 0 )
     {
-        dc.DrawRectangle( rect );
+        pDC->DrawRectangle( rect );
 
         int cursorindex = gs_cp_es_syscursors_values[paintdata.m_choiceItem];
 
@@ -1299,7 +1299,7 @@ void wxCursorPropertyClass::OnCustomPaint( wxDC& dc,
             wxCursor cursor( cursorindex );
 
         #ifdef __WXMSW__
-            ::DrawIconEx( (HDC)dc.GetHDC(),
+            ::DrawIconEx( (HDC)pDC->GetHDC(),
                           rect.x,
                           rect.y,
                           (HICON)cursor.GetHandle(),
@@ -1314,7 +1314,7 @@ void wxCursorPropertyClass::OnCustomPaint( wxDC& dc,
     }
 }
 #else
-void wxCursorPropertyClass::OnCustomPaint( wxDC&, const wxRect&, wxPGPaintData& ) { }
+void wxCursorPropertyClass::OnCustomPaint( wxDC*, const wxRect&, wxPGPaintData& ) { }
 #endif
 
 // -----------------------------------------------------------------------
@@ -1415,7 +1415,7 @@ wxSize wxImageFilePropertyClass::GetImageSize() const
     return wxSize(-1,-1);
 }
 
-void wxImageFilePropertyClass::OnCustomPaint( wxDC& dc,
+void wxImageFilePropertyClass::OnCustomPaint( wxDC* pDC,
                                               const wxRect& rect,
                                               wxPGPaintData& )
 {
@@ -1432,13 +1432,13 @@ void wxImageFilePropertyClass::OnCustomPaint( wxDC& dc,
             m_pImage = NULL;
         }
 
-        dc.DrawBitmap( *m_pBitmap, rect.x, rect.y, false );
+        pDC->DrawBitmap( *m_pBitmap, rect.x, rect.y, false );
     }
     else
     {
         // No file - just draw a white box
-        dc.SetBrush( *wxWHITE_BRUSH );
-        dc.DrawRectangle ( rect );
+        pDC->SetBrush( *wxWHITE_BRUSH );
+        pDC->DrawRectangle ( rect );
     }
 }
 

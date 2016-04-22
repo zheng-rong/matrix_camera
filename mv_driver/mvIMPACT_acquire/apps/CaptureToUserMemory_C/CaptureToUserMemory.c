@@ -372,10 +372,23 @@ void allocateRequests( CaptureParameter* captureParams )
     freeRequests( captureParams );
     captureParams->requestCount = ( size_t )getPropI( captureParams->hRequestCount, 0 );
     captureParams->ppRequests = 0;
-    captureParams->ppRequests = ( Request** )( calloc( captureParams->requestCount, sizeof( Request* ) ) );
-    for( i = 0; i < captureParams->requestCount; i++ )
+    if ( captureParams->requestCount > 0 )
     {
-        captureParams->ppRequests[i] = Request_Alloc( captureParams->hDrv, ( int )i );
+        captureParams->ppRequests = ( Request** )( calloc( captureParams->requestCount, sizeof( Request* ) ) );
+        if ( captureParams->ppRequests == 0 )
+        {
+            captureParams->requestCount = 0;
+            return;
+        }
+        for( i = 0; i < captureParams->requestCount; i++ )
+        {
+            captureParams->ppRequests[i] = Request_Alloc( captureParams->hDrv, ( int )i );
+            if ( captureParams->ppRequests == 0 )
+            {
+                captureParams->requestCount = 0;
+                return;
+            }
+        }
     }
 }
 
@@ -634,6 +647,12 @@ int main( int argc, char* argv[] )
     }
 
     allocateRequests( &captureParams );
+    if( captureParams.requestCount <= 0 )
+    {
+        printf( "Couldn't allocate requests! Unable to continue!\n" );
+        END_APPLICATION;
+    }
+
     //=============================================================================
     //========= Capture loop into memory managed by the driver (default) ==========
     //=============================================================================
@@ -671,18 +690,21 @@ int main( int argc, char* argv[] )
             if( result != 0 )
             {
                 printf( "An error occurred while setting up the user supplied buffers(error code: %s).\n", DMR_ErrorCodeToString( result ) );
+                freeRequests( &captureParams );
                 END_APPLICATION;
             }
         }
         else
         {
             printf( "Internal error(Request result: %08x! This should not happen an is a driver fault! Unable to continue.\n", ReqRes.result );
+            freeRequests( &captureParams );
             END_APPLICATION;
         }
     }
     else
     {
         printf( "Internal error! This should not happen an is a driver fault! Unable to continue.\n" );
+        freeRequests( &captureParams );
         END_APPLICATION;
     }
 
@@ -710,10 +732,16 @@ int main( int argc, char* argv[] )
     pUserSuppliedBuffer = UserSuppliedHeapBuffer_Alloc( bufferSize, getPropI( captureParams.hCaptureBufferAlignment, 0 ) );
     // we want to use request number 'REQUEST_TO_USE' (zero based) for this acquisition thus we have to make sure
     // that there are at least 'REQUEST_TO_USE + 1' requests
-    if( getPropI( captureParams.hRequestCount, 0 ) < REQUEST_TO_USE )
+    if( getPropI( captureParams.hRequestCount, 0 ) <= REQUEST_TO_USE )
     {
         setPropI( captureParams.hRequestCount, REQUEST_TO_USE + 1, 0 );
         allocateRequests( &captureParams );
+        if( captureParams.requestCount <= 0 )
+        {
+            printf( "Couldn't allocate requests! Unable to continue!\n" );
+            UserSuppliedHeapBuffer_Free( pUserSuppliedBuffer );
+            END_APPLICATION;
+        }
     }
     // associate a user supplied buffer with this request
     result = DMR_ImageRequestConfigure( captureParams.hDrv, REQUEST_TO_USE, 0, 0 );
@@ -723,7 +751,14 @@ int main( int argc, char* argv[] )
         printf( "Press [ENTER] to end the continuous acquisition.\n" );
         getchar();
     }
-
+    if( captureParams.ppRequests[REQUEST_TO_USE] == 0 )
+    {
+        printf( "An error occurred when accessing the request to use" );
+        freeRequests( &captureParams );
+        freeCaptureBuffers( &captureParams );
+        UserSuppliedHeapBuffer_Free( pUserSuppliedBuffer );
+        END_APPLICATION;
+    }
     setPropI( captureParams.ppRequests[REQUEST_TO_USE]->hImageMemoryMode_, rimmUser, 0 );
     setPropP( captureParams.ppRequests[REQUEST_TO_USE]->hImageData_, pUserSuppliedBuffer->pBufAligned_, 0 );
     setPropI( captureParams.ppRequests[REQUEST_TO_USE]->hImageSize_, pUserSuppliedBuffer->bufSize_, 0 );
@@ -731,7 +766,9 @@ int main( int argc, char* argv[] )
     if( ( result = DMR_ImageRequestUnlock( captureParams.hDrv, captureParams.ppRequests[REQUEST_TO_USE]->nr_ ) ) != DMR_NO_ERROR )
     {
         printf( "An error occurred while unlocking request number %d: %s.\n", captureParams.ppRequests[REQUEST_TO_USE]->nr_, DMR_ErrorCodeToString( result ) );
+        freeRequests( &captureParams );
         freeCaptureBuffers( &captureParams );
+        UserSuppliedHeapBuffer_Free( pUserSuppliedBuffer );
         END_APPLICATION;
     }
 
@@ -744,6 +781,9 @@ int main( int argc, char* argv[] )
     {
         printf( "An error occurred while requesting an image for request number %d: (%s).\n", REQUEST_TO_USE, DMR_ErrorCodeToString( result ) );
         printf( "Press [ENTER] to end the continuous acquisition.\n" );
+        freeRequests( &captureParams );
+        freeCaptureBuffers( &captureParams );
+        UserSuppliedHeapBuffer_Free( pUserSuppliedBuffer );
         END_APPLICATION;
     }
     if( requestUsed != REQUEST_TO_USE )
@@ -783,6 +823,7 @@ int main( int argc, char* argv[] )
     {
         printf( "Waiting for a frame captured into a specific buffer failed: %s.\n", DMR_ErrorCodeToString( result ) );
     }
+    UserSuppliedHeapBuffer_Free( pUserSuppliedBuffer );
 
 #ifdef USE_MV_DISPLAY_LIB
     mvDispWindowDestroy( captureParams.hDisp );

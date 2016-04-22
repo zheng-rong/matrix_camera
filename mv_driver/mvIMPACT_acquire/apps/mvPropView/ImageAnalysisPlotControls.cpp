@@ -17,7 +17,7 @@ void ImageAnalysisPlotControls::Load( wxConfigBase* pConfig )
     m_pPlotCanvas->SetAOIFullMode( boEnable );
     if( m_pCBProcessBayerParity )
     {
-        bool boEnable = pConfig->Read( wxString::Format( wxT( "/Controls/%s/ProcessBayerParity" ), m_pPlotCanvas->GetConfigName().c_str() ), 1l ) != 0;
+        boEnable = pConfig->Read( wxString::Format( wxT( "/Controls/%s/ProcessBayerParity" ), m_pPlotCanvas->GetConfigName().c_str() ), 1l ) != 0;
         m_pCBProcessBayerParity->SetValue( boEnable );
         m_pPlotCanvas->SetProcessBayerParity( boEnable );
     }

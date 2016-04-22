@@ -488,7 +488,7 @@ typedef bool (*wxPropertyGridCallback)(wxPropertyGrid* propGrid,
     Works very much like wxPGProperty::OnCustomPaint.
 */
 typedef void (*wxPGPaintCallback)(wxPGProperty* property,
-                                  wxDC& dc,
+                                  wxDC* pDC,
                                   const wxRect& rect,
                                   wxPGPaintData& paintdata);
 
@@ -1896,7 +1896,7 @@ public:
               drawing framing rectangle. It can be changed as well.
         \sa @link GetValueAsString @endlink
     */
-    virtual void OnCustomPaint( wxDC& dc,
+    virtual void OnCustomPaint( wxDC* pDC,
         const wxRect& rect, wxPGPaintData& paintdata );
 
     /** Sets an attribute of this property. This is quite property class specific,
@@ -4180,7 +4180,7 @@ public:
         p->SetChoicesExclusive();
     }
 
-    /** Sets an attribute of a property. Ids and relevants values are totally
+    /** Sets an attribute of a property. Ids and relevant values are totally
         specific to property classes and may affect either the given instance
         or all instances of that class. See \ref attrids for list of built-in
         attributes.
@@ -5752,7 +5752,7 @@ public:
         \param id
         Id to property to select.
         \retval
-        True if selection finished succesfully. Usually only fails if current
+        True if selection finished successfully. Usually only fails if current
         value in editor is not valid.
         \sa wxPropertyGrid::Unselect
     */
@@ -6320,7 +6320,7 @@ public:
     */
     void PropertyWasModified( wxPGProperty* p, int selFlags = 0 );
 
-    void OnComboItemPaint( wxPGCustomComboControl* pCb,int item,wxDC& dc,
+    void OnComboItemPaint( wxPGCustomComboControl* pCb,int item,wxDC* pDC,
                            wxRect& rect,int flags );
 
     // Used by simple check box for keyboard navigation
@@ -6677,7 +6677,7 @@ protected:
 
     virtual void DrawItemAndChildren( wxPGProperty* p );
 
-    /** Draws item, children, and consequtive parents as long as category is not met. */
+    /** Draws item, children, and consecutive parents as long as category is not met. */
     void DrawItemAndValueRelated( wxPGProperty* p );
 
     /** Returns property reference for given property id. */

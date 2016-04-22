@@ -262,7 +262,8 @@ void PropTree::UpdateGridPropsRecursively2( wxPGId iter, bool boForceDelete /* =
             delete pPropData;
             toDelete = iter;
         }
-        else if( pPropData->GetComponent().isList() && pPropData->HasChanged() )
+        else if( ( pPropData->GetComponent().isList() && pPropData->HasChanged() ) ||
+                 ( ( m_flags & dfSelectorGrouping ) && ( pPropData->GetComponent().selectedFeatureCount() > 0 ) && ( m_pPropGrid->GetChildrenCount( iter ) > 0 ) ) )
         {
             UpdateGridPropsRecursively2( m_pPropGrid->GetFirstChild( iter ) );
         }

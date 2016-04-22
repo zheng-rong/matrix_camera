@@ -337,7 +337,7 @@ void SettingHierarchyDlg::PopulateTreeCtrl( wxTreeCtrl* pTreeCtrl, wxTreeItemId 
 
 BEGIN_EVENT_TABLE( DetailedRequestInformationDlg, OkAndCancelDlg )
     EVT_SPINCTRL( widSCRequestSelector, DetailedRequestInformationDlg::OnSCRequestSelectorChanged )
-#ifdef BUILD_WITH_TEXT_EVENTS_FOR_SPINCTRL // BAT: Unfortunately on linux wxWidgets 2.6.x - ??? handling these messages will cause problems, while on Windows not doing so will not always update the GUI as desired :-(
+#ifdef BUILD_WITH_TEXT_EVENTS_FOR_SPINCTRL // Unfortunately on Linux wxWidgets 2.6.x - ??? handling these messages will cause problems, while on Windows not doing so will not always update the GUI as desired :-(
     EVT_TEXT( widSCRequestSelector, DetailedRequestInformationDlg::OnSCRequestSelectorTextChanged )
 #endif // #ifdef BUILD_WITH_TEXT_EVENTS_FOR_SPINCTRL
 END_EVENT_TABLE()
@@ -780,6 +780,7 @@ DetailedFeatureInfoDlg::DetailedFeatureInfoDlg( wxWindow* pParent, Component com
     AddFeatureInfo( wxT( "Component Description: " ), ConvertedString( comp.docString() ) );
     AddFeatureInfo( wxT( "Component Type: " ), ConvertedString( comp.typeAsString() ) );
     AddFeatureInfo( wxT( "Component Visibility: " ), ConvertedString( comp.visibilityAsString() ) );
+    AddFeatureInfo( wxT( "Component Representation: " ), ConvertedString( comp.representationAsString() ) );
     AddFeatureInfo( wxT( "Component Flags: " ), ConvertedString( comp.flagsAsString() ) );
     AddFeatureInfo( wxT( "Component Default State: " ), comp.isDefault() ? wxT( "Yes" ) : wxT( "No" ) );
     {
@@ -1242,13 +1243,13 @@ RawImageImportDlg::RawImageImportDlg( PropGridFrameBase* pParent, const wxString
     long w;
     width.ToLong( &w );
     pGridSizer->Add( new wxStaticText( pPanel, wxID_ANY, wxT( " Width:" ) ) );
-    pSCWidth_ = new wxSpinCtrl( pPanel, wxID_ANY, width, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 1024 * 256, w );
+    pSCWidth_ = new wxSpinCtrl( pPanel, wxID_ANY, width, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 1024 * 256, w );
     pGridSizer->Add( pSCWidth_, wxSizerFlags().Expand() );
 
     long h;
     height.ToLong( &h );
     pGridSizer->Add( new wxStaticText( pPanel, wxID_ANY, wxT( " Height:" ) ) );
-    pSCHeight_ = new wxSpinCtrl( pPanel, wxID_ANY, height, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 1024 * 256, h );
+    pSCHeight_ = new wxSpinCtrl( pPanel, wxID_ANY, height, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 1024 * 256, h );
     pGridSizer->Add( pSCHeight_, wxSizerFlags().Expand() );
 
     pTopDownSizer->Add( pGridSizer );

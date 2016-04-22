@@ -85,6 +85,7 @@ public:
         deviceManufacturerInfo(),
         deviceVersion(),
         deviceFirmwareVersion(),
+        mvDeviceFirmwareBuildDate(),
         deviceSerialNumber(),
         deviceID(),
         deviceUserID(),
@@ -170,7 +171,12 @@ public:
         locator.bindComponent( deviceManufacturerInfo, "DeviceManufacturerInfo" );
         locator.bindComponent( deviceVersion, "DeviceVersion" );
         locator.bindComponent( deviceFirmwareVersion, "DeviceFirmwareVersion" );
+        locator.bindComponent( mvDeviceFirmwareBuildDate, "mvDeviceFirmwareBuildDate" );
         locator.bindComponent( deviceSerialNumber, "DeviceSerialNumber" );
+        if( !deviceSerialNumber.isValid() )
+        {
+            locator.bindComponent( deviceSerialNumber, "DeviceID" );
+        }
         locator.bindComponent( deviceID, "DeviceID" );
         locator.bindComponent( deviceUserID, "DeviceUserID" );
         locator.bindComponent( deviceSFNCVersionMajor, "DeviceSFNCVersionMajor" );
@@ -311,6 +317,11 @@ public:
      *  Version of the firmware in the device.
      */
     PropertyS deviceFirmwareVersion;
+    /// \brief A string property. The build time and date of the firmware
+    /**
+     *  The build time and date of the firmware
+     */
+    PropertyS mvDeviceFirmwareBuildDate;
     /// \brief A string property. Device's serial number.
     /**
      *  Device's serial number. This string is a unique identifier of the device.
@@ -941,7 +952,7 @@ public:
         imageCompressionQuality(),
         imageCompressionBitrate(),
         imageCompressionJPEGFormatOption(),
-        mvDigitizationMode(),
+        mvSensorDigitizationBitDepth(),
         mvDebayerAlgorithm(),
         mvOffsetYSensorB(),
         mvSensorLineOffsetSelector(),
@@ -988,6 +999,10 @@ public:
         locator.bindComponent( pixelDynamicRangeMax, "PixelDynamicRangeMax" );
         locator.bindComponent( testPatternGeneratorSelector, "TestPatternGeneratorSelector" );
         locator.bindComponent( testPattern, "TestPattern" );
+        if( !testPattern.isValid() )
+        {
+            locator.bindComponent( testPattern, "TestImageSelector" );
+        }
         locator.bindComponent( testImageSelector, "TestImageSelector" );
         locator.bindComponent( deinterlacing, "Deinterlacing" );
         locator.bindComponent( imageCompressionMode, "ImageCompressionMode" );
@@ -995,7 +1010,7 @@ public:
         locator.bindComponent( imageCompressionQuality, "ImageCompressionQuality" );
         locator.bindComponent( imageCompressionBitrate, "ImageCompressionBitrate" );
         locator.bindComponent( imageCompressionJPEGFormatOption, "ImageCompressionJPEGFormatOption" );
-        locator.bindComponent( mvDigitizationMode, "mvDigitizationMode" );
+        locator.bindComponent( mvSensorDigitizationBitDepth, "mvSensorDigitizationBitDepth" );
         locator.bindComponent( mvDebayerAlgorithm, "mvDebayerAlgorithm" );
         locator.bindComponent( mvOffsetYSensorB, "mvOffsetYSensorB" );
         locator.bindComponent( mvSensorLineOffsetSelector, "mvSensorLineOffsetSelector" );
@@ -1623,16 +1638,16 @@ public:
      *  This feature allows to manually select the resolution of the device's ADC.
      *
      *  The following string values might be valid for this feature:
-     *  - \b mvAuto (Display string: 'mv Digitization Mode'): When the selected pixel format has 12 bits or more the ADC will work with 12 bits. Otherwise the ADC will work with 10 bits.
-     *  - \b mv08Bit (Display string: 'mv Digitization Mode'): The ADC will always work with a resolution of  8 bits no matter which pixel format has been selected.
-     *  - \b mv10Bit (Display string: 'mv Digitization Mode'): The ADC will always work with a resolution of 10 bits no matter which pixel format has been selected.
-     *  - \b mv12Bit (Display string: 'mv Digitization Mode'): The ADC will always work with a resolution of 12 bits no matter which pixel format has been selected. This will allow to achieve higher precision and thus improved quality when internal processing is done (e.g. when applying digital gain to the image).
-     *  - \b mvFixed (Display string: 'mv Digitization Mode')
+     *  - \b Auto (Display string: 'mv Sensor Digitization Bit Depth'): When the selected pixel format has 12 bits or more the ADC will work with 12 bits. Otherwise the ADC will work with 10 bits.
+     *  - \b Bpp8 (Display string: 'mv Sensor Digitization Bit Depth'): The ADC will always work with a resolution of  8 bits no matter which pixel format has been selected.
+     *  - \b Bpp10 (Display string: 'mv Sensor Digitization Bit Depth'): The ADC will always work with a resolution of 10 bits no matter which pixel format has been selected.
+     *  - \b Bpp12 (Display string: 'mv Sensor Digitization Bit Depth'): The ADC will always work with a resolution of 12 bits no matter which pixel format has been selected. This will allow to achieve higher precision and thus improved quality when internal processing is done (e.g. when applying digital gain to the image).
+     *  - \b Fixed (Display string: 'mv Sensor Digitization Bit Depth')
      *
      *  \note Depending on the device some of these values might not be supported and especially when working with third party devices there might be custom values which are not listed here.
      *  To get a complete and reliable list of supported values at runtime an application should therefore call <b>mvIMPACT::acquire::EnumPropertyI::getTranslationDictStrings()</b> or one of the other functions dealing with translation dictionaries for enumerated properties.
      */
-    PropertyI64 mvDigitizationMode;
+    PropertyI64 mvSensorDigitizationBitDepth;
     /// \brief An enumerated integer property. This feature allows to select the algorithm used to convert the Bayer data into RGB
     /**
      *  This feature allows to select the algorithm used to convert the Bayer data into RGB
@@ -1746,6 +1761,7 @@ public:
         mvAcquisitionMemoryMode(),
         mvPretriggerFrameCount(),
         mvAcquisitionMemoryMaxFrameCount(),
+        mvAcquisitionMemoryFrameCount(),
         mvAcquisitionMemoryAOIParameterChanged()
     {
         mvIMPACT::acquire::DeviceComponentLocator locator( pDev, mvIMPACT::acquire::dltSetting, settingName );
@@ -1816,6 +1832,7 @@ public:
         locator.bindComponent( mvAcquisitionMemoryMode, "mvAcquisitionMemoryMode" );
         locator.bindComponent( mvPretriggerFrameCount, "mvPretriggerFrameCount" );
         locator.bindComponent( mvAcquisitionMemoryMaxFrameCount, "mvAcquisitionMemoryMaxFrameCount" );
+        locator.bindComponent( mvAcquisitionMemoryFrameCount, "mvAcquisitionMemoryFrameCount" );
         locator.bindComponent( mvAcquisitionMemoryAOIParameterChanged, "mvAcquisitionMemoryAOIParameterChanged" );
     }
     PYTHON_ONLY( %immutable; )
@@ -1913,7 +1930,7 @@ public:
      *  - \b FrameStart (Display string: 'Frame Start'): Selects a trigger starting the capture of one frame.
      *  - \b FrameEnd (Display string: 'Frame End'): Selects a trigger ending the capture of one frame (mainly used in line scan mode).
      *  - \b FrameActive (Display string: 'Frame Active'): Selects a trigger controlling the duration of one frame (mainly used in line scan mode).
-     *  - \b FrameBurstStart (Display string: 'Frame Burst Start'): Selects a trigger starting the capture of the bursts of frames in an acquisition. AcquisitionBurstFrameCount controls the length of each burst unless a FrameBurstEnd trigger is active. The total number of frames captured is also conditioned by AcquisitionFrameCount if AcquisitionMode is MultiFrame.
+     *  - \b FrameBurstStart (Display string: 'Frame Burst Start'): Selects a trigger starting the capture of the bursts of frames in an acquisition. AcquisitionBurstFrameCount controls the length of each burst. The total number of frames captured is also conditioned by AcquisitionFrameCount if AcquisitionMode is MultiFrame.
      *  - \b FrameBurstEnd (Display string: 'Frame Burst End'): Selects a trigger ending the capture of the bursts of frames in an acquisition.
      *  - \b FrameBurstActive (Display string: 'Frame Burst Active'): Selects a trigger controlling the duration of the capture of the bursts of frames in an acquisition.
      *  - \b LineStart (Display string: 'Line Start'): Selects a trigger starting the capture of one Line of a Frame (mainly used in line scan mode).
@@ -2414,11 +2431,17 @@ public:
      *  Number of frames to acquire before the occurrence of an AcquisitionStart or AcquisitionActive trigger.
      */
     PropertyI64 mvPretriggerFrameCount;
-    /// \brief An integer property. Max number of frames to record.
+    /// \brief An integer property. Maximum number of frames that can be recorded in the current configuration(deprecated, use the maximum value of 'mvAcquisitionMemoryFrameCount' instead).
     /**
-     *  Max number of frames to record.
+     *  \deprecated
+     *  Maximum number of frames that can be recorded in the current configuration(deprecated, use the maximum value of 'mvAcquisitionMemoryFrameCount' instead).
      */
     PropertyI64 mvAcquisitionMemoryMaxFrameCount;
+    /// \brief An integer property. The number of frames currently stored in the frame buffer.
+    /**
+     *  The number of frames currently stored in the frame buffer. If this value keeps increasing this can indicate a bandwidth/transmission problem.
+     */
+    PropertyI64 mvAcquisitionMemoryFrameCount;
     /// \brief An integer property. AOI and/or binning parameter changed after last Acquisition.
     /**
      *  AOI and/or binning parameter changed after last Acquisition.
@@ -2446,6 +2469,7 @@ public:
         /// settings can be created with the function
         /// <b>mvIMPACT::acquire::FunctionInterface::createSetting</b>
         const std::string& settingName = "Base" ) :
+        mvTapBalancingMode(),
         gainSelector(),
         gain(),
         gainRaw(),
@@ -2492,6 +2516,7 @@ public:
     {
         mvIMPACT::acquire::DeviceComponentLocator locator( pDev, mvIMPACT::acquire::dltSetting, settingName );
         locator.bindSearchBase( locator.searchbase_id(), "Camera/GenICam" );
+        locator.bindComponent( mvTapBalancingMode, "mvTapBalancingMode" );
         locator.bindComponent( gainSelector, "GainSelector" );
         locator.bindComponent( gain, "Gain" );
         if( !gain.isValid() )
@@ -2553,6 +2578,18 @@ public:
         locator.bindComponent( mvSaveCalibrationData, "mvSaveCalibrationData@i" );
     }
     PYTHON_ONLY( %immutable; )
+    /// \brief An enumerated integer property. Where do the tap balancing calibration data come from?
+    /**
+     *  Where do the tap balancing calibration data come from?
+     *
+     *  The following string values might be valid for this feature:
+     *  - \b mvFactory (Display string: 'mv Tap Balancing Mode')
+     *  - \b mvUser (Display string: 'mv Tap Balancing Mode')
+     *
+     *  \note Depending on the device some of these values might not be supported and especially when working with third party devices there might be custom values which are not listed here.
+     *  To get a complete and reliable list of supported values at runtime an application should therefore call <b>mvIMPACT::acquire::EnumPropertyI::getTranslationDictStrings()</b> or one of the other functions dealing with translation dictionaries for enumerated properties.
+     */
+    PropertyI64 mvTapBalancingMode;
     /// \brief An enumerated integer property. Selects which Gain is controlled by the various Gain features.
     /**
      *  Selects which Gain is controlled by the various Gain features.
@@ -7530,6 +7567,10 @@ public:
         locator.bindComponent( userSetLoad, "UserSetLoad@i" );
         locator.bindComponent( userSetSave, "UserSetSave@i" );
         locator.bindComponent( userSetDefault, "UserSetDefault" );
+        if( !userSetDefault.isValid() )
+        {
+            locator.bindComponent( userSetDefault, "UserSetDefaultSelector" );
+        }
         locator.bindComponent( userSetDefaultSelector, "UserSetDefaultSelector" );
         locator.bindComponent( userSetFeatureSelector, "UserSetFeatureSelector" );
         locator.bindComponent( userSetFeatureEnable, "UserSetFeatureEnable" );
@@ -7584,6 +7625,21 @@ public:
      *  - \b UserSet0 (Display string: 'User Set 0'): Select the user set 0.
      *  - \b UserSet1 (Display string: 'User Set 1'): Select the user set 1.
      *  - \b UserSet#2# (Display string: 'User Set #2#'): Select the user set #2#.
+     *  - \b UserSet2 (Display string: 'User Set 2'): Select the user set 2.
+     *  - \b UserSet3 (Display string: 'User Set 3'): Select the user set 3.
+     *  - \b UserSet4 (Display string: 'User Set 4'): Select the user set 4.
+     *  - \b UserSet5 (Display string: 'User Set 5'): Select the user set 5.
+     *  - \b UserSet6 (Display string: 'User Set 6'): Select the user set 6.
+     *  - \b UserSet7 (Display string: 'User Set 7'): Select the user set 7.
+     *  - \b UserSet8 (Display string: 'User Set 8'): Select the user set 8.
+     *  - \b UserSet9 (Display string: 'User Set 9'): Select the user set 9.
+     *  - \b UserSet10 (Display string: 'User Set 10'): Select the user set 10.
+     *  - \b UserSet11 (Display string: 'User Set 11'): Select the user set 11.
+     *  - \b UserSet12 (Display string: 'User Set 12'): Select the user set 12.
+     *  - \b UserSet13 (Display string: 'User Set 13'): Select the user set 13.
+     *  - \b UserSet14 (Display string: 'User Set 14'): Select the user set 14.
+     *  - \b UserSet15 (Display string: 'User Set 15'): Select the user set 15.
+     *  - \b UserSet16 (Display string: 'User Set Default')
      *
      *  \note Depending on the device some of these values might not be supported and especially when working with third party devices there might be custom values which are not listed here.
      *  To get a complete and reliable list of supported values at runtime an application should therefore call <b>mvIMPACT::acquire::EnumPropertyI::getTranslationDictStrings()</b> or one of the other functions dealing with translation dictionaries for enumerated properties.
@@ -10787,7 +10843,7 @@ public:
     {
         return static_cast<int64_type>( static_cast<double>( gevGetEffectiveBytesPerImage( gevSCPSPacketSizeValue, boExtendedID ) ) * acquisitionFrameRateValue );
     }
-    /// \brief Calculates the inter-packet delay needed to achieve a uniform packet and thus payload distribution for for GigE Vision data streams when transferring the payload type \a image.
+    /// \brief Calculates the inter-packet delay needed to achieve a uniform packet and thus payload distribution for GigE Vision data streams when transferring the payload type \a image.
     /**
      *  This will include all overhead introduced by the network protocol. The value will be correct for payload type image only, thus e.g. when
      *  transferring chunk data the result will not be 100 per cent accurate as then some packets will use a slightly different layout. However
@@ -10817,9 +10873,9 @@ public:
         const int64_type packetsPerImage = gevGetEffectivePayloadPacketsPerImage( gevSCPSPacketSizeValue, payloadSizeValue, boExtendedID ) + 2; // one leader, one trailer
         const double totalDelayTime = 1. - static_cast<double>( bandwidthNeeded ) / static_cast<double>( bandwidthAvailable );
         const double interPacketDelayTime = totalDelayTime / ( static_cast<double>( packetsPerImage ) * acquisitionFrameRateValue );
-        return static_cast<int64_type>( interPacketDelayTime * gevTimestampTickFrequencyValue );
+        return static_cast<int64_type>( ( interPacketDelayTime < 0.0 ) ? 0 : interPacketDelayTime * gevTimestampTickFrequencyValue );
     }
-    /// \brief Calculates the inter-packet delay needed to achieve a uniform packet and thus payload distribution for for GigE Vision data streams when transferring the payload type \a image.
+    /// \brief Calculates the inter-packet delay needed to achieve a uniform packet and thus payload distribution for GigE Vision data streams when transferring the payload type \a image.
     /**
      *  This will include all overhead introduced by the network protocol. The value will be correct for payload type image only, thus e.g. when
      *  transferring chunk data the result will not be 100 per cent accurate as then some packets will use a slightly different layout. However
@@ -10868,13 +10924,41 @@ public:
         const std::string& settingName = "Base" ) :
         mvCustomText(),
         mvWriteCustomData(),
-        mvReadCustomData()
+        mvReadCustomData(),
+        mvSensorRegister(),
+        mvSensorRegisterValue(),
+        mvInternalRegister(),
+        mvInternalRegisterValue(),
+        mvMSeqRegister(),
+        mvMSeqRegisterValue(),
+        mvStateSumRegister(),
+        mvStateSumRegisterReset(),
+        mvLVDSSelection(),
+        mvLVDSAlignment(),
+        mvRunTest(),
+        mvTestNumber(),
+        mvTestMin(),
+        mvTestMax()
     {
         mvIMPACT::acquire::DeviceComponentLocator locator( pDev, mvIMPACT::acquire::dltSetting, settingName );
         locator.bindSearchBase( locator.searchbase_id(), "Camera/GenICam" );
         locator.bindComponent( mvCustomText, "mvCustomText" );
         locator.bindComponent( mvWriteCustomData, "mvWriteCustomData@i" );
         locator.bindComponent( mvReadCustomData, "mvReadCustomData@i" );
+        locator.bindComponent( mvSensorRegister, "mvSensorRegister" );
+        locator.bindComponent( mvSensorRegisterValue, "mvSensorRegisterValue" );
+        locator.bindComponent( mvInternalRegister, "mvInternalRegister" );
+        locator.bindComponent( mvInternalRegisterValue, "mvInternalRegisterValue" );
+        locator.bindComponent( mvMSeqRegister, "mvMSeqRegister" );
+        locator.bindComponent( mvMSeqRegisterValue, "mvMSeqRegisterValue" );
+        locator.bindComponent( mvStateSumRegister, "mvStateSumRegister" );
+        locator.bindComponent( mvStateSumRegisterReset, "mvStateSumRegisterReset@i" );
+        locator.bindComponent( mvLVDSSelection, "mvLVDSSelection" );
+        locator.bindComponent( mvLVDSAlignment, "mvLVDSAlignment" );
+        locator.bindComponent( mvRunTest, "mvRunTest@i" );
+        locator.bindComponent( mvTestNumber, "mvTestNumber" );
+        locator.bindComponent( mvTestMin, "mvTestMin" );
+        locator.bindComponent( mvTestMax, "mvTestMax" );
     }
     PYTHON_ONLY( %immutable; )
     /// \brief A string property. Custom text.
@@ -10892,6 +10976,76 @@ public:
      *  Function to read custom data.
      */
     Method mvReadCustomData;
+    /// \brief An integer property. Sensor register address to access.
+    /**
+     *  Sensor register address to access.
+     */
+    PropertyI64 mvSensorRegister;
+    /// \brief An integer property. Value of sensor register.
+    /**
+     *  Value of sensor register.
+     */
+    PropertyI64 mvSensorRegisterValue;
+    /// \brief An integer property. Register address to access.
+    /**
+     *  Register address to access.
+     */
+    PropertyI64 mvInternalRegister;
+    /// \brief An integer property. Value of internal register.
+    /**
+     *  Value of internal register.
+     */
+    PropertyI64 mvInternalRegisterValue;
+    /// \brief An integer property. Register address to access.
+    /**
+     *  Register address to access.
+     */
+    PropertyI64 mvMSeqRegister;
+    /// \brief An integer property. Value of mseq register.
+    /**
+     *  Value of mseq register.
+     */
+    PropertyI64 mvMSeqRegisterValue;
+    /// \brief An integer property. Indicates several states besides some other info.
+    /**
+     *  Indicates several states besides some other info.
+     */
+    PropertyI64 mvStateSumRegister;
+    /// \brief A method object. Resets the state register.
+    /**
+     *  Resets the state register.
+     */
+    Method mvStateSumRegisterReset;
+    /// \brief An integer property. Selector for LVDS lanes.
+    /**
+     *  Selector for LVDS lanes.
+     */
+    PropertyI64 mvLVDSSelection;
+    /// \brief An integer property. Alignment of LVDS lanes.
+    /**
+     *  Alignment of LVDS lanes.
+     */
+    PropertyI64 mvLVDSAlignment;
+    /// \brief A method object. Runs internal test.
+    /**
+     *  Runs internal test.
+     */
+    Method mvRunTest;
+    /// \brief An integer property. Number of test to run.
+    /**
+     *  Number of test to run.
+     */
+    PropertyI64 mvTestNumber;
+    /// \brief An integer property. Min number for test.
+    /**
+     *  Min number for test.
+     */
+    PropertyI64 mvTestMin;
+    /// \brief An integer property. Max number for test.
+    /**
+     *  Max number for test.
+     */
+    PropertyI64 mvTestMax;
     PYTHON_ONLY( %mutable; )
 };
 

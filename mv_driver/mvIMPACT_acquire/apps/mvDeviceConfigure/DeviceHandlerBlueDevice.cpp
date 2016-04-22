@@ -1,6 +1,5 @@
 //-----------------------------------------------------------------------------
 #include <apps/Common/wxAbstraction.h>
-#include <common/expat/expatHelper.h>
 #include "DeviceConfigureFrame.h"
 #include "DeviceHandlerBlueDevice.h"
 #include <memory>
@@ -273,7 +272,7 @@ int64_type MACAddressFromString( const std::string& MAC )
 //-----------------------------------------------------------------------------
 DeviceHandlerBlueDevice::DeviceHandlerBlueDevice( mvIMPACT::acquire::Device* pDev ) : DeviceHandler( pDev, true ), product_( pgUnknown ),
     productStringForFirmwareUpdateCheck_(), firmwareUpdateFileName_(), firmwareUpdateFolder_(), firmwareUpdateFolderDevelopment_(),
-    GenICamFile_(), temporaryFolder_()
+    GenICamFile_(), temporaryFolder_(), userSetsToKeepDuringUpdate_()
 //-----------------------------------------------------------------------------
 {
     ConvertedString product( pDev_->product.read() );
@@ -393,7 +392,7 @@ int DeviceHandlerBlueDevice::CheckForIncompatibleFirmwareVersions_BlueCOUGAR_X( 
         {
             if( pParent_ )
             {
-                pParent_->WriteLogMessage( wxString::Format( wxT( "Firmware update canceled for device %s.\n" ), ConvertedString( serial ).c_str() ) );
+                pParent_->WriteLogMessage( wxString::Format( wxT( "Firmware update canceled for device %s(%s).\n" ), ConvertedString( serial ).c_str(), ConvertedString( pDev_->product.read() ).c_str() ) );
             }
             return urOperationCanceled;
         }
@@ -410,6 +409,7 @@ DeviceHandler::TUpdateResult DeviceHandlerBlueDevice::DoFirmwareUpdate_BlueCOUGA
     static const int UPDATE_THREAD_PROGRESS_INTERVAL_MILLISECONDS = 100;
     TUpdateResult result = urOperationSuccessful;
     {
+        pDev_->interfaceLayout.write( dilDeviceSpecific );
         UpdateFeatures uf( pDev_ );
         if( uf.transferBuffer_.isValid() )
         {
@@ -435,14 +435,14 @@ DeviceHandler::TUpdateResult DeviceHandlerBlueDevice::DoFirmwareUpdate_BlueCOUGA
             }
             if( pParent_ )
             {
-                pParent_->WriteLogMessage( wxString::Format( wxT( "Result of updating device %s: %s.\n" ), ConvertedString( serial ).c_str(), ConvertedString( uf.lastResult_.read() ).c_str() ) );
+                pParent_->WriteLogMessage( wxString::Format( wxT( "Result of updating device %s(%s): %s.\n" ), ConvertedString( serial ).c_str(), ConvertedString( pDev_->product.read() ).c_str(), ConvertedString( uf.lastResult_.read() ).c_str() ) );
             }
         }
         else
         {
             if( pParent_ )
             {
-                pParent_->WriteLogMessage( wxString::Format( wxT( "Failed to update device %s(Feature 'TransferBuffer' is not implemented, a driver update is needed).\n" ), ConvertedString( serial ).c_str() ) );
+                pParent_->WriteLogMessage( wxString::Format( wxT( "Failed to update device %s(%s)(Feature 'TransferBuffer' is not implemented, a driver update is needed).\n" ), ConvertedString( serial ).c_str(), ConvertedString( pDev_->product.read() ).c_str() ) );
             }
             result = urFeatureUnsupported;
         }
@@ -465,8 +465,9 @@ DeviceHandler::TUpdateResult DeviceHandlerBlueDevice::DoFirmwareUpdate_BlueCOUGA
         {
             if( pParent_ )
             {
-                pParent_->WriteLogMessage( wxString::Format( wxT( "Failed to close and re-open device %s(%s, %s).\n" ),
+                pParent_->WriteLogMessage( wxString::Format( wxT( "Failed to close and re-open device %s(%s)(%s, %s).\n" ),
                                            ConvertedString( pDev_->serial.read() ).c_str(),
+                                           ConvertedString( pDev_->product.read() ).c_str(),
                                            ConvertedString( e.getErrorString() ).c_str(),
                                            ConvertedString( e.getErrorCodeAsString() ).c_str() ) );
             }
@@ -485,7 +486,7 @@ DeviceHandler::TUpdateResult DeviceHandlerBlueDevice::DoFirmwareUpdate_BlueCOUGA
         {
             if( ConvertedString( firmwareSource.readS() ) != wxString( wxT( "ProgramSection" ) ) )
             {
-                MessageToUser( wxT( "Warning" ), wxT( "The firmware update did not succeed. The device is running with a fallback firmware version now as the update section is damaged. Please repeat the firmware update and at the end power-cycle the device when this message shows up again. If afterwards the property 'Info/DeviceControl/FirmwareSource' does not show 'ProgramSection' please contact MATRIX VISION." ), boSilentMode, wxOK | wxICON_INFORMATION );
+                MessageToUser( wxT( "Warning" ), wxT( "The firmware update did not succeed. The device is running with a fall-back firmware version now as the update section is damaged. Please repeat the firmware update and at the end power-cycle the device when this message shows up again. If afterwards the property 'Info/DeviceControl/FirmwareSource' does not show 'ProgramSection' please contact MATRIX VISION." ), boSilentMode, wxOK | wxICON_INFORMATION );
             }
         }
         else
@@ -549,11 +550,11 @@ DeviceHandler::TUpdateResult DeviceHandlerBlueDevice::DoFirmwareUpdate_BlueFOX3(
             std::ostringstream oss;
             oss << std::setw( 8 ) << std::setfill( '0' ) << bytesWritten << '/'
                 << std::setw( 8 ) << std::setfill( '0' ) << bytesToWriteTotal;
-            wxProgressDialog dlg( wxT( "Applying Firmware Update" ),
-                                  wxString::Format( wxT( "Applying Firmware Update(%s bytes written)" ), ConvertedString( oss.str() ).c_str() ),
-                                  bytesToWriteTotal, // range
-                                  pParent_,          // parent
-                                  wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME );
+            wxProgressDialog dlgFWUpdate( wxT( "Applying Firmware Update" ),
+                                          wxString::Format( wxT( "Applying Firmware Update(%s bytes written)" ), ConvertedString( oss.str() ).c_str() ),
+                                          bytesToWriteTotal, // range
+                                          pParent_,          // parent
+                                          wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME );
             while( bytesWritten < bytesToWriteTotal )
             {
                 const wxFileOffset bytesToWrite = ( ( bytesWritten + fileOperationBlockSize ) <= bytesToWriteTotal ) ? fileOperationBlockSize : bytesToWriteTotal - bytesWritten;
@@ -562,7 +563,7 @@ DeviceHandler::TUpdateResult DeviceHandlerBlueDevice::DoFirmwareUpdate_BlueFOX3(
                 std::ostringstream progress;
                 progress << std::setw( 8 ) << std::setfill( '0' ) << bytesWritten << '/'
                          << std::setw( 8 ) << std::setfill( '0' ) << bytesToWriteTotal;
-                dlg.Update( bytesWritten, wxString::Format( wxT( "Applying Firmware Update(%s bytes written)" ), ConvertedString( progress.str() ).c_str() ) );
+                dlgFWUpdate.Update( bytesWritten, wxString::Format( wxT( "Applying Firmware Update(%s bytes written)" ), ConvertedString( progress.str() ).c_str() ) );
             }
             if( !uploadFile.good() )
             {
@@ -630,7 +631,29 @@ DeviceHandler::TUpdateResult DeviceHandlerBlueDevice::DoFirmwareUpdate_BlueFOX3(
     }
 
     pDev_->close();
-    wxSleep( 10 );
+
+    static const int s_MAX_SLEEP_TIME_S = 60;
+    static const int s_NAP_TIME_S = 3;
+    int timeSlept_s = 0;
+    DeviceManager devMgr;
+    wxStopWatch stopWatch;
+    // Wait up to one minute for the device to reboot. If it doesn't re-appear
+    // until then something went wrong but we don't want to stay here
+    // forever. An error will be generated further up the stack then.
+    while( timeSlept_s < s_MAX_SLEEP_TIME_S )
+    {
+        wxSleep( s_NAP_TIME_S );
+        timeSlept_s += s_NAP_TIME_S;
+        devMgr.updateDeviceList(); // this is needed in order to invalidate cached data that might no longer be valid(e.g. the URLs for the description files)
+        if( pDev_->state.read() == dsPresent )
+        {
+            if( pParent_ )
+            {
+                pParent_->WriteLogMessage( wxString::Format( wxT( "Rebooting device '%s' took %ld ms.\n" ), serial.c_str(), stopWatch.Time() ) );
+            }
+            break;
+        }
+    }
     return urOperationSuccessful;
 }
 
@@ -880,7 +903,7 @@ bool DeviceHandlerBlueDevice::IsFirmwareUpdateMeaningless( bool boSilentMode, co
         {
             if( pParent_ )
             {
-                pParent_->WriteLogMessage( wxString::Format( wxT( "Firmware update canceled for device %s.\n" ), ConvertedString( pDev_->serial.read() ).c_str() ) );
+                pParent_->WriteLogMessage( wxString::Format( wxT( "Firmware update canceled for device %s(%s).\n" ), ConvertedString( pDev_->serial.read() ).c_str(), ConvertedString( pDev_->product.read() ).c_str() ) );
             }
             return true;
         }
@@ -938,7 +961,7 @@ DeviceHandler::TUpdateResult DeviceHandlerBlueDevice::ParseUpdatePackageCOUGAR_X
     }
 
     parser.Create();
-    const bool fSuccess = ParseXMLFromBuffer( parser, pPackageDescription.get(), pPackageDescription.parCnt() );
+    const bool fSuccess = parser.Parse( pPackageDescription.get(), static_cast<int>( pPackageDescription.parCnt() ), true );
     if( !fSuccess || ( parser.GetErrorCode() != XML_ERROR_NONE ) )
     {
         if( pParent )
@@ -958,6 +981,16 @@ DeviceHandler::TUpdateResult DeviceHandlerBlueDevice::ParseUpdatePackageCOUGAR_X
     }
 
     return urOperationSuccessful;
+}
+
+//-----------------------------------------------------------------------------
+void DeviceHandlerBlueDevice::SetCustomFirmwareFile( const wxString& customFirmwareFile )
+//-----------------------------------------------------------------------------
+{
+    if( !customFirmwareFile.IsEmpty() )
+    {
+        firmwareUpdateFileName_ = customFirmwareFile;
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -1044,7 +1077,7 @@ int DeviceHandlerBlueDevice::UpdateCOUGAR_SDevice( bool boSilentMode )
         {
             if( pParent_ )
             {
-                pParent_->WriteLogMessage( wxString::Format( wxT( "Firmware update canceled for device %s.\n" ), ConvertedString( serial ).c_str() ) );
+                pParent_->WriteLogMessage( wxString::Format( wxT( "Firmware update canceled for device %s(%s).\n" ), ConvertedString( serial ).c_str(), ConvertedString( pDev_->product.read() ).c_str() ) );
             }
             return urOperationCanceled;
         }
@@ -1053,7 +1086,7 @@ int DeviceHandlerBlueDevice::UpdateCOUGAR_SDevice( bool boSilentMode )
         {
             if( pParent_ )
             {
-                pParent_->WriteLogMessage( wxString::Format( wxT( "The file %s is not meant for updating device %s.\n" ), fileDlg.GetFilename().c_str(), serial.c_str() ), wxTextAttr( wxColour( 255, 0, 0 ) ) );
+                pParent_->WriteLogMessage( wxString::Format( wxT( "The file %s is not meant for updating device %s(%s).\n" ), fileDlg.GetFilename().c_str(), serial.c_str(), ConvertedString( pDev_->product.read() ).c_str() ), wxTextAttr( wxColour( 255, 0, 0 ) ) );
             }
             return urInvalidFileSelection;
         }
@@ -1065,7 +1098,7 @@ int DeviceHandlerBlueDevice::UpdateCOUGAR_SDevice( bool boSilentMode )
         {
             if( pParent_ )
             {
-                pParent_->WriteLogMessage( wxString::Format( wxT( "Firmware update canceled for device %s.\n" ), ConvertedString( serial ).c_str() ) );
+                pParent_->WriteLogMessage( wxString::Format( wxT( "Firmware update canceled for device %s(%s).\n" ), ConvertedString( serial ).c_str(), ConvertedString( pDev_->product.read() ).c_str() ) );
             }
             return urOperationCanceled;
         }
@@ -1074,7 +1107,7 @@ int DeviceHandlerBlueDevice::UpdateCOUGAR_SDevice( bool boSilentMode )
         {
             if( pParent_ )
             {
-                pParent_->WriteLogMessage( wxString::Format( wxT( "The file %s is not meant for updating device %s.\n" ), fileDlgDescriptionFile.GetFilename().c_str(), serial.c_str() ), wxTextAttr( wxColour( 255, 0, 0 ) ) );
+                pParent_->WriteLogMessage( wxString::Format( wxT( "The file %s is not meant for updating device %s(%s).\n" ), fileDlgDescriptionFile.GetFilename().c_str(), serial.c_str(), ConvertedString( pDev_->product.read() ).c_str() ), wxTextAttr( wxColour( 255, 0, 0 ) ) );
             }
             return urInvalidFileSelection;
         }
@@ -1086,7 +1119,7 @@ int DeviceHandlerBlueDevice::UpdateCOUGAR_SDevice( bool boSilentMode )
     {
         if( pParent_ )
         {
-            pParent_->WriteLogMessage( wxString::Format( wxT( "Firmware update canceled for device %s.\n" ), ConvertedString( serial ).c_str() ) );
+            pParent_->WriteLogMessage( wxString::Format( wxT( "Firmware update canceled for device %s(%s).\n" ), ConvertedString( serial ).c_str(), ConvertedString( pDev_->product.read() ).c_str() ) );
         }
         return urOperationCanceled;
     }
@@ -1123,7 +1156,7 @@ int DeviceHandlerBlueDevice::UpdateCOUGAR_XAndFOX3Device( bool boSilentMode, boo
         {
             if( pParent_ )
             {
-                pParent_->WriteLogMessage( wxString::Format( wxT( "Firmware update canceled for device %s.\n" ), serial.c_str() ) );
+                pParent_->WriteLogMessage( wxString::Format( wxT( "Firmware update canceled for device %s(%s).\n" ), serial.c_str(), ConvertedString( pDev_->product.read() ).c_str() ) );
             }
             return urOperationCanceled;
         }
@@ -1176,8 +1209,8 @@ int DeviceHandlerBlueDevice::UpdateCOUGAR_XAndFOX3Device( bool boSilentMode, boo
         if( pParent_ )
         {
             pParent_->WriteErrorMessage( wxString::Format( wxT( "The archive %s does not contain a suitable firmware file for device %s(%s, Rev. %s). Files detected:\n" ), firmwareFileAndPath.c_str(), serial.c_str(), product.c_str(), deviceVersionAsString.c_str() ) );
-            wxArrayString::size_type cnt = unusableFiles.size();
-            for( wxArrayString::size_type i = 0; i < cnt; i++ )
+            const wxArrayString::size_type unusableFilesCount = unusableFiles.size();
+            for( wxArrayString::size_type i = 0; i < unusableFilesCount; i++ )
             {
                 pParent_->WriteErrorMessage( unusableFiles[i] );
             }
@@ -1199,7 +1232,7 @@ int DeviceHandlerBlueDevice::UpdateCOUGAR_XAndFOX3Device( bool boSilentMode, boo
         {
             if( pParent_ )
             {
-                pParent_->WriteLogMessage( wxString::Format( wxT( "Firmware update canceled for device %s.\n" ), serial.c_str() ) );
+                pParent_->WriteLogMessage( wxString::Format( wxT( "Firmware update canceled for device %s(%s).\n" ), serial.c_str(), ConvertedString( pDev_->product.read() ).c_str() ) );
             }
             return urOperationCanceled;
         }
@@ -1225,8 +1258,9 @@ int DeviceHandlerBlueDevice::UpdateCOUGAR_XAndFOX3Device( bool boSilentMode, boo
                 {
                     if( pParent_ )
                     {
-                        pParent_->WriteLogMessage( wxString::Format( wxT( "Firmware update canceled for device %s as the current firmware version(%ld.%ld.%ld.%ld) is equal to the one provided in the archive(%ld.%ld.%ld.%ld).\n" ),
+                        pParent_->WriteLogMessage( wxString::Format( wxT( "Firmware update canceled for device %s(%s) as the current firmware version(%ld.%ld.%ld.%ld) is equal to the one provided in the archive(%ld.%ld.%ld.%ld).\n" ),
                                                    ConvertedString( serial ).c_str(),
+                                                   ConvertedString( pDev_->product.read() ).c_str(),
                                                    currentFirmwareVersion.major_, currentFirmwareVersion.minor_, currentFirmwareVersion.subMinor_, currentFirmwareVersion.release_,
                                                    fileEntries[i].version_.major_, fileEntries[i].version_.minor_, fileEntries[i].version_.subMinor_, fileEntries[i].version_.release_ ) );
                     }
@@ -1284,30 +1318,32 @@ int DeviceHandlerBlueDevice::UpdateCOUGAR_XAndFOX3Device( bool boSilentMode, boo
         default:
             if ( pParent_ )
             {
-                pParent_->WriteLogMessage( wxString::Format( wxT( "Firmware update canceled for device %s.\n" ), ConvertedString( serial ).c_str() ) );
+                pParent_->WriteLogMessage( wxString::Format( wxT( "Firmware update canceled for device %s(%s).\n" ), ConvertedString( serial ).c_str(), ConvertedString( pDev_->product.read() ).c_str() ) );
             }
             return urOperationCanceled;
         }
         boPersistentUserSets = dlg.shallKeepUserSets();
     }
 
-    // avoid keeping UserSets when the camera runs as BootLoaderDevie
-    if( boPersistentUserSets == true &&
-        pDev_->family.readS() == "mvBlueFOX3" &&
-        currentFirmwareVersion.major_ == 1 &&
-        currentFirmwareVersion.minor_ == 0 &&
-        currentFirmwareVersion.release_ == 0 &&
-        currentFirmwareVersion.subMinor_ == 0 )
+    // avoid keeping UserSets when the camera runs as Bootloader device
+    static const Version VERSION_1_0_0_0( 1, 0, 0, 0 );
+    if( ( boPersistentUserSets == true ) &&
+        ( pDev_->family.readS() == "mvBlueFOX3" ) &&
+        ( ( currentFirmwareVersion == VERSION_1_0_0_0 ) || ( currentFirmwareVersion.major_ == 0 ) ) ) // old bootloader code did use version 1.0.0.0, newer versions reflect the source they have been build from by reverting the firmware version of that time thus it is 0.minor.subminor.major
     {
         if( pParent_ )
         {
-            pParent_->WriteLogMessage( wxString::Format( wxT( "No attempt to keep UserSets will be done for device %s, because it is currently a bootloader device and cannot have valid UserSet settings.\n" ), ConvertedString( serial ).c_str() ) );
+            pParent_->WriteLogMessage( wxString::Format( wxT( "No attempt to keep UserSets will be done for device %s(%s), because it is currently a bootloader device and cannot have valid UserSet settings.\n" ), ConvertedString( serial ).c_str(), ConvertedString( pDev_->product.read() ).c_str() ) );
         }
         boPersistentUserSets = false;
     }
 
     try
     {
+        // In order to make sure an inconsistent setting will not block the correct startup of the device after the update switch the setting
+        // to use at startup back to 'Default'. If the user selects to keep the settings on the device restore the value later after checking
+        // that it can actually be used.
+        const wxString previousUserSetDefault = SetUserSetDefault( wxT( "Default" ) );
         if( boPersistentUserSets )
         {
             UserSetBackup();
@@ -1327,17 +1363,20 @@ int DeviceHandlerBlueDevice::UpdateCOUGAR_XAndFOX3Device( bool boSilentMode, boo
             break;
         }
 
-        if( boPersistentUserSets == true )
+        if( boPersistentUserSets )
         {
-            UserSetRestore();
+            // restore the previous value for 'UserSetDefault'. If the user did chose not to keep the settings we also do not need
+            // to restore the value for 'UserSetDefault'. It wouldn't do anything useful on the device anyway.
+            UserSetRestore( previousUserSetDefault );
         }
     }
     catch( const ImpactAcquireException& e )
     {
         if( pParent_ )
         {
-            pParent_->WriteLogMessage( wxString::Format( wxT( "Failed to update device %s(%s, %s).\n" ),
+            pParent_->WriteLogMessage( wxString::Format( wxT( "Failed to update device %s(%s)(%s, %s).\n" ),
                                        ConvertedString( serial ).c_str(),
+                                       ConvertedString( pDev_->product.read() ).c_str(),
                                        ConvertedString( e.getErrorString() ).c_str(),
                                        ConvertedString( e.getErrorCodeAsString() ).c_str() ) );
         }
@@ -1366,7 +1405,7 @@ int DeviceHandlerBlueDevice::UpdateFirmware( bool boSilentMode, bool boPersisten
     {
         if( pParent_ )
         {
-            pParent_->WriteLogMessage( wxString::Format( wxT( "Firmware update canceled for device %s.\n" ), serial.c_str() ) );
+            pParent_->WriteLogMessage( wxString::Format( wxT( "Firmware update canceled for device %s(%s).\n" ), serial.c_str(), ConvertedString( pDev_->product.read() ).c_str() ) );
         }
         return urOperationCanceled;
     }
@@ -1396,7 +1435,7 @@ int DeviceHandlerBlueDevice::UpdateLYNX_M7AndCOUGAR_PDevice( const wxString& upd
     {
         if( pParent_ )
         {
-            pParent_->WriteLogMessage( wxString::Format( wxT( "Firmware update canceled for device %s.\n" ), serial.c_str() ) );
+            pParent_->WriteLogMessage( wxString::Format( wxT( "Firmware update canceled for device %s(%s).\n" ), serial.c_str(), ConvertedString( pDev_->product.read() ).c_str() ) );
         }
         return urOperationCanceled;
     }
@@ -1410,11 +1449,11 @@ int DeviceHandlerBlueDevice::UpdateLYNX_M7AndCOUGAR_PDevice( const wxString& upd
         return urInvalidFileSelection;
     }
 
-    if( !MessageToUser( wxT( "Firmware Update" ), wxString::Format( wxT( "Are you sure you want to update the firmware of device %s?\nThis might take several minutes during which the application will not react.\n\nPlease be patient and do NOT disconnect the device from the power supply during this time.\n\nWARNING: During the firmware update all data stored on the device by a user\nlike applications or installed ipks will be deleted!" ), serial.c_str() ), boSilentMode, wxNO_DEFAULT | wxYES_NO | wxICON_INFORMATION ) )
+    if( !MessageToUser( wxT( "Firmware Update" ), wxString::Format( wxT( "Are you sure you want to update the firmware of device %s(%s)?\nThis might take several minutes during which the application will not react.\n\nPlease be patient and do NOT disconnect the device from the power supply during this time.\n\nWARNING: During the firmware update all data stored on the device by a user\nlike applications or installed ipks will be deleted!" ), serial.c_str(), ConvertedString( pDev_->product.read() ).c_str() ), boSilentMode, wxNO_DEFAULT | wxYES_NO | wxICON_INFORMATION ) )
     {
         if( pParent_ )
         {
-            pParent_->WriteLogMessage( wxString::Format( wxT( "firmware update canceled for device %s.\n" ), serial.c_str() ) );
+            pParent_->WriteLogMessage( wxString::Format( wxT( "firmware update canceled for device %s(%s).\n" ), serial.c_str(), ConvertedString( pDev_->product.read() ).c_str() ) );
         }
         return urOperationCanceled;
     }
@@ -1427,8 +1466,9 @@ int DeviceHandlerBlueDevice::UpdateLYNX_M7AndCOUGAR_PDevice( const wxString& upd
     {
         if( pParent_ )
         {
-            pParent_->WriteLogMessage( wxString::Format( wxT( "Failed to open device %s(%s, %s).\n" ),
+            pParent_->WriteLogMessage( wxString::Format( wxT( "Failed to open device %s(%s)(%s, %s).\n" ),
                                        serial.c_str(),
+                                       ConvertedString( pDev_->product.read() ).c_str(),
                                        ConvertedString( e.getErrorString() ).c_str(),
                                        ConvertedString( e.getErrorCodeAsString() ).c_str() ) );
         }
@@ -1586,8 +1626,9 @@ int DeviceHandlerBlueDevice::UpdateLYNX_M7AndCOUGAR_PDevice( const wxString& upd
     {
         if( pParent_ )
         {
-            pParent_->WriteLogMessage( wxString::Format( wxT( "Failed to update device %s(%s, %s).\n" ),
+            pParent_->WriteLogMessage( wxString::Format( wxT( "Failed to update device %s(%s)(%s, %s).\n" ),
                                        serial.c_str(),
+                                       ConvertedString( pDev_->product.read() ).c_str(),
                                        ConvertedString( e.getErrorString() ).c_str(),
                                        ConvertedString( e.getErrorCodeAsString() ).c_str() ) );
         }
@@ -1603,7 +1644,7 @@ int DeviceHandlerBlueDevice::UploadFile( const wxString& fullPath, const wxStrin
 //-----------------------------------------------------------------------------
 {
     int result = urOperationSuccessful;
-    ConvertedString serial( pDev_->serial.read() );
+    const wxString serial( ConvertedString( pDev_->serial.read() ) );
     try
     {
         SelectCustomGenICamFile( descriptionFile );
@@ -1613,8 +1654,9 @@ int DeviceHandlerBlueDevice::UploadFile( const wxString& fullPath, const wxStrin
     {
         if( pParent_ )
         {
-            pParent_->WriteLogMessage( wxString::Format( wxT( "Failed to open device %s(%s, %s).\n" ),
+            pParent_->WriteLogMessage( wxString::Format( wxT( "Failed to open device %s(%s)(%s, %s).\n" ),
                                        serial.c_str(),
+                                       ConvertedString( pDev_->product.read() ).c_str(),
                                        ConvertedString( e.getErrorString() ).c_str(),
                                        ConvertedString( e.getErrorCodeAsString() ).c_str() ) );
         }
@@ -1641,8 +1683,9 @@ int DeviceHandlerBlueDevice::UploadFile( const wxString& fullPath, const wxStrin
     {
         if( pParent_ )
         {
-            pParent_->WriteLogMessage( wxString::Format( wxT( "Failed to update device %s(%s, %s).\n" ),
+            pParent_->WriteLogMessage( wxString::Format( wxT( "Failed to update device %s(%s)(%s, %s).\n" ),
                                        serial.c_str(),
+                                       ConvertedString( pDev_->product.read() ).c_str(),
                                        ConvertedString( e.getErrorString() ).c_str(),
                                        ConvertedString( e.getErrorCodeAsString() ).c_str() ) );
         }
@@ -1663,7 +1706,7 @@ void DeviceHandlerBlueDevice::UserSetBackup( void )
 #else
     temporaryFolder_ = firmwareUpdateFolder_;
 #endif // #if defined(linux) || defined(__linux) || defined(__linux__)
-    numberOfUserSets_ = 0;
+    userSetsToKeepDuringUpdate_.clear();
     if( pDev_->isOpen() )
     {
         pDev_->close();
@@ -1674,7 +1717,7 @@ void DeviceHandlerBlueDevice::UserSetBackup( void )
     FunctionInterface fi( pDev_ );
     mvIMPACT::acquire::GenICam::UserSetControl usc( pDev_ );
     const unsigned int userSetCnt = usc.userSetSelector.dictSize() ;
-    // As of now, the Default Userset will not be touched, thus the number of UserSets to be saved will be dictSize-1.
+    // As of now, the Default UserSet will not be touched, thus the number of UserSets to be saved will be dictSize-1.
     wxProgressDialog dlg( wxT( "Backing up UserSet settings" ),
                           wxT( "                                                       " ),
                           userSetCnt - 1 , // range
@@ -1682,38 +1725,30 @@ void DeviceHandlerBlueDevice::UserSetBackup( void )
                           wxPD_AUTO_HIDE | wxPD_APP_MODAL );
     for( unsigned int i = 0; i < userSetCnt; i++ )
     {
-        wxString currentUserSetString( usc.userSetSelector.getTranslationDictString( i ).c_str(), wxConvUTF8 );
+        const wxString currentUserSetString( usc.userSetSelector.getTranslationDictString( i ).c_str(), wxConvUTF8 );
         if( currentUserSetString == wxT( "Default" ) )
         {
             continue;
         }
         usc.userSetSelector.writeS( std::string( currentUserSetString.mb_str() ) );
-        wxString FQPath = temporaryFolder_ + wxT( "/" ) + wxString( pDev_->serial.readS().c_str(), wxConvUTF8 ) + wxT( "-" ) + currentUserSetString;
-        dlg.Update( i , wxString::Format( wxT( "Backing up %s..." ), currentUserSetString.c_str() ) );
-        TDMR_ERROR result = DMR_NO_ERROR;
-        try
-        {
-            result = static_cast<TDMR_ERROR>( usc.userSetLoad.call() );
-        }
-        catch ( const ImpactAcquireException& e )
-        {
-            result = static_cast<TDMR_ERROR>( e.getErrorCode() );
-        }
+        const wxString FQPath = temporaryFolder_ + wxT( "/" ) + wxString( pDev_->serial.readS().c_str(), wxConvUTF8 ) + wxT( "-" ) + currentUserSetString;
+        dlg.Update( i , wxString::Format( wxT( "Backing up '%s'..." ), currentUserSetString.c_str() ) );
+        const TDMR_ERROR result = static_cast<TDMR_ERROR>( usc.userSetLoad.call() );
         if( result == DMR_NO_ERROR )
         {
             fi.saveSetting( std::string( FQPath.mb_str() ), sfFile, sUser );
-            ++numberOfUserSets_;
+            userSetsToKeepDuringUpdate_.push_back( std::string( currentUserSetString.mb_str() ) );
+        }
+        else if( pParent_ )
+        {
+            pParent_->WriteLogMessage( wxString::Format( wxT( "Failed to store '%s'. Error code: %d(%s). NOTE: This might only indicate that this device does not have a set stored at this position!\n" ), currentUserSetString.c_str(), result, ConvertedString( ImpactAcquireException::getErrorCodeAsString( result ) ).c_str() ) );
         }
     }
     pDev_->close();
-    if( pDev_->family.readS() == "mvBlueCOUGAR" )
-    {
-        pDev_->interfaceLayout.write( dilDeviceSpecific );
-    }
 }
 
 //-----------------------------------------------------------------------------
-void DeviceHandlerBlueDevice::UserSetRestore( void )
+void DeviceHandlerBlueDevice::UserSetRestore( const wxString& previousUserSetDefaultValueToRestore )
 //-----------------------------------------------------------------------------
 {
     if( pDev_->isOpen() )
@@ -1725,59 +1760,98 @@ void DeviceHandlerBlueDevice::UserSetRestore( void )
     pDev_->open();
     FunctionInterface fi( pDev_ );
     mvIMPACT::acquire::GenICam::UserSetControl usc( pDev_ );
-    const unsigned int userSetCnt = usc.userSetSelector.dictSize() ;
-
+    const std::vector<std::string>::size_type userSetCnt = userSetsToKeepDuringUpdate_.size();
     wxProgressDialog dlg( wxT( "Restoring UserSet settings" ),
                           wxT( "                                                       " ),
-                          numberOfUserSets_, // range
+                          static_cast<int>( userSetCnt ), // range
                           pParent_,     // parent
                           wxPD_AUTO_HIDE | wxPD_APP_MODAL );
 
     int numberOfFilesRestored = 0;
-    for( unsigned int i = 0; i < userSetCnt; i++ )
+    for( std::vector<std::string>::size_type i = 0; i < userSetCnt; i++ )
     {
-        wxString currentUserSetString( usc.userSetSelector.getTranslationDictString( i ).c_str(), wxConvUTF8 );
-        if( currentUserSetString == wxT( "Default" ) )
+        usc.userSetSelector.writeS( userSetsToKeepDuringUpdate_[i] );
+        const wxString currentUserSetString( ConvertedString( userSetsToKeepDuringUpdate_[i].c_str() ) );
+        const wxString FQPath = temporaryFolder_ + wxT( "/" ) + wxString( pDev_->serial.readS().c_str(), wxConvUTF8 ) + wxT( "-" ) + currentUserSetString + wxT( ".xml" );
+        dlg.Update( numberOfFilesRestored + 1 , wxString::Format( wxT( "Restoring '%s'..." ), currentUserSetString.c_str() ) );
+        TDMR_ERROR result = static_cast<TDMR_ERROR>( fi.loadSetting( std::string( FQPath.mb_str() ), sfFile, sUser ) );
+        if( result == DMR_NO_ERROR )
         {
-            continue;
-        }
-        if( numberOfFilesRestored == numberOfUserSets_ )
-        {
-            break;
-        }
-        usc.userSetSelector.writeS( std::string( currentUserSetString.mb_str() ) );
-        wxString FQPath = temporaryFolder_ + wxT( "/" ) + wxString( pDev_->serial.readS().c_str(), wxConvUTF8 ) + wxT( "-" ) + currentUserSetString + wxT( ".xml" );
-        dlg.Update( numberOfFilesRestored + 1 , wxString::Format( wxT( "Restoring %s..." ), currentUserSetString.c_str() ) );
-        if( fi.loadSetting( std::string( FQPath.mb_str() ), sfFile, sUser ) == DMR_NO_ERROR )
-        {
-            try
+            result = static_cast<TDMR_ERROR>( usc.userSetSave.call() );
+            if( pParent_ )
             {
-                usc.userSetSave.call();
-            }
-            catch( const ImpactAcquireException& e )
-            {
-                if( pParent_ )
+                if( result != DMR_NO_ERROR )
                 {
-                    pParent_->WriteLogMessage( wxString::Format( wxT( "Failed to restore %s! Error:%s" ), currentUserSetString.c_str(), e.getErrorCodeAsString().c_str() ) );
+                    pParent_->WriteLogMessage( wxString::Format( wxT( "Failed to restore '%s'! Error code: %d(%s).\n" ), currentUserSetString.c_str(), result, ConvertedString( ImpactAcquireException::getErrorCodeAsString( result ) ).c_str() ) );
+                }
+                else
+                {
+                    pParent_->WriteLogMessage( wxString::Format( wxT( "Successfully restored '%s'.\n" ), currentUserSetString.c_str() ) );
                 }
             }
             wxRemoveFile( FQPath );
             ++numberOfFilesRestored;
         }
+        else if( pParent_ )
+        {
+            pParent_->WriteLogMessage( wxString::Format( wxT( "Failed to restore '%s'. Error code: %d(%s). NOTE: This might only indicate that this device does not have a set stored at this position!\n" ), currentUserSetString.c_str(), result, ConvertedString( ImpactAcquireException::getErrorCodeAsString( result ) ).c_str() ) );
+        }
     }
     try
     {
-        usc.userSetSelector.writeS( usc.userSetDefaultSelector.readS() );
-        usc.userSetLoad.call();
+        const std::string previousUserSetDefaultValueToRestoreANSI( previousUserSetDefaultValueToRestore.mb_str() );
+        usc.userSetSelector.writeS( previousUserSetDefaultValueToRestoreANSI );
+        const TDMR_ERROR result = static_cast<TDMR_ERROR>( usc.userSetLoad.call() );
+        if( result == DMR_NO_ERROR )
+        {
+            // The setting can still be loaded. Restore the old default value in non-volatile memory
+            usc.userSetDefault.writeS( previousUserSetDefaultValueToRestoreANSI );
+        }
+        else if( pParent_ )
+        {
+            pParent_->WriteLogMessage( wxString::Format( wxT( "Failed to load user set '%s', will NOT restore the previous value of 'UserSetDefault'! Error: %d(%s).\n" ), previousUserSetDefaultValueToRestore.c_str(), result, ConvertedString( ImpactAcquireException::getErrorCodeAsString( result ) ).c_str() ) );
+        }
     }
     catch( const ImpactAcquireException& e )
     {
         if( pParent_ )
         {
-            pParent_->WriteLogMessage( wxString::Format( wxT( "Failed to set UserSetSelector to the UserSet specified in UserSetDefaultSelector ! Error:%s" ), e.getErrorCodeAsString().c_str() ) );
+            pParent_->WriteLogMessage( wxString::Format( wxT( "Failed to set 'UserSetSelector' to the UserSet specified in 'UserSetDefault'! Error: %d(%s).\n" ), e.getErrorCode(), ConvertedString( e.getErrorCodeAsString() ).c_str() ) );
         }
     }
     pDev_->close();
 }
 
+//-----------------------------------------------------------------------------
+wxString DeviceHandlerBlueDevice::SetUserSetDefault( const wxString& userSetDefaultValue )
+//-----------------------------------------------------------------------------
+{
+    if( pDev_->isOpen() )
+    {
+        pDev_->close();
+    }
+    pDev_->interfaceLayout.write( dilGenICam );
+    SelectCustomGenICamFile( GenICamFile_ );
+    pDev_->open();
 
+    wxString previousValue( wxT( "Default" ) );
+    try
+    {
+        const std::string userSetDefaultValueANSI( userSetDefaultValue.mb_str() );
+        mvIMPACT::acquire::GenICam::UserSetControl usc( pDev_ );
+        if( usc.userSetDefault.isValid() )
+        {
+            previousValue = ConvertedString( usc.userSetDefault.readS() );
+            usc.userSetDefault.writeS( userSetDefaultValueANSI );
+        }
+    }
+    catch( const ImpactAcquireException& e )
+    {
+        if( pParent_ )
+        {
+            pParent_->WriteLogMessage( wxString::Format( wxT( "Failed to set 'UserSetDefault' to '%s'! Error: %d(%s).\n" ), userSetDefaultValue.c_str(), e.getErrorCode(), ConvertedString( e.getErrorCodeAsString() ).c_str() ) );
+        }
+    }
+    pDev_->close();
+    return previousValue;
+}

@@ -245,6 +245,8 @@ BEGIN_EVENT_TABLE( PropViewFrame, PropGridFrameBase )
     EVT_MENU( miCapture_Acquire, PropViewFrame::OnBtnAcquire )
     EVT_MENU( miCapture_Abort, PropViewFrame::OnBtnAbort )
     EVT_MENU( miCapture_Unlock, PropViewFrame::OnBtnUnlock )
+    EVT_MENU( miCapture_DefaultImageProcessingMode_ProcessAll, PropViewFrame::OnCapture_DefaultImageProcessingMode_Changed )
+    EVT_MENU( miCapture_DefaultImageProcessingMode_ProcessLatestOnly, PropViewFrame::OnCapture_DefaultImageProcessingMode_Changed )
     EVT_MENU( miCapture_Record, PropViewFrame::OnBtnRecord )
     EVT_MENU( miCapture_Backward, PropViewFrame::OnIncDecRecordDisplay )
     EVT_MENU( miCapture_Forward, PropViewFrame::OnIncDecRecordDisplay )
@@ -283,6 +285,7 @@ BEGIN_EVENT_TABLE( PropViewFrame, PropGridFrameBase )
     EVT_MENU( miWizards_LUTControl, PropViewFrame::OnWizards_LUTControl )
     EVT_MENU( miWizards_ColorCorrection, PropViewFrame::OnWizards_ColorCorrection )
     EVT_MENU( miWizards_QuickSetup, PropViewFrame::OnWizards_QuickSetup )
+    EVT_MENU( miSettings_ShowQuickSetupOnUse, PropViewFrame::OnSettings_ShowQuickSetupOnUse )
     EVT_MENU( miHelp_About, PropViewFrame::OnHelp_About )
     EVT_MENU( miHelp_DriverInformation, PropViewFrame::OnHelp_DriverInformation )
     EVT_MENU( miHelp_FindFeature, PropViewFrame::OnHelp_FindFeature )
@@ -407,7 +410,7 @@ BEGIN_EVENT_TABLE( PropViewFrame, PropGridFrameBase )
     EVT_SPINCTRL( widSCInfoPlotUpdateSpeed, PropViewFrame::OnInfoPlotUpdateSpeedChanged )
     EVT_CHECKBOX( widCBInfoPlotDifferences, PropViewFrame::OnCBInfoPlotDifferences )
 
-#ifdef BUILD_WITH_TEXT_EVENTS_FOR_SPINCTRL // BAT: Unfortunately on linux wxWidgets 2.6.x - ??? handling these messages will cause problems, while on Windows not doing so will not always update the GUI as desired :-(
+#ifdef BUILD_WITH_TEXT_EVENTS_FOR_SPINCTRL // Unfortunately on Linux wxWidgets 2.6.x - ??? handling these messages will cause problems, while on Windows not doing so will not always update the GUI as desired :-(
     EVT_TEXT( widPixelHistogram | iapidSCAOIx, PropViewFrame::OnAnalysisPlotAOIxTextChanged )
     EVT_TEXT( widPixelHistogram | iapidSCAOIy, PropViewFrame::OnAnalysisPlotAOIyTextChanged )
     EVT_TEXT( widPixelHistogram | iapidSCAOIw, PropViewFrame::OnAnalysisPlotAOIwTextChanged )
@@ -484,8 +487,9 @@ PropViewFrame::PropViewFrame( const wxString& title, const wxPoint& pos, const w
       m_ContinuousStr( wxT( "Continuous" ) ), m_pDevPropHandler( 0 ), m_pLastMouseHooverDisplay( 0 ), m_pCurrentAnalysisDisplay( 0 ),
       m_CurrentRequestDataIndex( 0 ), m_pUserExperienceCombo( 0 ), m_pMonitorImage( 0 ), m_pLUTControlDlg( 0 ),
       m_pColorCorrectionDlg( 0 ), m_pLensControlDlg( 0 ),  m_pQuickSetupDlgCurrent( 0 ), m_pQuickSetupDlgGenICam( 0 ), m_pQuickSetupDlgDeviceSpecific( 0 ),
-      m_boMustShowQuickSetupWizard( false ), m_pLogWindow( 0 ), m_pWindowDisabler( 0 ), m_pPropViewCallback( new PropViewCallback() ), m_currentWizard( wNone ),
-      m_defaultDeviceInterfaceLayout( wxT( "GenICam" ) ), m_HardDiscRecordingParameters()
+      m_boShowQuickSetupWizardCurrentProcess( false ), m_QuickSetupWizardEnforce( qswiDefaultBehaviour ) , m_pLogWindow( 0 ), m_pWindowDisabler( 0 ),
+      m_pPropViewCallback( new PropViewCallback() ), m_currentWizard( wNone ), m_defaultDeviceInterfaceLayout( wxT( "GenICam" ) ),
+      m_defaultImageProcessingMode( ipmProcessLatestOnly ), m_HardDiscRecordingParameters()
 //-----------------------------------------------------------------------------
 {
     // sub menu 'Action -> Default Device Interface'
@@ -535,6 +539,11 @@ PropViewFrame::PropViewFrame( const wxString& title, const wxPoint& pos, const w
     pMenuAction->AppendSeparator();
     pMenuAction->Append( miAction_Exit, wxT( "E&xit\tALT+X" ) );
 
+    // sub menu 'Capture -> Default Image Processing Mode'
+    wxMenu* pMenuActionDefaultImageProcessingMode = new wxMenu;
+    m_pMICapture_DefaultImageProcessingMode_ProcessAll = pMenuActionDefaultImageProcessingMode->Append( miCapture_DefaultImageProcessingMode_ProcessAll, wxT( "Process All" ), wxT( "" ), wxITEM_RADIO );
+    m_pMICapture_DefaultImageProcessingMode_ProcessLatestOnly = pMenuActionDefaultImageProcessingMode->Append( miCapture_DefaultImageProcessingMode_ProcessLatestOnly, wxT( "Process Latest Only" ), wxT( "" ), wxITEM_RADIO );
+
     // sub menu 'Capture -> Recording'
     wxMenu* pMenuSettingsRecording = new wxMenu;
     m_pMICapture_Recording_SlientMode = pMenuSettingsRecording->AppendCheckItem( miCapture_Recording_SilentMode, wxT( "Silent Mode" ), wxT( "Check this to disable all recording related dialogs" ) );
@@ -559,6 +568,7 @@ PropViewFrame::PropViewFrame( const wxString& title, const wxPoint& pos, const w
     m_pMICapture_Acquire = pMenuCapture->Append( miCapture_Acquire, wxT( "A&cquire\tALT+CTRL+C" ), wxT( "Starts or stops an acquisition" ), wxITEM_CHECK );
     m_pMICapture_Abort = pMenuCapture->Append( miCapture_Abort, wxT( "&Abort\tCTRL+A" ), wxT( "Clears the request queue, but does NOT stop a running continuous acquisition" ) );
     m_pMICapture_Unlock = pMenuCapture->Append( miCapture_Unlock, wxT( "Un&lock\tALT+CTRL+L" ), wxT( "Unlocks ALL requests locked by the application and deep copies all images currently displayed to preserve the current state of displays and analysis plots. Afterwards the request count can be modified even if one or more images are currently being displayed" ) );
+    pMenuCapture->Append( wxID_ANY, wxT( "Default Image Processing Mode" ), pMenuActionDefaultImageProcessingMode );
     pMenuCapture->AppendSeparator();
     m_pMICapture_Record = pMenuCapture->Append( miCapture_Record, wxT( "&Record\tCTRL+R" ), wxT( "Records the next 'RequestCount'(System Settings) images" ), wxITEM_CHECK );
     m_pMICapture_Forward = pMenuCapture->Append( miCapture_Forward, wxT( "&Forward\tALT+CTRL+F" ), wxT( "Displays the next recorded image" ) );
@@ -611,6 +621,8 @@ PropViewFrame::PropViewFrame( const wxString& title, const wxPoint& pos, const w
     m_pMISettings_ShowLeftToolBar = pMenuSettings->Append( miSettings_ShowLeftToolBar, wxT( "Show L&eft Tool Bar\tCTRL+E" ), wxT( "" ), wxITEM_CHECK );
     m_pMISettings_ShowUpperToolBar = pMenuSettings->Append( miSettings_ShowUpperToolBar, wxT( "Show Upper &Tool Bar\tCTRL+T" ), wxT( "" ), wxITEM_CHECK );
     m_pMISettings_ShowStatusBar = pMenuSettings->Append( miSettings_ShowStatusBar, wxT( "Show S&tatus Bar\tALT+CTRL+T" ), wxT( "" ), wxITEM_CHECK );
+    pMenuSettings->AppendSeparator();
+    m_pMISettings_ShowQuickSetupOnUse = pMenuSettings->Append( miSettings_ShowQuickSetupOnUse, wxT( "Show Quick Setup On Device Open" ), wxT( "" ), wxITEM_CHECK );
     pMenuSettings->AppendSeparator();
     m_pMISettings_WarnOnOutdatedFirmware = pMenuSettings->Append( wxID_ANY, wxT( "Warn On Outdated Firmware" ), wxT( "" ), wxITEM_CHECK );
     m_pMISettings_WarnOnReducedDriverPerformance = pMenuSettings->Append( wxID_ANY, wxT( "Warn On Reduced Driver Performance" ), wxT( "" ), wxITEM_CHECK );
@@ -678,10 +690,9 @@ PropViewFrame::PropViewFrame( const wxString& title, const wxPoint& pos, const w
     wxString parserErrors;
     for( int i = 1; i < argc; i++ )
     {
-        wxString key, value;
-        wxString param( argv[i] );
-        key = param.BeforeFirst( wxT( '=' ) );
-        value = param.AfterFirst( wxT( '=' ) );
+        const wxString param( argv[i] );
+        const wxString key = param.BeforeFirst( wxT( '=' ) );
+        const wxString value = param.AfterFirst( wxT( '=' ) );
         if( key.IsEmpty() )
         {
             parserErrors.Append( wxString::Format( wxT( "Invalid command line parameter: '%s'. Ignored.\n" ), param.c_str() ) );
@@ -737,6 +748,10 @@ PropViewFrame::PropViewFrame( const wxString& title, const wxPoint& pos, const w
                 else if( key == wxT( "live" ) )
                 {
                     boOpenDeviceInLiveMode = ( atoi( value.mb_str() ) != 0 );
+                }
+                else if( key == wxT( "qsw" ) )
+                {
+                    m_QuickSetupWizardEnforce = ( atoi( value.mb_str() ) != 0 ) ? qswiForceShow : qswiForceHide;
                 }
                 else if( ( key == wxT( "displayCountX" ) ) || ( key == wxT( "dcx" ) ) )
                 {
@@ -937,7 +952,9 @@ PropViewFrame::PropViewFrame( const wxString& title, const wxPoint& pos, const w
     m_pPanel->SetSizer( pTopDownSizer );
     pTopDownSizer->SetSizeHints( this );
 
-    wxRect rect = RestoreConfiguration( displayCount, splitterRatio );
+    double propertyGridSplitterRatioStored;
+    wxRect rect = RestoreConfiguration( displayCount, propertyGridSplitterRatioStored );
+    splitterRatio = ( splitterRatio == 0. ) ? propertyGridSplitterRatioStored : splitterRatio;
 
     m_pLogWindow->GetStyle( m_pLogWindow->GetLastPosition(), m_boldTextStyle );
     wxFont boldFont( m_boldTextStyle.GetFont() );
@@ -1143,7 +1160,7 @@ PropViewFrame::~PropViewFrame()
         {
             pConfig->Write( wxT( "/MainFrame/Settings/UserExperience" ), m_pUserExperienceCombo->GetValue() );
         }
-        const wxString captureSettings_UsageMode( pConfig->Read( wxT( "/MainFrame/Settings/CaptureSettings_UsageMode" ), wxString( wxT( "Manual" ) ) ) );
+        pConfig->Write( wxT( "/MainFrame/Settings/Capture_DefaultImageProcessingMode" ), int( m_defaultImageProcessingMode ) );
         if( m_pMICapture_CaptureSettings_UsageMode_Manual->IsChecked() )
         {
             pConfig->Write( wxT( "/MainFrame/Settings/CaptureSettings_UsageMode" ), wxT( "Manual" ) );
@@ -1169,10 +1186,7 @@ PropViewFrame::~PropViewFrame()
         pConfig->Flush();
 
         // wizards
-        if( m_pQuickSetupDlgCurrent != 0 )
-        {
-            pConfig->Write( wxT( "/Wizards/QuickSetup/Show" ), m_pQuickSetupDlgCurrent->MustShowAtStartup() );
-        }
+        pConfig->Write( wxT( "/Wizards/QuickSetup/Show" ), m_pMISettings_ShowQuickSetupOnUse->IsChecked() );
     }
 
     delete GlobalDataStorage::Instance();
@@ -1436,15 +1450,19 @@ void PropViewFrame::CheckForDriverPerformanceIssues( Device* pDev )
             }
             else
             {
-                ComponentLocator locator( pDev->hDrv() );
-                PropertyS mvStreamDriverTechnology;
-                locator.bindComponent( mvStreamDriverTechnology, "mvStreamDriverTechnology" );
-                if( mvStreamDriverTechnology.isValid() )
+                // \todo Windows 10: So far the NDIS driver under Windows 10 is not running...
+                if( platformInfo.GetOSMajorVersion() < 10 )
                 {
-                    const wxString streamTechnology( ConvertedString( mvStreamDriverTechnology.read() ) );
-                    if( streamTechnology.Contains( wxT( "Socket" ) ) )
+                    ComponentLocator locator( pDev->hDrv() );
+                    PropertyS mvStreamDriverTechnology;
+                    locator.bindComponent( mvStreamDriverTechnology, "mvStreamDriverTechnology" );
+                    if( mvStreamDriverTechnology.isValid() )
                     {
-                        msg = wxString::Format( wxT( "Device '%s' runs with the socket API based GEV capture driver. It's highly recommended to work with NDIS based filter driver instead which offers a much better performance. The filter driver can be installed and/or activated using 'mvGigEConfigure'." ), ConvertedString( pDev->serial.read() ).c_str() );
+                        const wxString streamTechnology( ConvertedString( mvStreamDriverTechnology.read() ) );
+                        if( streamTechnology.Contains( wxT( "Socket" ) ) )
+                        {
+                            msg = wxString::Format( wxT( "Device '%s' runs with the socket API based GEV capture driver. It's highly recommended to work with NDIS based filter driver instead which offers a much better performance. The filter driver can be installed and/or activated using 'mvGigEConfigure'." ), ConvertedString( pDev->serial.read() ).c_str() );
+                        }
                     }
                 }
             }
@@ -1481,7 +1499,9 @@ void PropViewFrame::CheckForPotentialBufferIssues( Device* pDev )
     const int desiredNetworkQueueLen = 5000;
     const int desiredUsbBufSizeMB = 256 ;
     wxString buffersInfo = wxT( "\n" );
-    bool networkBufferIssue = false;
+    bool hasRXNetworkBufferIssue = false;
+    bool hasTXNetworkBufferIssue = false;
+    bool hasQueueLengthIssue = false;
     bool usbBufferIssue = false;
 
     GenICam::DeviceModule devMod( pDev );
@@ -1503,7 +1523,7 @@ void PropViewFrame::CheckForPotentialBufferIssues( Device* pDev )
         }
         else
         {
-            networkBufferIssue = ( rxBuff < desiredNetworkBufSize ) ? true : false ;
+            hasRXNetworkBufferIssue = ( rxBuff < desiredNetworkBufSize ) ? true : false;
             buffersInfo += wxString::Format( wxT( "   Network Receive Buffer: \t%.2fMB  \t%s \n" ), ( static_cast<double>( rxBuff ) / static_cast<double>( 1048576 ) ), ( rxBuff < desiredNetworkBufSize ) ? wxT( "LOW!" ) : wxT( "OK!" ) );
         }
         if( ( txErr = sysctl ( wmem, 3, &txBuff, &txSize, NULL, 0 ) ) != 0 )
@@ -1513,7 +1533,7 @@ void PropViewFrame::CheckForPotentialBufferIssues( Device* pDev )
         }
         else
         {
-            networkBufferIssue = ( txBuff < desiredNetworkBufSize ) ? true : false ;
+            hasTXNetworkBufferIssue = ( txBuff < desiredNetworkBufSize ) ? true : false;
             buffersInfo += wxString::Format( wxT( "   Network Transmit Buffer: \t%.2fMB  \t%s \n" ), ( static_cast<double>( txBuff ) / static_cast<double>( 1048576 ) ), ( txBuff < desiredNetworkBufSize ) ? wxT( "LOW!" ) : wxT( "OK!" ) );
         }
         if( ( qlErr = sysctl ( bklg, 3, &queueLen, &plSize, NULL, 0 ) ) != 0 )
@@ -1523,7 +1543,7 @@ void PropViewFrame::CheckForPotentialBufferIssues( Device* pDev )
         }
         else
         {
-            networkBufferIssue = ( queueLen < desiredNetworkQueueLen ) ? true : false ;
+            hasQueueLengthIssue = ( queueLen < desiredNetworkQueueLen ) ? true : false;
             buffersInfo += wxString::Format( wxT( "   Network Queue Length: \t%d    \t%s \n" ), queueLen, ( queueLen < desiredNetworkQueueLen ) ? wxT( "LOW!" ) : wxT( "OK!" ) );
         }
     }
@@ -1539,7 +1559,7 @@ void PropViewFrame::CheckForPotentialBufferIssues( Device* pDev )
     }
     if( m_pMISettings_WarnOnPotentialBufferIssues->IsChecked() &&
         ( GetGenTLDeviceCount() != 0 ) &&
-        ( networkBufferIssue || usbBufferIssue ) )
+        ( hasRXNetworkBufferIssue || hasTXNetworkBufferIssue || hasQueueLengthIssue || usbBufferIssue ) )
     {
         switch( wxMessageBox( wxT( "Even though the GenICam/GenTL capture driver is installed, network receive buffers and/or usbcore(usbfs) buffers are not configured accordingly. Small buffer size can lead to incomplete frames during acquisition, or other serious problems. Please configure your system's buffer settings as described in the documentation of your MATRIX VISION camera (Quickstart section).\n" ) + buffersInfo + wxT( "\nPress 'Yes' to continue anyway.\n\nPress 'No' to end this application and resolve the issue.\n\nPress 'Cancel' to continue anyway and never see this message again. You can later re-enable this message box under 'Settings -> Warn On Potential Network/USB Buffer Issues'." ), wxT( "Low GEV/U3V Buffer Settings Detected" ), wxYES_NO | wxCANCEL | wxICON_EXCLAMATION, this ) )
         {
@@ -1760,6 +1780,11 @@ void PropViewFrame::ConfigureLive( void )
             pThread->SetLiveMode( false );
             // this increases the chance that the last image will actually be displayed
             ClearDisplayInProgressStates();
+            const DisplayWindowContainer::size_type displayCount = m_pDisplayAreas.size();
+            for( DisplayWindowContainer::size_type i = 0; i < displayCount; i++ )
+            {
+                m_pDisplayAreas[i]->ResetSkippedImagesCounter();
+            }
         }
         SetupDlgControls();
     }
@@ -1813,7 +1838,15 @@ void PropViewFrame::ConfigureSplitter( wxSplitterWindow* pSplitter, wxWindow* pW
 void PropViewFrame::ConfigureStatusBar( bool boShow )
 //-----------------------------------------------------------------------------
 {
-    boShow ? m_pPanel->GetSizer()->Show( m_pStatusBar ) : m_pPanel->GetSizer()->Hide( m_pStatusBar );
+    if( boShow )
+    {
+        m_pPanel->GetSizer()->Show( m_pStatusBar );
+        UpdateStatusBar();
+    }
+    else
+    {
+        m_pPanel->GetSizer()->Hide( m_pStatusBar );
+    }
     m_pPanel->GetSizer()->Layout();
 }
 
@@ -1932,6 +1965,7 @@ void PropViewFrame::CreateUpperToolBar( void )
 void PropViewFrame::ChangeGUIForQuickSetupWizard( void )
 //-----------------------------------------------------------------------------
 {
+    //following two lines influence the appearance of the toolbars when switching to the QuickSetupWizard
     ConfigureToolBar( m_pLeftToolBar, false );
     ConfigureToolBar( m_pUpperToolBar, false );
     m_pPanel->GetSizer()->Layout();
@@ -1940,6 +1974,7 @@ void PropViewFrame::ChangeGUIForQuickSetupWizard( void )
     m_pLeftToolBar->ToggleTool( miSettings_PropGrid_Show, false );
     SetupVerSplitter();
     m_pDisplayAreas[0]->SetScaling( true );
+    m_pDisplayAreas[0]->SetActive( true );
     m_pMISettings_Analysis_ShowControls->Check( false );
     m_pLeftToolBar->ToggleTool( miSettings_Analysis_ShowControls, false );
     RefreshDisplays( true );
@@ -2081,10 +2116,8 @@ void PropViewFrame::Deinit( void )
         m_pDisplayAreas[i]->SetActive( false );
         m_CurrentRequestDataContainer[i] = RequestData();
     }
-    delete m_pDevPropHandler;
-    m_pDevPropHandler = 0;
-    delete m_pWindowDisabler;
-    m_pWindowDisabler = 0;
+    DeleteElement( m_pDevPropHandler );
+    DeleteElement( m_pWindowDisabler );
 }
 
 //-----------------------------------------------------------------------------
@@ -2584,6 +2617,23 @@ void PropViewFrame::OnCapture_CaptureSettings_UsageMode_Changed( wxCommandEvent&
 }
 
 //-----------------------------------------------------------------------------
+void PropViewFrame::OnCapture_DefaultImageProcessingMode_Changed( wxCommandEvent& e )
+//-----------------------------------------------------------------------------
+{
+    switch( e.GetId() )
+    {
+    case miCapture_DefaultImageProcessingMode_ProcessAll:
+        m_defaultImageProcessingMode = ipmDefault;
+        break;
+    case miCapture_DefaultImageProcessingMode_ProcessLatestOnly:
+        m_defaultImageProcessingMode = ipmProcessLatestOnly;
+        break;
+    }
+    UpdateUserControlledImageProcessingEnableProperties();
+    SetupImageProcessingMode();
+}
+
+//-----------------------------------------------------------------------------
 void PropViewFrame::OnCBEnableInfoPlot( wxCommandEvent& )
 //-----------------------------------------------------------------------------
 {
@@ -2729,7 +2779,7 @@ void PropViewFrame::OnHelp_About( wxCommandEvent& )
     WriteToTextCtrl( pUsageHints, wxT( "\n" ) );
     WriteToTextCtrl( pUsageHints, wxT( "Right-click onto a display to get a pop up menu with additional options.\n" ), style );
     WriteToTextCtrl( pUsageHints, wxT( "\n" ) );
-    WriteToTextCtrl( pUsageHints, wxT( "Press the left and right arrow keys on the keyboard or the numpad for defining a custom shift factor for the pixel data. This can be used to define which bits of a multi-byte image shall be displayed. When 'Performance Warning Overlay' from the pop up menu of the display is active, the current shift(this is the value defined by the user) value and the applied shift value(this is the shift value actually applied to the pixel data before displaying) will be displayed. E.g. for a 12 bit mono image, when 'current shift value' is has been defined as 1 by the user, then 'applied shift value' will be 3 because normally a 12 bit mono image would be displayed by shifting the data by 4 bits to the right in order to display the 8 msbs of the image. With a user defined shift value of 1, now instead of displaying bits 11 - 4, bits 10 - 3 will be displayed. The applied shift value is thus calculated from the valus needed to display the 8 msbs MINUS the value defined by the user.\n" ), style );
+    WriteToTextCtrl( pUsageHints, wxT( "Press the left and right arrow keys on the keyboard or the numpad for defining a custom shift factor for the pixel data. This can be used to define which bits of a multi-byte image shall be displayed. When 'Performance Warning Overlay' from the pop up menu of the display is active, the current shift(this is the value defined by the user) value and the applied shift value(this is the shift value actually applied to the pixel data before displaying) will be displayed. E.g. for a 12 bit mono image, when 'current shift value' is has been defined as 1 by the user, then 'applied shift value' will be 3 because normally a 12 bit mono image would be displayed by shifting the data by 4 bits to the right in order to display the 8 msbs of the image. With a user defined shift value of 1, now instead of displaying bits 11 - 4, bits 10 - 3 will be displayed. The applied shift value is thus calculated from the values needed to display the 8 msbs MINUS the value defined by the user.\n" ), style );
     WriteToTextCtrl( pUsageHints, wxT( "\n" ) );
     WriteToTextCtrl( pUsageHints, wxT( "Right-click onto a display and drag the mouse to select a new AOI for the selected analysis page.\n" ), style );
     WriteToTextCtrl( pUsageHints, wxT( "\n" ) );
@@ -2838,8 +2888,19 @@ void PropViewFrame::OnHelp_About( wxCommandEvent& )
     WriteToTextCtrl( pUsageHints, wxT( "With this option disable (default) the acquisition button will be disabled while the request image has not been delivered. When enabling this option " ), style );
     WriteToTextCtrl( pUsageHints, wxT( "multiple single frame acquisition commands can be sent to the device (depending on the speed the user clicks the button). This can result in one or " ), style );
     WriteToTextCtrl( pUsageHints, wxT( "more single frame requests can reach the device while it is still busy dealing with the current request for a frame. Not every device does support " ), style );
-    WriteToTextCtrl( pUsageHints, wxT( "'queing' of requests, thus some devices might simply silently discard these requests, which will result on the request returning with a 'rrTimeout' " ), style );
+    WriteToTextCtrl( pUsageHints, wxT( "'queuing' of requests, thus some devices might simply silently discard these requests, which will result on the request returning with a 'rrTimeout' " ), style );
     WriteToTextCtrl( pUsageHints, wxT( "error on the host side. This option is mainly there for testing purposes.\n" ), style );
+    WriteToTextCtrl( pUsageHints, wxT( "\n" ) );
+    WriteToTextCtrl( pUsageHints, wxT( "'Default Image Processing Mode' option:\n" ), m_boldTextStyle );
+    WriteToTextCtrl( pUsageHints, wxT( "Several processing algorithms can be applied to a captured image by mvIMPACT Acquire on the host system AFTER the data has been captured. " ), style );
+    WriteToTextCtrl( pUsageHints, wxT( "All processing however consumes CPU resources and therefore the overall processing time needed on the host can be larger than the time between 2 consecutive " ), style );
+    WriteToTextCtrl( pUsageHints, wxT( "frames as transferred by a device. This typically results in delayed image display if the device offers a frame buffer or in lost frames if a device " ), style );
+    WriteToTextCtrl( pUsageHints, wxT( "either offers no frame buffer or the data transmission from the device to the host is not managed by requests send from the host to the device but by " ), style );
+    WriteToTextCtrl( pUsageHints, wxT( "the device pumping out data. For an application such as wxPropView it therefore can be desirable to capture at full frame rate but to display only a fraction " ), style );
+    WriteToTextCtrl( pUsageHints, wxT( "of post-processed images. This can be achieved by configuring the driver to process only the latest images from the queue of captured images and by forwarding " ), style );
+    WriteToTextCtrl( pUsageHints, wxT( "all additional data 'as captured' to an application. This can be configured by setting up the 'Default Image Processing Mode' accordingly. If images are not " ), style );
+    WriteToTextCtrl( pUsageHints, wxT( "passed through the processing pipeline they will be counted as 'skipped' giving the user a hint about the current lack of CPU resources. Please note that for " ), style );
+    WriteToTextCtrl( pUsageHints, wxT( "performance reasons, this must be set up before opening the device.\n" ), style );
     pUsageHints->ScrollLines( -( 256 * 256 ) ); // make sure the text control always shows the beginning of the help text
 
     vector<pair<wxString, wxString> > v;
@@ -2908,6 +2969,7 @@ void PropViewFrame::OnHelp_About( wxCommandEvent& )
     v.push_back( make_pair( wxT( "'displayCountY' or 'dcy'" ), wxT( "Defines the number of image displays in vertical direction" ) ) );
     v.push_back( make_pair( wxT( "'fulltree' or 'ft'" ), wxT( "Will display the complete property tree(including the data not meant to be accessed by the user) in the property grid" ) ) );
     v.push_back( make_pair( wxT( "'device' or 'd'" ), wxT( "Will directly open a device with a particular serial number" ) ) );
+    v.push_back( make_pair( wxT( "'qsw'" ), wxT( "Will forcefully hide or show the quick setup window, regardless of the default settings" ) ) );
     v.push_back( make_pair( wxT( "'live'" ), wxT( "Will directly start live acquisition from the device opened via 'device' or 'd' directly" ) ) );
     AddListControlToAboutNotebook( pNotebook, wxT( "Available Command Line Options" ), false, wxT( "Command" ), wxT( "Description" ), v );
 
@@ -3549,7 +3611,7 @@ void PropViewFrame::OnPropertyGridTimer( void )
     {
         if( GetPropertyGrid()->IsShown() )
         {
-            // while the propgrid is not displayed we don't need to update it
+            // while the property grid is not displayed we don't need to update it
             m_pDevPropHandler->ValidateTrees();
         }
         SetupDlgControls();
@@ -3699,7 +3761,7 @@ void PropViewFrame::OnSaveImageSequenceToFiles( wxCommandEvent& )
             m_boCurrentImageIsFromFile = false;
             for( RequestContainer::size_type i = 0; i < size; i++ )
             {
-                // make sure ALL image will be written to files
+                // make sure ALL images will be written to files
                 ClearDisplayInProgressStates();
 
                 pThread->DisplaySequenceRequest( i );
@@ -4276,6 +4338,7 @@ wxRect PropViewFrame::RestoreConfiguration( const unsigned int displayCount, dou
     ConfigureToolBar( m_pLeftToolBar, boActive );
     boActive = pConfig->Read( wxT( "/MainFrame/Settings/showStatusBar" ), 1l ) != 0;
     m_pMISettings_ShowStatusBar->Check( boActive );
+    ConfigureStatusBar( boActive );
     boActive = pConfig->Read( wxT( "/MainFrame/Settings/warnOnOutdatedFirmware" ), 1l ) != 0;
     m_pMISettings_WarnOnOutdatedFirmware->Check( boActive );
     boActive = pConfig->Read( wxT( "/MainFrame/Settings/warnOnReducedDriverPerformance" ), 1l ) != 0;
@@ -4292,7 +4355,6 @@ wxRect PropViewFrame::RestoreConfiguration( const unsigned int displayCount, dou
     m_pMISettings_PropGrid_ShowMethodExecutionErrors->Check( boActive );
     boActive = pConfig->Read( wxT( "/MainFrame/Settings/automaticallyReconnectToUnusedDevices" ), 1l ) != 0;
     m_pMIAction_AutomaticallyReconnectToUnusedDevices->Check( boActive );
-    ConfigureStatusBar( boActive );
     boActive = pConfig->Read( wxT( "/MainFrame/Settings/displayPropsWithHexIndices" ), 0l ) != 0;
     m_pMISettings_PropGrid_DisplayPropIndicesAsHex->Check( boActive );
     boActive = pConfig->Read( wxT( "/MainFrame/Settings/propgrid_displayToolTips" ), 1l ) != 0;
@@ -4352,7 +4414,16 @@ wxRect PropViewFrame::RestoreConfiguration( const unsigned int displayCount, dou
         m_pUserExperienceCombo->SetValue( userExperience );
         UpdateUserExperience( userExperience );
     }
-
+    m_defaultImageProcessingMode = static_cast<TImageProcessingMode>( pConfig->Read( wxT( "/MainFrame/Settings/Capture_DefaultImageProcessingMode" ), ipmProcessLatestOnly ) );
+    switch( m_defaultImageProcessingMode )
+    {
+    case ipmDefault:
+        m_pMICapture_DefaultImageProcessingMode_ProcessAll->Check();
+        break;
+    case ipmProcessLatestOnly:
+        m_pMICapture_DefaultImageProcessingMode_ProcessLatestOnly->Check();
+        break;
+    }
     const wxString captureSettings_UsageMode( pConfig->Read( wxT( "/MainFrame/Settings/CaptureSettings_UsageMode" ), wxString( wxT( "Manual" ) ) ) );
     if( captureSettings_UsageMode == wxT( "Manual" ) )
     {
@@ -4382,7 +4453,21 @@ wxRect PropViewFrame::RestoreConfiguration( const unsigned int displayCount, dou
     SetupVerSplitter();
 
     // wizards
-    m_boMustShowQuickSetupWizard = pConfig->Read( wxT( "/Wizards/QuickSetup/Show" ), 1l ) != 0;
+    m_pMISettings_ShowQuickSetupOnUse->Check( pConfig->Read( wxT( "/Wizards/QuickSetup/Show" ), 1l ) != 0 );
+    m_boShowQuickSetupWizardCurrentProcess = m_pMISettings_ShowQuickSetupOnUse->IsChecked();
+
+    // Command-line argument for QuickSetupWizard should override registry settings without changing them
+    if( m_QuickSetupWizardEnforce == qswiForceShow )
+    {
+        m_boShowQuickSetupWizardCurrentProcess = true;
+    }
+    else if( m_QuickSetupWizardEnforce == qswiForceHide )
+    {
+        m_boShowQuickSetupWizardCurrentProcess = false;
+        // If it is the very first time and the QSW has never been shown, we should make the GUI
+        // richer by showing the left tool bar and the property grid.
+        SetupGUIOnFirstRun();
+    }
 
     return rect;
 }
@@ -4391,7 +4476,7 @@ wxRect PropViewFrame::RestoreConfiguration( const unsigned int displayCount, dou
 void PropViewFrame::PostQuickSetupWizardSettings( void )
 //-----------------------------------------------------------------------------
 {
-    m_boMustShowQuickSetupWizard = m_pQuickSetupDlgCurrent->MustShowAtStartup();
+    m_boShowQuickSetupWizardCurrentProcess = m_pMISettings_ShowQuickSetupOnUse->IsChecked();
     m_pDisplayAreas[0]->DisableDoubleClickAndPrunePopupMenu( false );
     m_pUpperToolBar->ToggleTool( miWizards_QuickSetup, false );
 }
@@ -4406,18 +4491,21 @@ void PropViewFrame::RestoreGUIStateAfterQuickSetupWizard( void )
     {
         // On the very first OK-press of the QuickSetup Wizard, the left ToolBar must appear, regardless of its' previous state
         ConfigureToolBar( m_pLeftToolBar, true );
+        ConfigureToolBar( m_pUpperToolBar, true );
+        m_pMISettings_PropGrid_Show->Check( true );
         m_pMISettings_ShowLeftToolBar->Check();
         pConfig->Write( wxT( "/MainFrame/Settings/showLeftToolBar" ), 1 );
     }
     else
     {
         ConfigureToolBar( m_pLeftToolBar, m_GUIBeforeQuickSetupWizard.boLeftToolBarShown_ );
+        ConfigureToolBar( m_pUpperToolBar, m_GUIBeforeQuickSetupWizard.boUpperToolbarShown_ );
+        m_pMISettings_PropGrid_Show->Check( m_GUIBeforeQuickSetupWizard.boPropertyGridShown_ );
     }
 
-    ConfigureToolBar( m_pUpperToolBar, m_GUIBeforeQuickSetupWizard.boUpperToolbarShown_ );
     SetMenuBar( m_pMenuBar );
     m_pVerticalSplitter->SetSashPosition( m_GUIBeforeQuickSetupWizard.verticalSplitterPosition_ );
-    m_pMISettings_PropGrid_Show->Check( m_GUIBeforeQuickSetupWizard.boPropertyGridShown_ );
+    m_pHorizontalSplitter->SetSashPosition( m_GUIBeforeQuickSetupWizard.horizontalSplitterPosition_ );
     m_pMISettings_Analysis_ShowControls->Check( m_GUIBeforeQuickSetupWizard.boAnalysisTabsShown_ );
     m_pLeftToolBar->ToggleTool( miSettings_Analysis_ShowControls, m_GUIBeforeQuickSetupWizard.boAnalysisTabsShown_ );
     m_pLeftToolBar->ToggleTool( miSettings_PropGrid_Show, m_GUIBeforeQuickSetupWizard.boPropertyGridShown_ );
@@ -4425,6 +4513,7 @@ void PropViewFrame::RestoreGUIStateAfterQuickSetupWizard( void )
     SetupVerSplitter();
     SetupDisplayLogSplitter();
     m_pDisplayAreas[0]->SetScaling( m_GUIBeforeQuickSetupWizard.boFitToCanvas_ );
+    m_pDisplayAreas[0]->SetActive( m_GUIBeforeQuickSetupWizard.boDisplayShown_ );
     RefreshDisplays( m_GUIBeforeQuickSetupWizard.boPropertyGridShown_ );
 }
 
@@ -4439,8 +4528,10 @@ void PropViewFrame::SaveGUIStateBeforeQuickSetupWizard( void )
     m_GUIBeforeQuickSetupWizard.boAnalysisTabsShown_ = m_pMISettings_Analysis_ShowControls->IsChecked();
 
     // Canvas scaling data will be saved only for one display...
-    m_GUIBeforeQuickSetupWizard.boFitToCanvas_ =  m_pDisplayAreas[0]->IsScaled() ;
+    m_GUIBeforeQuickSetupWizard.boFitToCanvas_ =  m_pDisplayAreas[0]->IsScaled();
+    m_GUIBeforeQuickSetupWizard.boDisplayShown_ =  m_pDisplayAreas[0]->IsActive();
     m_GUIBeforeQuickSetupWizard.verticalSplitterPosition_ = m_pVerticalSplitter->GetSashPosition();
+    m_GUIBeforeQuickSetupWizard.horizontalSplitterPosition_ = m_pHorizontalSplitter->GetSashPosition();
 }
 
 //-----------------------------------------------------------------------------
@@ -4568,20 +4659,26 @@ bool PropViewFrame::SetCurrentImage( const wxFileName& fileName, ImageCanvas* pI
         wxFile file( fileName.GetFullPath().c_str(), wxFile::read );
         if( !file.IsOpened() )
         {
-            WriteErrorMessage( wxString::Format( wxT( "Failed to open file %s.\n" ), fileName.GetFullPath().c_str() ) );
+            WriteErrorMessage( wxString::Format( wxT( "Failed to open file '%s'.\n" ), fileName.GetFullPath().c_str() ) );
             return false;
         }
 
         RawImageImportDlg dlg( this, wxT( "Raw Image Import" ), fileName );
         if( dlg.ShowModal() != wxID_OK )
         {
-            WriteLogMessage( wxString::Format( wxT( "Import of file %s canceled.\n" ), fileName.GetFullPath().c_str() ) );
+            WriteLogMessage( wxString::Format( wxT( "Import of file '%s' canceled.\n" ), fileName.GetFullPath().c_str() ) );
             return false;
         }
 
         if( dlg.GetFormat().IsEmpty() || dlg.GetBayerParity().IsEmpty() )
         {
-            WriteErrorMessage( wxT( "Invalid selection.\n" ) );
+            WriteErrorMessage( wxString::Format( wxT( "Invalid pixel format selection while importing file '%s'.\n" ), fileName.GetFullPath().c_str() ) );
+            return false;
+        }
+
+        if( ( dlg.GetWidth() < 1 ) || ( dlg.GetHeight() < 1 ) )
+        {
+            WriteErrorMessage( wxString::Format( wxT( "Invalid image dimensions(%ldx%ld) selected while importing file '%s'.\n" ), dlg.GetWidth(), dlg.GetHeight(), fileName.GetFullPath().c_str() ) );
             return false;
         }
 
@@ -4604,19 +4701,20 @@ bool PropViewFrame::SetCurrentImage( const wxFileName& fileName, ImageCanvas* pI
         }
 
         SearchAndSelectImageCanvas( pImageCanvas );
-        int inc = ( image.HasAlpha() ) ? 4 : 3;
         m_CurrentRequestDataContainer[m_CurrentRequestDataIndex].image_ = mvIMPACT::acquire::ImageBufferDesc( ibpfRGB888Packed, image.GetWidth(), image.GetHeight() );
         m_CurrentRequestDataContainer[m_CurrentRequestDataIndex].pixelFormat_ = wxString( wxT( "RGB888Packed" ) );
         m_CurrentRequestDataContainer[m_CurrentRequestDataIndex].bayerParity_ = bmpUndefined;
-        const int PIXEL_COUNT = m_CurrentRequestDataContainer[m_CurrentRequestDataIndex].image_.getBuffer()->iWidth * m_CurrentRequestDataContainer[m_CurrentRequestDataIndex].image_.getBuffer()->iHeight;
         unsigned char* pDst = static_cast<unsigned char*>( m_CurrentRequestDataContainer[m_CurrentRequestDataIndex].image_.getBuffer()->vpData );
-        unsigned char* pSrc = image.GetData();
-        for( int i = 0; i < PIXEL_COUNT; i++ )
+        const int W = image.GetWidth();
+        const int H = image.GetHeight();
+        for( int y = 0; y < H; y++ )
         {
-            *pDst++ = pSrc[2];
-            *pDst++ = pSrc[1];
-            *pDst++ = pSrc[0];
-            pSrc += inc;
+            for( int x = 0; x < W; x++ )
+            {
+                *pDst++ = image.GetBlue( x, y );
+                *pDst++ = image.GetGreen( x, y );
+                *pDst++ = image.GetRed( x, y );
+            }
         }
     }
     WriteLogMessage( wxString::Format( wxT( "file %s successfully imported.\n" ), fileName.GetFullPath().c_str() ) );
@@ -4632,6 +4730,17 @@ void PropViewFrame::SetCommonToolBarProperties( wxToolBar* pToolBar )
     pToolBar->SetMargins( 5, 5 );
     pToolBar->SetToolBitmapSize( wxSize( 32, 16 ) );
     pToolBar->SetToolSeparation( 10 );
+}
+
+//-----------------------------------------------------------------------------
+void PropViewFrame::SetupGUIOnFirstRun( void )
+//-----------------------------------------------------------------------------
+{
+    wxConfigBase* pConfig = wxConfigBase::Get();
+    if( !pConfig->Exists( wxT( "/Wizards/QuickSetup/Show" ) ) )
+    {
+        RestoreGUIStateAfterQuickSetupWizard();
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -4729,6 +4838,7 @@ void PropViewFrame::SetupDlgControls( void )
     if( m_DeviceCount != devMgr.deviceCount() )
     {
         UpdateDeviceInterfaceLayouts();
+        UpdateUserControlledImageProcessingEnableProperties();
     }
 
     m_pInfoPlotSelectionCombo->Enable( boDevOpen );
@@ -4825,6 +4935,19 @@ void PropViewFrame::SetupDlgControls( void )
     m_pMIWizards_LUTControl->Enable( s.find( wLUTControl ) != itEND );
     m_pMIWizards_ColorCorrection->Enable( s.find( wColorCorrection ) != itEND );
     m_pMIWizards_QuickSetup->Enable( ( s.find( wQuickSetup ) != itEND ) && boDevOpen && boDevPresent );
+    m_pMISettings_ShowQuickSetupOnUse->Enable( !HasEnforcedQSWBehavior() );
+}
+
+//-----------------------------------------------------------------------------
+void PropViewFrame::SetupImageProcessingMode( void )
+//-----------------------------------------------------------------------------
+{
+    CaptureThread* pCT = 0;
+    m_pDevPropHandler->GetActiveDevice( 0, 0, &pCT );
+    if( pCT )
+    {
+        pCT->SetImageProcessingMode( m_defaultImageProcessingMode );
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -4897,6 +5020,7 @@ void PropViewFrame::ToggleCurrentDevice( void )
                                 pCT->UnlockRequest( m_CurrentRequestDataContainer[i].requestNr_ );
                             }
                             m_CurrentRequestDataContainer[i] = RequestData();
+                            m_pDisplayAreas[i]->ResetSkippedImagesCounter();
                             m_pDisplayAreas[i]->SetImage( m_CurrentRequestDataContainer[i].image_.getBuffer() );
                             if( m_pDisplayAreas[i]->GetMonitorDisplay() == m_pMonitorImage->GetDisplayArea() )
                             {
@@ -4993,12 +5117,19 @@ void PropViewFrame::ToggleCurrentDevice( void )
                 m_pInfoPlotArea->ClearCache();
                 UpdateAcquisitionModes();
                 SetupCaptureSettingsUsageMode( m_pMICapture_CaptureSettings_UsageMode_Manual->IsChecked() ? csumManual : csumAutomatic );
+                SetupImageProcessingMode();
                 UpdateSettingTable();
                 AssignDefaultSettingToDisplayRelationship();
-                if( ( m_boMustShowQuickSetupWizard == true ) &&
+                if( ( m_boShowQuickSetupWizardCurrentProcess == true ) &&
                     ( m_pDevPropHandler->DoesActiveDeviceSupportWizard( wQuickSetup ) == true ) )
                 {
                     Wizard_QuickSetup();
+                }
+                else
+                {
+                    // If it is the very first time and the QSW has never been shown, we should make the GUI
+                    // richer by showing the left tool bar and the property grid.
+                    SetupGUIOnFirstRun();
                 }
             }
             WriteLogMessage( wxString::Format( wxT( "Device %d (%s) %s\n" ), devIndex, ConvertedString( pDev->serial.read() ).c_str(), ( isOpen ? wxT( "closed" ) : wxT( "opened" ) ) ) );
@@ -5354,6 +5485,7 @@ void PropViewFrame::UpdateDeviceFromComboBox( void )
     const DisplayWindowContainer::size_type displayCnt = m_pDisplayAreas.size();
     for( DisplayWindowContainer::size_type i = 0; i < displayCnt; i++ )
     {
+        m_pDisplayAreas[i]->ResetSkippedImagesCounter();
         m_pDisplayAreas[i]->SetImage( m_CurrentRequestDataContainer[i].image_.getBuffer() );
     }
 
@@ -5512,10 +5644,15 @@ void PropViewFrame::UpdateSettingTable( void )
 void PropViewFrame::UpdateStatusBar( void )
 //-----------------------------------------------------------------------------
 {
+    if( !m_pStatusBar->IsShown() || !m_pDevPropHandler )
+    {
+        return;
+    }
+
     const Statistics* pS = 0;
     FunctionInterface* pFI = 0;
     CaptureThread* pCT = 0;
-    m_pDevPropHandler->GetActiveDevice( &pFI, &pS, &pCT );
+    Device* pDev = m_pDevPropHandler->GetActiveDevice( &pFI, &pS, &pCT );
     bool boValidDevice = pFI && pS && pCT;
     bool boValidImage = m_CurrentRequestDataContainer[m_CurrentRequestDataIndex].image_.getBuffer() && m_CurrentRequestDataContainer[m_CurrentRequestDataIndex].image_.getBuffer()->vpData;
     if( boValidDevice || boValidImage )
@@ -5523,46 +5660,59 @@ void PropViewFrame::UpdateStatusBar( void )
         if( m_pStatusBar->GetFieldsCount() != NO_OF_STATUSBAR_FIELDS )
         {
             int statusBarFieldWidths[NO_OF_STATUSBAR_FIELDS];
-            statusBarFieldWidths[sbfFramePerSecond] = -4;
-            statusBarFieldWidths[sbfBandwidthConsumed] = -4;
+            statusBarFieldWidths[sbfFramesPerSecond] = -10;
+            statusBarFieldWidths[sbfBandwidthConsumed] = -11;
             statusBarFieldWidths[sbfFramesDelivered] = -6;
             statusBarFieldWidths[sbfStatistics] = -18;
-            statusBarFieldWidths[sbfImageFormat] = -16;
-            statusBarFieldWidths[sbfExposeTime] = -6;
-            statusBarFieldWidths[sbfGain] = -6;
-            statusBarFieldWidths[sbfPixelData] = -12;
+            statusBarFieldWidths[sbfImageFormat] = -18;
+            statusBarFieldWidths[sbfPixelData] = -10;
             m_pStatusBar->SetFieldsCount( NO_OF_STATUSBAR_FIELDS, &statusBarFieldWidths[0] );
         }
 
         bool boSlowDisplay = ( m_CurrentRequestDataContainer[m_CurrentRequestDataIndex].image_.getBuffer()->pixelFormat != ibpfMono8 ) &&
                              ( m_CurrentRequestDataContainer[m_CurrentRequestDataIndex].image_.getBuffer()->pixelFormat != ibpfRGBx888Packed ) &&
                              ( m_CurrentRequestDataContainer[m_CurrentRequestDataIndex].pixelFormat_ != RequestData::UNKNOWN_PIXEL_FORMAT_STRING_ );
-        if( pS )
+        if( pS && pCT )
         {
-            m_pStatusBar->SetStatusText( wxString::Format( wxT( "FPS: %.1f" ), pS->framesPerSecond.read() ), sbfFramePerSecond );
-            m_pStatusBar->SetStatusText( wxString::Format( wxT( "%.2f MB/s" ), pS->bandwidthConsumed.read() / 1000. ), sbfBandwidthConsumed );
+            const double fps = pS->framesPerSecond.read();
+            m_pStatusBar->SetStatusText( wxString::Format( wxT( "FPS: %.1f, Display Frame Rate: %.1f" ), fps, fps * ( pCT->GetPercentageOfImagesSentToDisplay() / 100. ) ), sbfFramesPerSecond );
+            wxString bandwidth;
+            if( pS->bandwidthConsumed.isValid() )
+            {
+                bandwidth.Append( wxString::Format( wxT( "%.2f MB/s" ), pS->bandwidthConsumed.read() / 1000. ) );
+            }
+            else
+            {
+                bandwidth.Append( wxT( "-" ) );
+            }
+
+            double frameBufferUsage_pc = 0.;
+            if( pDev->state.read() == dsPresent )
+            {
+                PropertyI64 acquisitionMemoryFrameCount( m_pDevPropHandler->GetActiveDeviceAcquisitionMemoryFrameCount() );
+                if( acquisitionMemoryFrameCount.isValid() )
+                {
+                    frameBufferUsage_pc = 100. * ( static_cast<double>( acquisitionMemoryFrameCount.read() ) / static_cast<double>( acquisitionMemoryFrameCount.getMaxValue() ) );
+                }
+            }
+            bandwidth.Append( wxString::Format( wxT( ", Frame Buffer Usage: %.2f%%" ), frameBufferUsage_pc ) );
+            m_pStatusBar->SetStatusText( bandwidth, sbfBandwidthConsumed );
             m_pStatusBar->SetStatusText( wxString::Format( wxT( "Frames: %d" ), pS->frameCount.read() ), sbfFramesDelivered );
-            m_pStatusBar->SetStatusText( wxString::Format( wxT( "Errors: %d, Timeouts: %d, Aborted: %d, Lost: %d, Incomplete: %d" ), pS->errorCount.read(),
+            m_pStatusBar->SetStatusText( wxString::Format( wxT( "Errors: %d Timeouts: %d Aborted: %d Lost: %d Incomplete: %d" ), pS->errorCount.read(),
                                          pS->timedOutRequestsCount.read(), pS->abortedRequestsCount.read(), pS->lostImagesCount.read(), pS->framesIncompleteCount.read() ), sbfStatistics );
-            m_pStatusBar->SetStatusText( wxString::Format( wxT( "Exposure(us): %d" ), m_CurrentRequestDataContainer[m_CurrentRequestDataIndex].requestInfo_.exposeTime_us ), sbfExposeTime );
-            m_pStatusBar->SetStatusText( wxString::Format( wxT( "Gain(dB): %.4f" ), m_CurrentRequestDataContainer[m_CurrentRequestDataIndex].requestInfo_.gain_dB ), sbfGain );
         }
         else
         {
-            m_pStatusBar->SetStatusText( wxT( "FPS: -" ), sbfFramePerSecond );
+            m_pStatusBar->SetStatusText( wxT( "FPS: -, Display Frame Rate: -" ), sbfFramesPerSecond );
             m_pStatusBar->SetStatusText( wxT( "-" ), sbfBandwidthConsumed );
             m_pStatusBar->SetStatusText( wxT( "Frames: -" ), sbfFramesDelivered );
             m_pStatusBar->SetStatusText( wxT( "Errors: -, Timeouts: -, Aborted: -, Lost: -, Incomplete: -" ), sbfStatistics );
-            m_pStatusBar->SetStatusText( wxT( "Exposure(us): -" ), sbfExposeTime );
-            m_pStatusBar->SetStatusText( wxT( "Gain(dB): -" ), sbfGain );
         }
-        const wxString loadedFromDisc( wxT( "loaded from disc" ) );
-        wxString imageFormatMsg( wxString::Format( wxT( "Image format %dx%d, %s%s (%s)" ),
+        wxString imageFormatMsg( wxString::Format( wxT( "Image: %dx%d, %s%s" ),
                                  m_CurrentRequestDataContainer[m_CurrentRequestDataIndex].image_.getBuffer()->iWidth,
                                  m_CurrentRequestDataContainer[m_CurrentRequestDataIndex].image_.getBuffer()->iHeight,
                                  m_CurrentRequestDataContainer[m_CurrentRequestDataIndex].pixelFormat_.c_str(),
-                                 ( boSlowDisplay ? wxT( "(slow display because of conversion)" ) : wxT( "" ) ),
-                                 pCT ? pCT->GetLastRequestResult().c_str() : loadedFromDisc.c_str() ) );
+                                 ( boSlowDisplay ? wxT( "(slow display: Conversion needed)" ) : wxT( "" ) ) ) );
         m_pStatusBar->SetStatusText( imageFormatMsg, sbfImageFormat );
         RefreshCurrentPixelData();
     }
@@ -5644,6 +5794,32 @@ void PropViewFrame::UpdateToolTipWindowAndWizardStatus( wxPGId prop )
 }
 
 //-----------------------------------------------------------------------------
+void PropViewFrame::UpdateUserControlledImageProcessingEnableProperties( void )
+//-----------------------------------------------------------------------------
+{
+    const DeviceManager& devMgr = m_pDevPropHandler->GetDevMgr();
+    m_DeviceCount = devMgr.deviceCount();
+    const TBoolean desiredValue = ( m_defaultImageProcessingMode != ipmDefault ) ? bTrue : bFalse;
+    for( unsigned int i = 0; i < m_DeviceCount; i++ )
+    {
+        try
+        {
+            if( devMgr[i]->userControlledImageProcessingEnable.isValid() &&
+                devMgr[i]->userControlledImageProcessingEnable.isWriteable() &&
+                ( devMgr[i]->userControlledImageProcessingEnable.read() != desiredValue ) )
+            {
+                devMgr[i]->userControlledImageProcessingEnable.write( desiredValue );
+                WriteLogMessage( wxString::Format( wxT( "'UserControlledImageProcessingEnable' for device %d (%s) switched to '%s'.\n" ), i, ConvertedString( devMgr[i]->serial.read() ).c_str(), ConvertedString( devMgr[i]->userControlledImageProcessingEnable.readS() ).c_str() ) );
+            }
+        }
+        catch( const ImpactAcquireException& )
+        {
+            WriteErrorMessage( wxString::Format( wxT( "Failed to update 'UserControlledImageProcessingEnable' for device %d (%s).\n" ), i, ConvertedString( devMgr[i]->serial.read() ).c_str() ) );
+        }
+    }
+}
+
+//-----------------------------------------------------------------------------
 void PropViewFrame::UpdateUserExperience( const wxString& userExperience )
 //-----------------------------------------------------------------------------
 {
@@ -5677,8 +5853,20 @@ void PropViewFrame::Wizard_FileAccessControl( bool boUpload )
         {
             mvIMPACT::acquire::GenICam::FileAccessControl fac( pDev );
             wxArrayString choices;
-            if( BuildStringArrayFromPropertyDict<int64_type, PropertyI64>( choices, fac.fileSelector ) > 0 )
+            size_t fileSelectorCnt = BuildStringArrayFromPropertyDict<int64_type, PropertyI64>( choices, fac.fileSelector );
+            for( size_t i = 0; i < fileSelectorCnt; i++ )
             {
+                // do not present firmware related files to the user when working with the file access wizard
+                if( choices[i].Lower().Contains( wxT( "firmware" ) ) == true )
+                {
+                    choices.RemoveAt( i );
+                    i = 0;
+                    fileSelectorCnt = choices.GetCount();
+                }
+            }
+            if( choices.IsEmpty() == false )
+            {
+
                 const wxString fileNameDevice = ::wxGetSingleChoice( wxString::Format( wxT( "Please select the file you want to %s device '%s'" ), boUpload ? wxT( "upload to" ) : wxT( "download from" ), ConvertedString( pDev->serial.read() ).c_str() ),
                                                 wxString::Format( wxT( "File Access Control: %s" ), boUpload ? wxT( "File Upload" ) : wxT( "File Download" ) ),
                                                 choices,
@@ -5726,13 +5914,13 @@ void PropViewFrame::Wizard_FileAccessControl( bool boUpload )
                                         }
                                         if( file.good() )
                                         {
-                                            wxMessageDialog dlg( NULL, wxString::Format( wxT( "File '%s' successfully uploaded into file '%s' of device '%s'.\n" ), fileDlg.GetFilename().c_str(), fileNameDevice.c_str(), ConvertedString( pDev->serial.read() ).c_str() ), wxT( "File Upload Succeeded" ), wxOK );
-                                            dlg.ShowModal();
+                                            wxMessageDialog dlgUploadSuccessful( NULL, wxString::Format( wxT( "File '%s' successfully uploaded into file '%s' of device '%s'.\n" ), fileDlg.GetFilename().c_str(), fileNameDevice.c_str(), ConvertedString( pDev->serial.read() ).c_str() ), wxT( "File Upload Succeeded" ), wxOK );
+                                            dlgUploadSuccessful.ShowModal();
                                         }
                                         else
                                         {
-                                            wxMessageDialog dlg( NULL, wxString::Format( wxT( "Could not upload file '%s' into file '%s' of device '%s'.\n" ), fileDlg.GetFilename().c_str(), fileNameDevice.c_str(), ConvertedString( pDev->serial.read() ).c_str() ), wxT( "File Upload Failed" ), wxOK | wxICON_INFORMATION );
-                                            dlg.ShowModal();
+                                            wxMessageDialog dlgUploadFailed( NULL, wxString::Format( wxT( "Could not upload file '%s' into file '%s' of device '%s'.\n" ), fileDlg.GetFilename().c_str(), fileNameDevice.c_str(), ConvertedString( pDev->serial.read() ).c_str() ), wxT( "File Upload Failed" ), wxOK | wxICON_INFORMATION );
+                                            dlgUploadFailed.ShowModal();
                                         }
                                     }
                                     else
@@ -5943,11 +6131,11 @@ void PropViewFrame::Wizard_QuickSetup( void )
             switch( currentDeviceInterfaceLayout )
             {
             case dilGenICam:
-                m_pQuickSetupDlgGenICam = new WizardQuickSetupGenICam( this, dialogTitle, m_boMustShowQuickSetupWizard );
+                m_pQuickSetupDlgGenICam = new WizardQuickSetupGenICam( this, dialogTitle );
                 m_pQuickSetupDlgCurrent = m_pQuickSetupDlgGenICam;
                 break;
             case dilDeviceSpecific:
-                m_pQuickSetupDlgDeviceSpecific = new WizardQuickSetupDeviceSpecific( this, dialogTitle, m_boMustShowQuickSetupWizard );
+                m_pQuickSetupDlgDeviceSpecific = new WizardQuickSetupDeviceSpecific( this, dialogTitle );
                 m_pQuickSetupDlgCurrent = m_pQuickSetupDlgDeviceSpecific;
                 break;
             default:

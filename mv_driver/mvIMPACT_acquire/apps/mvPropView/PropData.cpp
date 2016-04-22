@@ -1,4 +1,11 @@
 //-----------------------------------------------------------------------------
+#if defined(linux) || defined(__linux) || defined(__linux__)
+#   include <sys/socket.h>
+#   include <arpa/inet.h>
+#   include <errno.h>
+#else
+#   include <winsock2.h>
+#endif // #if defined(linux) || defined(__linux) || defined(__linux__)
 #include "DataConversion.h"
 #include <limits>
 #include "PropTree.h"
@@ -11,10 +18,90 @@
 #include <wx/msgdlg.h>
 #include <wx/settings.h>
 #include <wx/stopwatch.h>
+#include <wx/tokenzr.h>
+
+#undef min // otherwise we can't work with the 'numeric_limits' template here as Windows defines a macro 'min'
+#undef max // otherwise we can't work with the 'numeric_limits' template here as Windows defines a macro 'max'
 
 using namespace std;
 using namespace mvIMPACT::acquire;
 
+//=============================================================================
+//============== Implementation helper functions ==============================
+//=============================================================================
+//-----------------------------------------------------------------------------
+template<typename _Ty>
+wxString GetIPv4AddressAsString( _Ty prop, const int index )
+//-----------------------------------------------------------------------------
+{
+    const int value = static_cast<int>( prop.read( index ) );
+    return wxString::Format( wxT( "%d.%d.%d.%d" ), ( value >> 24 ) & 0xFF,
+                             ( value >> 16 ) & 0xFF,
+                             ( value >> 8 ) & 0xFF,
+                             value & 0xFF );
+}
+
+//-----------------------------------------------------------------------------
+wxString MACAddressToString( int64_type MACAddress )
+//-----------------------------------------------------------------------------
+{
+    return wxString::Format( wxT( "%02x:%02x:%02x:%02x:%02x:%02x" ),
+                             static_cast<unsigned char>( ( MACAddress >> 40 ) & 0xFF ),
+                             static_cast<unsigned char>( ( MACAddress >> 32 ) & 0xFF ),
+                             static_cast<unsigned char>( ( MACAddress >> 24 ) & 0xFF ),
+                             static_cast<unsigned char>( ( MACAddress >> 16 ) & 0xFF ),
+                             static_cast<unsigned char>( ( MACAddress >> 8  ) & 0xFF ),
+                             static_cast<unsigned char>( ( MACAddress       ) & 0xFF ) );
+}
+
+//-----------------------------------------------------------------------------
+/// \brief This function expects an input in this format: 'AA:BB:CC:DD:EE:FF'
+int64_type MACAddressFromString( const wxString& MAC )
+//-----------------------------------------------------------------------------
+{
+    int64_type result = 0;
+    wxStringTokenizer tokenizer( MAC, wxString( wxT( ":" ) ), wxTOKEN_STRTOK );
+    vector<string> v;
+    while( tokenizer.HasMoreTokens() )
+    {
+        v.push_back( string( tokenizer.GetNextToken().mb_str() ) );
+    }
+
+    const vector<string>::size_type cnt = v.size();
+    if( cnt != 6 )
+    {
+        // invalid string format
+        return 0;
+    }
+    for( vector<string>::size_type i = 0; i < cnt; i++ )
+    {
+        if( v[i].length() != 2 )
+        {
+            // invalid string format
+            return 0;
+        }
+        if( v[i].find_first_not_of( "0123456789abcdefABCDEF" ) != string::npos )
+        {
+            // invalid string format
+            return 0;
+        }
+    }
+    for( vector<string>::size_type i = 0; i < cnt; i++ )
+    {
+        unsigned int val;
+#if defined(_MSC_VER) && (_MSC_VER >= 1400) // is at least VC 2005 compiler?
+        sscanf_s( v[i].c_str(), "%x", &val );
+#else
+        sscanf( v[i].c_str(), "%x", &val );
+#endif // #if defined(_MSC_VER) && (_MSC_VER >= 1400)
+        result = result | ( static_cast<int64_type>( val ) << ( 8 * ( cnt - 1 - i ) ) );
+    }
+    return result;
+}
+
+//=============================================================================
+//========================= wxBinaryDataPropertyClass =========================
+//=============================================================================
 //-----------------------------------------------------------------------------
 class wxBinaryDataPropertyClass : public wxLongStringPropertyClass
 //-----------------------------------------------------------------------------
@@ -45,7 +132,7 @@ wxValidator* wxBinaryDataPropertyClass::GetClassValidator( void )
 //-----------------------------------------------------------------------------
 {
     WX_PG_DOGETVALIDATOR_ENTRY()
-    // Atleast wxPython 2.6.2.1 required that the string argument is given
+    // At least wxPython 2.6.2.1 required that the string argument is given
     static wxString v;
     HEXStringValidator* validator = new HEXStringValidator( &v );
     WX_PG_DOGETVALIDATOR_EXIT( validator )
@@ -494,9 +581,27 @@ PropertyObject::PropertyObject( HOBJ hObj, int index /* = 0 */ )
 wxString PropertyObject::GetCurrentValueAsString( void ) const
 //-----------------------------------------------------------------------------
 {
-    if( ( GetComponent().type() == ctPropString ) && ( GetComponent().flags() & cfContainsBinaryData ) )
+    const TComponentType type = GetComponent().type();
+    const TComponentRepresentation representation = GetComponent().representation();
+    if( ( representation == crBoolean ) && ( type == ctPropInt ) )
     {
-        // The 'GetComponent().type()' check is only needed because some drivers with versions < 1.12.33
+        return PropertyI( GetComponent() ).read( m_Index ) == 0 ? wxT( "False" ) : wxT( "True" );
+    }
+    else if( ( representation == crIPv4Address ) && ( type == ctPropInt ) )
+    {
+        return GetIPv4AddressAsString( PropertyI( GetComponent() ), m_Index );
+    }
+    else if( ( representation == crIPv4Address ) && ( type == ctPropInt64 ) )
+    {
+        return GetIPv4AddressAsString( PropertyI64( GetComponent() ), m_Index );
+    }
+    else if( ( representation == crMACAddress ) && ( type == ctPropInt64 ) )
+    {
+        return MACAddressToString( PropertyI64( GetComponent() ).read( m_Index ) );
+    }
+    else if( ( type == ctPropString ) && ( GetComponent().flags() & cfContainsBinaryData ) )
+    {
+        // The 'type' check is only needed because some drivers with versions < 1.12.33
         // did incorrectly specify the 'cfContainsBinaryData' flag even though the data type was not 'ctPropString'...
         return ConvertedString( BinaryDataToString( PropertyS( GetComponent() ).readBinary( m_Index ) ) );
     }
@@ -566,17 +671,34 @@ void PropertyObject::WritePropVal( const string& value ) const
 void PropertyObject::WritePropVal( const string& value, const int index ) const
 //-----------------------------------------------------------------------------
 {
-    if( ( GetComponent().type() == ctPropString ) && ( GetComponent().flags() & cfContainsBinaryData ) )
+    const TComponentType type = GetComponent().type();
+    const TComponentRepresentation representation = GetComponent().representation();
+    if( ( representation == crBoolean ) && ( type == ctPropInt ) )
     {
-        // The 'GetComponent().type()' check is only needed because some drivers with versions < 1.12.33
+        PropertyI prop( GetComponent() );
+        prop.write( value == "True", index );
+    }
+    else if( ( representation == crIPv4Address ) && ( type == ctPropInt ) )
+    {
+        PropertyI( GetComponent() ).write( ntohl( inet_addr( value.c_str() ) ), index );
+    }
+    else if( ( representation == crIPv4Address ) && ( type == ctPropInt64 ) )
+    {
+        PropertyI64( GetComponent() ).write( static_cast<int64_type>( ntohl( inet_addr( value.c_str() ) ) ), index );
+    }
+    else if( ( representation == crMACAddress ) && ( type == ctPropInt64 ) )
+    {
+        PropertyI64( GetComponent() ).write( MACAddressFromString( ConvertedString( value ) ), index );
+    }
+    else if( ( type == ctPropString ) && ( GetComponent().flags() & cfContainsBinaryData ) )
+    {
+        // The 'type' check is only needed because some drivers with versions < 1.12.33
         // did incorrectly specify the 'cfContainsBinaryData' flag even though the data type was not 'ctPropString'...
-        const PropertyS prop( GetComponent() );
-        prop.writeBinary( BinaryDataFromString( value ), index );
+        PropertyS( GetComponent() ).writeBinary( BinaryDataFromString( value ), index );
     }
     else
     {
-        const Property prop( GetComponent() );
-        prop.writeS( value, index );
+        Property( GetComponent() ).writeS( value, index );
     }
 }
 
@@ -753,6 +875,7 @@ void PropertyObject::EnsureValidGridItem( const PropTree* pPropTree, wxPGId pare
     {
         const wxString elementName( GetDisplayName( flags ) );
         const TComponentType type = GetComponent().type();
+        const TComponentRepresentation representation = GetComponent().representation();
         switch( type )
         {
         case ctPropInt:
@@ -760,7 +883,7 @@ void PropertyObject::EnsureValidGridItem( const PropTree* pPropTree, wxPGId pare
         case ctPropFloat:
             {
                 const Property prop( GetComponent() );
-                TComponentFlag componentFlags( prop.flags() );
+                const TComponentFlag componentFlags( prop.flags() );
                 if( ( componentFlags & cfShouldBeDisplayedAsEnumeration ) || prop.hasDict() )
                 {
                     if( componentFlags & cfAllowValueCombinations )
@@ -769,23 +892,35 @@ void PropertyObject::EnsureValidGridItem( const PropTree* pPropTree, wxPGId pare
                     }
                     else
                     {
-                        m_Type = _ctrlCombo;
+                        m_Type = ( representation == crBoolean ) ? _ctrlBoolean : _ctrlCombo;
                     }
                 }
                 else
                 {
-                    m_Type = _ctrlSpinner;
+                    switch( representation )
+                    {
+                    case crBoolean:
+                        m_Type = _ctrlBoolean;
+                        break;
+                    case crIPv4Address:
+                    case crMACAddress:
+                        m_Type = _ctrlEdit;
+                        break;
+                    default:
+                        m_Type = _ctrlSpinner;
+                        break;
+                    }
                 }
             }
             break;
         case ctPropString:
             {
-                wxString lowerCaseName( elementName.Lower() );
-                if( lowerCaseName.Contains( wxString( wxT( "directory" ) ) ) )
+                const wxString lowerCaseName( elementName.Lower() );
+                if( ( representation == crDirectoryName ) || lowerCaseName.Contains( wxString( wxT( "directory" ) ) ) )
                 {
                     m_Type = _ctrlDirSelector;
                 }
-                else if( lowerCaseName.Contains( wxString( wxT( "filename" ) ) ) )
+                else if( ( representation == crFileName ) || lowerCaseName.Contains( wxString( wxT( "filename" ) ) ) )
                 {
                     m_Type = _ctrlFileSelector;
                 }
@@ -806,9 +941,13 @@ void PropertyObject::EnsureValidGridItem( const PropTree* pPropTree, wxPGId pare
             break;
         }
 
-        bool boIsSelector = GetComponent().selectedFeatureCount() > 0;
+        const bool boIsSelector = GetComponent().selectedFeatureCount() > 0;
         switch( m_Type )
         {
+        case _ctrlBoolean:
+            m_GridItemId = m_pParentGrid->AppendIn( parentItem, NOW_NEW wxBoolProperty( elementName, wxPG_LABEL ) );
+            m_pParentGrid->SetPropertyAttribute( m_GridItemId, wxPG_BOOL_USE_CHECKBOX, wxVariant( 1 ) );
+            break;
         case _ctrlSpinner:
             if( ( type == ctPropInt ) || ( type == ctPropInt64 ) || ( type == ctPropFloat ) )
             {
@@ -941,23 +1080,24 @@ void PropertyObject::Update( const PropTree* /*pPropTree*/, EDisplayFlags flags,
     {
     case _ctrlEdit:
         {
-            string str;
             const unsigned int valCnt = prop.valCount();
             if( ( valCnt > 1 ) && !m_boVectorAsList )
             {
+                string str;
                 for( unsigned int i = 0; i < valCnt; i++ )
                 {
                     str.append( prop.readS( i ) );
                     str.append( " " );
                 }
+                m_pParentGrid->SetPropertyValueString( m_GridItemId, ConvertedString( str ) );
             }
             else
             {
-                str.append( prop.readS( m_Index ) );
+                m_pParentGrid->SetPropertyValueString( m_GridItemId, GetCurrentValueAsString() );
             }
-            m_pParentGrid->SetPropertyValueString( m_GridItemId, ConvertedString( str ) );
         }
         break;
+    case _ctrlBoolean:
     case _ctrlSpinner:
     case _ctrlDirSelector:
     case _ctrlFileSelector:

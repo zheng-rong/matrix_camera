@@ -79,14 +79,17 @@ void PropGridFrameBase::ConfigureToolTipsForPropertyGrids( const bool boEnable )
     const PropGridMap::iterator itEND = m_propGrids.end();
     while( it != itEND )
     {
-        long style = it->second->GetExtraStyle();
+        const long style = it->second->GetWindowStyle();
+        const long extraStyle = it->second->GetExtraStyle();
         if( boEnable )
         {
-            it->second->SetExtraStyle( style | wxPG_EX_HELP_AS_TOOLTIPS );
+            it->second->SetWindowStyle( style | wxPG_TOOLTIPS );
+            it->second->SetExtraStyle( extraStyle | wxPG_EX_HELP_AS_TOOLTIPS );
         }
         else
         {
-            it->second->SetExtraStyle( style & ~wxPG_EX_HELP_AS_TOOLTIPS );
+            it->second->SetWindowStyle( style & ~wxPG_TOOLTIPS );
+            it->second->SetExtraStyle( extraStyle & ~wxPG_EX_HELP_AS_TOOLTIPS );
         }
         ++it;
     }

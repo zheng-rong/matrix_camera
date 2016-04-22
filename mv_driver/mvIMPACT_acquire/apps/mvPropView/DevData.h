@@ -39,8 +39,8 @@ struct DeviceData
 //------------------------------------------------------------------------------
 {
     DeviceData( PropTree* pDrv, PropTree* pDev ) : pDriverTree( pDrv ), pDeviceTree( pDev ), pFuncInterface( 0 ),
-        pStatistics( 0 ), pInfo( 0 ), acquisitionMode(), acquisitionFrameCount(), pCaptureThread( 0 ),
-        boWasLive( false ), lockedRequest( mvIMPACT::acquire::INVALID_ID ) {}
+        pStatistics( 0 ), pInfo( 0 ), acquisitionMode(), acquisitionFrameCount(), mvAcquisitionMemoryFrameCount(),
+        pCaptureThread( 0 ), boWasLive( false ), lockedRequest( mvIMPACT::acquire::INVALID_ID ) {}
     PropTree*                               pDriverTree;
     PropTree*                               pDeviceTree;
     PropTreeVector                          vDriverTrees;
@@ -49,6 +49,7 @@ struct DeviceData
     mvIMPACT::acquire::Info*                pInfo;
     mvIMPACT::acquire::Property             acquisitionMode;
     mvIMPACT::acquire::PropertyI64          acquisitionFrameCount;
+    mvIMPACT::acquire::PropertyI64          mvAcquisitionMemoryFrameCount;
     CaptureThread*                          pCaptureThread;
     bool                                    boWasLive;
     int                                     lockedRequest;

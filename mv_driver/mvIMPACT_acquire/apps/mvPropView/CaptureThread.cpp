@@ -53,14 +53,15 @@ unsigned int CaptureThread::m_instanceCnt = 0;
 //-----------------------------------------------------------------------------
 CaptureThread::CaptureThread( FunctionInterface* pFuncInterface, Device* pDev, wxWindow* pParentWindow, unsigned int pendingImageQueueDepth ) :
     wxThread( wxTHREAD_JOINABLE ), m_boLive( false ), m_boRecord( false ), m_boContinuousRecording( false ), m_boForwardIncompleteFrames( false ),
-    m_currentRequest( INVALID_ID ), m_discardedImages( 0 ), m_instanceNr( m_instanceCnt++ ),
-    m_lastErrorMessage(), m_lastRequestResult(), m_currentPlotInfoPath(), m_nextPendingRequest( INVALID_ID ),
+    m_currentRequest( INVALID_ID ), m_instanceNr( m_instanceCnt++ ),
+    m_lastErrorMessage(), m_currentPlotInfoPath(), m_nextPendingRequest( INVALID_ID ),
     m_pendingRequestsForDisplayMax( static_cast<list<int>::size_type>( ( pendingImageQueueDepth < 1 ) ? 1 : pendingImageQueueDepth ) ), m_pendingRequestsForDisplay(),
     m_parentWindowID( pParentWindow->GetId() ), m_pDev( pDev ), m_pFuncInterface( pFuncInterface ),
-    m_ImageRequestControl( pDev ), m_SettingIndex( 0 ), m_pParentWindowEventHandler( pParentWindow->GetEventHandler() ),
+    m_ImageRequestControl( pDev ), m_SystemSettings( pDev ), m_ImageProcessingMode( ipmDefault ), m_SettingIndex( 0 ), m_pParentWindowEventHandler( pParentWindow->GetEventHandler() ),
     m_currentSequenceIndexToDisplay( 0 ), m_currentCountToRecord( 0 ), m_totalCountToRecord( 0 ),
     m_maxNumberToRequest( 0 ), m_numberRequested( 0 ), m_numberReturned( 0 ),
-    m_SkippedImageCount( 0 ), m_captureQueueDepth( 0 ), m_currentlyActiveRequests( 0 )
+    m_skippedImageCount( 0 ), m_capturedImagesCount( 0 ), m_capturedImagesSentToDisplayCount( 0 ),
+    m_percentageOfImagesSentToDisplay( 100. ), m_captureQueueDepth( 0 ), m_currentlyActiveRequests( 0 )
 //-----------------------------------------------------------------------------
 {
 #if MULTI_SETTING_HACK
@@ -101,7 +102,7 @@ bool CaptureThread::CheckSequenceRestart( bool boInformUserOnRecordStart ) const
 }
 
 //-----------------------------------------------------------------------------
-void CaptureThread::CollectBufferInfo( ComponentIterator it, std::vector<wxString>& infoStrings, const wxString& path /* = wxT("") */ ) const
+void CaptureThread::CollectBufferInfo( ComponentIterator it, ComponentIterator itImageProcessingResults, std::vector<wxString>& infoStrings, const wxString& path /* = wxT("") */ ) const
 //-----------------------------------------------------------------------------
 {
     while( it.isValid() )
@@ -126,10 +127,54 @@ void CaptureThread::CollectBufferInfo( ComponentIterator it, std::vector<wxStrin
             }
             else if( it.isList() )
             {
-                CollectBufferInfo( it.firstChild(), infoStrings, path + ConvertedString( it.name() ) + wxT( "/" ) );
+                if( it.firstChild().hObj() == itImageProcessingResults.hObj() )
+                {
+                    CollectBufferInfo_ImageProcessingResults( it.firstChild(), infoStrings );
+                }
+                else
+                {
+                    CollectBufferInfo( it.firstChild(), itImageProcessingResults, infoStrings, path + ConvertedString( it.name() ) + wxT( "/" ) );
+                }
             }
         }
         ++it;
+    }
+}
+
+//-----------------------------------------------------------------------------
+void CaptureThread::CollectBufferInfo_ImageProcessingResults( ComponentIterator it, std::vector<wxString>& infoStrings ) const
+//-----------------------------------------------------------------------------
+{
+    wxString data;
+    while( it.isValid() )
+    {
+        if( it.isVisible() && it.isProp() )
+        {
+            PropertyIImageProcessingResult prop( it );
+            const TImageProcessingResult ipr = prop.read();
+            switch( ipr )
+            {
+            case iprApplied:
+            case iprFailure:
+                if( !data.IsEmpty() )
+                {
+                    data.Append( wxT( " -> " ) );
+                }
+                data.Append( ConvertedString( prop.name() ) );
+                if( ipr == iprFailure )
+                {
+                    data.Append( wxT( "(FAILED)" ) );
+                }
+                break;
+            default:
+                break;
+            }
+        }
+        ++it;
+    }
+    if( !data.IsEmpty() )
+    {
+        infoStrings.push_back( wxString::Format( wxT( "Image Processing Applied: %s" ), data.c_str() ) );
     }
 }
 
@@ -219,12 +264,11 @@ void* CaptureThread::Entry( void )
                             wxCriticalSectionLocker locker_config( m_critSectConfig );
                             --m_currentlyActiveRequests;
                             ++m_numberReturned;
-                            m_lastRequestResult = ConvertedString( pReq->requestResult.readS().c_str() );
                         }
                         TRequestResult rr = pReq->requestResult.read();
-                        HOBJ settingUsed = ( pReq->infoSettingUsed.isValid() ) ? static_cast<HOBJ>( pReq->infoSettingUsed.read() ) : static_cast<HOBJ>( INVALID_ID );
+                        HOBJ hSettingUsed = ( pReq->infoSettingUsed.isValid() ) ? static_cast<HOBJ>( pReq->infoSettingUsed.read() ) : static_cast<HOBJ>( INVALID_ID );
 #if MULTI_SETTING_HACK
-                        if( settingUsed == INVALID_ID )
+                        if( hSettingUsed == INVALID_ID )
                         {
                             // deal with drivers that do not support the 'SettingUsed' property
                             if( m_PendingRequests[0] > 0 )
@@ -236,7 +280,7 @@ void* CaptureThread::Entry( void )
                         {
                             for( unsigned int i = 0; i < m_SettingCount; i++ )
                             {
-                                if( ( m_Settings[i].second == settingUsed ) && ( m_PendingRequests[i] > 0 ) )
+                                if( ( m_Settings[i].second == hSettingUsed ) && ( m_PendingRequests[i] > 0 ) )
                                 {
                                     if( rr == rrOK )
                                     {
@@ -265,10 +309,16 @@ void* CaptureThread::Entry( void )
 #endif // #if MULTI_SETTING_HACK
                         wxCommandEvent eInfo( imageInfoEvent, m_parentWindowID );
                         RequestInfoData* pReqInfo = new RequestInfoData();
-                        GetRequestInfoData( pReqInfo, pReq, settingUsed );
+                        GetRequestInfoData( pReqInfo, pReq, hSettingUsed );
                         eInfo.SetClientData( pReqInfo );
                         ::wxPostEvent( m_pParentWindowEventHandler, eInfo );
-                        if( ( rr == rrOK ) || ( ( rr == rrFrameIncomplete ) && m_boForwardIncompleteFrames ) )
+                        const bool boRequestProcessingSkipped = pReq->hasProcessingBeenSkipped();
+                        if( ( rr != rrRequestAborted ) && !( rr & rrUnprocessibleRequest ) )
+                        {
+                            ++m_capturedImagesCount;
+                        }
+                        if( ( ( rr == rrOK ) || ( ( rr == rrFrameIncomplete ) && m_boForwardIncompleteFrames ) ) &&
+                            !boRequestProcessingSkipped )
                         {
                             if( m_boRecord )
                             {
@@ -278,22 +328,13 @@ void* CaptureThread::Entry( void )
                             {
                                 if( m_nextPendingRequest != INVALID_ID )
                                 {
-                                    const Request* pRequestToUnlock = m_pFuncInterface->getRequest( m_nextPendingRequest );
-                                    int settingUsed = ( pRequestToUnlock->infoSettingUsed.isValid() ) ? pRequestToUnlock->infoSettingUsed.read() : INVALID_ID;
+                                    const int settingUsed = GetSettingUsedForRequest( m_pFuncInterface->getRequest( m_nextPendingRequest ) );
                                     UnlockRequest( m_nextPendingRequest );
-                                    ++m_discardedImages;
-                                    if( m_SkippedImageCount++ == 0 )
-                                    {
-                                        wxCommandEvent e( imageSkippedEvent, m_parentWindowID );
-                                        e.SetInt( settingUsed );
-                                        ::wxPostEvent( m_pParentWindowEventHandler, e );
-                                    }
+                                    SendImageSkippedEvent( settingUsed );
                                 }
                                 else
                                 {
-                                    wxCommandEvent e( imageReadyEvent, m_parentWindowID );
-                                    e.SetClientData( m_pDev );
-                                    ::wxPostEvent( m_pParentWindowEventHandler, e );
+                                    SendImageReadyEvent();
                                 }
                                 m_nextPendingRequest = requestNr;
                             }
@@ -303,24 +344,15 @@ void* CaptureThread::Entry( void )
                                 {
                                     while( m_pendingRequestsForDisplay.size() >= m_pendingRequestsForDisplayMax )
                                     {
-                                        const Request* pRequestToUnlock = m_pFuncInterface->getRequest( m_pendingRequestsForDisplay.front() );
-                                        int settingUsed = ( pRequestToUnlock->infoSettingUsed.isValid() ) ? pRequestToUnlock->infoSettingUsed.read() : INVALID_ID;
+                                        const int settingUsed = GetSettingUsedForRequest( m_pFuncInterface->getRequest( m_pendingRequestsForDisplay.front() ) );
                                         UnlockRequest( m_pendingRequestsForDisplay.front() );
                                         m_pendingRequestsForDisplay.pop_front();
-                                        ++m_discardedImages;
-                                        if( m_SkippedImageCount++ == 0 )
-                                        {
-                                            wxCommandEvent e( imageSkippedEvent, m_parentWindowID );
-                                            e.SetInt( settingUsed );
-                                            ::wxPostEvent( m_pParentWindowEventHandler, e );
-                                        }
+                                        SendImageSkippedEvent( settingUsed );
                                     }
                                 }
                                 else
                                 {
-                                    wxCommandEvent e( imageReadyEvent, m_parentWindowID );
-                                    e.SetClientData( m_pDev );
-                                    ::wxPostEvent( m_pParentWindowEventHandler, e );
+                                    SendImageReadyEvent();
                                 }
                                 m_pendingRequestsForDisplay.push_back( requestNr );
                             }
@@ -336,7 +368,13 @@ void* CaptureThread::Entry( void )
                             {
                                 m_lastErrorMessage = ConvertedString( pReq->requestResult.readS() );
                             }
+                            const int settingUsed = boRequestProcessingSkipped ? GetSettingUsedForRequest( m_pFuncInterface->getRequest( requestNr ) ) : INVALID_ID;
                             m_pFuncInterface->imageRequestUnlock( requestNr );
+                            if( boRequestProcessingSkipped )
+                            {
+                                SendImageSkippedEvent( settingUsed );
+                            }
+
                             if( GetLiveMode() )
                             {
                                 // Livemode is stopped depending on request result
@@ -405,7 +443,6 @@ void* CaptureThread::Entry( void )
                     else
                     {
                         m_pFuncInterface->imageRequestUnlock( requestNr );
-                        ++m_discardedImages;
                     }
                 }
             }
@@ -493,23 +530,24 @@ void CaptureThread::GetImageInfo( bool boFillInfoVector, std::vector<wxString>& 
     if( m_currentRequest != INVALID_ID )
     {
         const Request* pRequest = m_pFuncInterface->getRequest( m_currentRequest );
-        if( pRequest )
+        if( pRequest && boFillInfoVector )
         {
-            if( boFillInfoVector )
-            {
-                ComponentIterator it( pRequest->getInfoIterator() );
-                CollectBufferInfo( it, infoStrings );
-            }
+            ComponentIterator it( pRequest->getInfoIterator() );
+            CollectBufferInfo( it, pRequest->getImageProcessingResultsIterator(), infoStrings );
         }
     }
 }
 
 //-----------------------------------------------------------------------------
-wxString CaptureThread::GetLastRequestResult( void ) const
+double CaptureThread::GetPercentageOfImagesSentToDisplay( void ) const
 //-----------------------------------------------------------------------------
 {
-    wxCriticalSectionLocker locker_config( m_critSectConfig );
-    return m_lastRequestResult;
+    wxCriticalSectionLocker locker( m_critSect );
+    const double result = ( m_capturedImagesCount == 0 ) ? 100. : 100. * ( static_cast<double>( m_capturedImagesSentToDisplayCount ) / static_cast<double>( m_capturedImagesCount ) );
+    m_capturedImagesSentToDisplayCount = 0;
+    m_capturedImagesCount = 0;
+    m_percentageOfImagesSentToDisplay = 0.9 * m_percentageOfImagesSentToDisplay + 0.1 * result;
+    return m_percentageOfImagesSentToDisplay;
 }
 
 //-----------------------------------------------------------------------------
@@ -523,10 +561,10 @@ void CaptureThread::GetRequestInfoData( RequestInfoData* pReqInfo, const Request
         switch( p.type() )
         {
         case ctPropInt:
-            pReqInfo->plotValue.value.intRep    = PropertyI( p ).read();
+            pReqInfo->plotValue.value.intRep = PropertyI( p ).read();
             break;
         case ctPropInt64:
-            pReqInfo->plotValue.value.int64Rep  = PropertyI64( p ).read();
+            pReqInfo->plotValue.value.int64Rep = PropertyI64( p ).read();
             break;
         case ctPropFloat:
             pReqInfo->plotValue.value.doubleRep = PropertyF( p ).read();
@@ -547,8 +585,8 @@ void CaptureThread::GetRequestInfoData( RequestInfoData* pReqInfo, const Request
 size_t CaptureThread::GetSkippedImageCount( void )
 //-----------------------------------------------------------------------------
 {
-    size_t res = m_SkippedImageCount;
-    m_SkippedImageCount = 0;
+    size_t res = m_skippedImageCount;
+    m_skippedImageCount = 0;
     return res;
 }
 
@@ -556,6 +594,9 @@ size_t CaptureThread::GetSkippedImageCount( void )
 bool CaptureThread::InternalSetLiveMode( bool boOn, bool boInformUserOnRecordStart /* = true */ )
 //-----------------------------------------------------------------------------
 {
+    m_capturedImagesCount = 0;
+    m_capturedImagesSentToDisplayCount = 0;
+    m_percentageOfImagesSentToDisplay = 100.;
     if( boOn )
     {
         UnlockPendingRequests();
@@ -570,9 +611,11 @@ bool CaptureThread::InternalSetLiveMode( bool boOn, bool boInformUserOnRecordSta
         {
             FreeSequence();
         }
-
-        m_discardedImages = 0;
-        m_SkippedImageCount = 0;
+        if( m_SystemSettings.imageProcessingMode.isValid() )
+        {
+            m_SystemSettings.imageProcessingMode.write( m_boRecord ? ipmDefault : m_ImageProcessingMode );
+        }
+        m_skippedImageCount = 0;
         int framesRequested = 0;
         int result = RequestImages( &framesRequested );
         if( ( result == DMR_NO_ERROR ) ||
@@ -773,6 +816,28 @@ int CaptureThread::RequestImages( int* pFramesRequested /* = 0 */ )
 }
 
 //-----------------------------------------------------------------------------
+void CaptureThread::SendImageSkippedEvent( const int settingUsed )
+//-----------------------------------------------------------------------------
+{
+    if( m_skippedImageCount++ == 0 )
+    {
+        wxCommandEvent e( imageSkippedEvent, m_parentWindowID );
+        e.SetInt( settingUsed );
+        ::wxPostEvent( m_pParentWindowEventHandler, e );
+    }
+}
+
+//-----------------------------------------------------------------------------
+void CaptureThread::SendImageReadyEvent( void )
+//-----------------------------------------------------------------------------
+{
+    ++m_capturedImagesSentToDisplayCount;
+    wxCommandEvent e( imageReadyEvent, m_parentWindowID );
+    e.SetClientData( m_pDev );
+    ::wxPostEvent( m_pParentWindowEventHandler, e );
+}
+
+//-----------------------------------------------------------------------------
 void CaptureThread::SetActive( void )
 //-----------------------------------------------------------------------------
 {
@@ -819,6 +884,14 @@ void CaptureThread::SetCurrentPlotInfoPath( const string& currentPlotInfoPath )
 {
     wxCriticalSectionLocker locker( m_critSect );
     m_currentPlotInfoPath = currentPlotInfoPath;
+}
+
+//-----------------------------------------------------------------------------
+void CaptureThread::SetImageProcessingMode( TImageProcessingMode mode )
+//-----------------------------------------------------------------------------
+{
+    wxCriticalSectionLocker locker( m_critSect );
+    m_ImageProcessingMode = mode;
 }
 
 //-----------------------------------------------------------------------------

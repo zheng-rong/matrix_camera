@@ -117,6 +117,7 @@ wxPGWindowPair wxPGCustomSpinCtrlEditor::CreateControls ( wxPropertyGrid* pPropG
 
     wxString valStr = pPropGrid->GetPropertyValueAsString( pProperty );
     double value = ToDouble( mode, valStr, format );
+    const bool boLogarithmicBehaviour = pPropData ? pPropData->GetComponent().representation() == crLogarithmic : false;
 
     // Use two stage creation to allow cleaner display on wxMSW
     wxSpinCtrlDbl* pEditor = new wxSpinCtrlDbl();
@@ -128,12 +129,12 @@ wxPGWindowPair wxPGCustomSpinCtrlEditor::CreateControls ( wxPropertyGrid* pPropG
     wxSize size( sz );
     /// \todo find out why 'sz' is too small...
     size.SetHeight( sz.GetHeight() + 6 );
-    if( !pEditor->Create( pPropGrid, wxPG_SUBID1, text, pos, size, wxSP_ARROW_KEYS, min, max, value, step, 0xff, format.IsEmpty() ? wxString() : format, wxT( "wxSpinCtrlDbl" ), m_boCreateSlider ) )
+    if( !pEditor->Create( pPropGrid, wxPG_SUBID1, text, pos, size, wxSP_ARROW_KEYS, min, max, value, step, 0xff, format.IsEmpty() ? wxString() : format, wxT( "wxSpinCtrlDbl" ), m_boCreateSlider, boLogarithmicBehaviour ) )
     {
         wxASSERT( !"Failed wxControl::Create" );
     }
     // Connect all required events to grid's OnCustomEditorEvent
-    // (all relevenat wxTextCtrl, wxComboBox and wxButton events are
+    // (all relevant wxTextCtrl, wxComboBox and wxButton events are
     // already connected)
     pPropGrid->Connect( wxPG_SUBID1, wxEVT_COMMAND_SPINCTRL_UPDATED, ( wxObjectEventFunction )( wxEventFunction )( wxCommandEventFunction )&wxPropertyGrid::OnCustomEditorEvent );
 

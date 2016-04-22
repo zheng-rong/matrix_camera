@@ -79,7 +79,7 @@ private:
     static void                         RefreshApplicationExitCode( const int result );
     int                                 SetID( Device* pDev, int newID );
     void                                UpdateDeviceList( void );
-    int                                 UpdateFirmware( Device* pDev, bool boSilentMode, bool boPersistentUserSets );
+    int                                 UpdateFirmware( Device* pDev, bool boSilentMode, bool boPersistentUserSets, const wxString& customFirmwareFileName = wxEmptyString );
     int                                 UpdateKernelDriver( Device* pDev, bool boSilentMode );
     static int                          m_updateResult;
     mvIMPACT::acquire::DeviceManager    m_devMgr;
@@ -96,6 +96,7 @@ private:
     unsigned int                        m_lastDevMgrChangedCount;
     LogConfigurationVector              m_debugData;
     DeviceHandlerFactory                m_deviceHandlerFactory;
+    wxString                            m_customFirmwareFile;
     wxString                            m_customFirmwarePath;
     wxString                            m_customGenICamFile;
     std::vector<std::string>            m_IPv4Masks;
@@ -106,14 +107,15 @@ private:
         std::string searchToken_;
         bool boUpdateKernelDriver_;
         bool boUpdateFW_;
+        wxString customFirmwareFileName_;
         bool boSetDeviceID_;
         int deviceID_;
         explicit DeviceConfigurationData( const std::string& searchToken ) : searchToken_( searchToken ),
-            boUpdateKernelDriver_( false ), boUpdateFW_( false ),
+            boUpdateKernelDriver_( false ), boUpdateFW_( false ), customFirmwareFileName_(),
             boSetDeviceID_( false ), deviceID_( -1 ) {}
     };
     void GetConfigurationEntriesFromFile( const wxString& fileName );
-    std::map<wxString, DeviceConfigurationData>::iterator GetConfigurationEntry( wxString& value );
+    std::map<wxString, DeviceConfigurationData>::iterator GetConfigurationEntry( const wxString& value );
     std::map<wxString, DeviceConfigurationData> m_devicesToConfigure;
     bool m_boPendingQuit;
 #ifdef BUILD_WITH_PROCESSOR_POWER_STATE_CONFIGURATION_SUPPORT

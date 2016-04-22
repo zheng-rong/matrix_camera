@@ -195,7 +195,7 @@ int main(int /*argc*/, char* /*argv[]*/)
 	const Request* pRequest = fi.getRequest(requestNr);
 	if( !pRequest->isOK() )
 	{
-		cout << \"*** Error: \" << pRequest->getParamS( irpResult ) << endl;
+		cout << \"*** Error: \" << pRequest->requestResult.readS() << endl;
 		// if the application wouldn't terminate at this point this buffer HAS TO be unlocked before
 		// it can be used again as currently it is under control of the user. However terminating the application
 		// will free the resources anyway thus the call

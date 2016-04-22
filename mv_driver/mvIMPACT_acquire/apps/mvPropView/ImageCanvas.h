@@ -78,6 +78,7 @@ public:
     void                                    SetInfoOverlay( const std::vector<wxString>& infoStrings );
     void                                    SetInfoOverlayMode( bool boOn );
     void                                    ResetRequestInProgressFlag( void );
+    void                                    ResetSkippedImagesCounter( void );
     void                                    SetImageModificationWarningOutput( bool boOn );
     bool                                    GetImageModificationWarningOutput( void ) const
     {
@@ -120,7 +121,8 @@ private:
     //-----------------------------------------------------------------------------
     {
         zimMultiply,
-        zimDivide
+        zimDivide,
+        zimFixedValue
     };
     //-----------------------------------------------------------------------------
     // IDs for the controls and the menu commands
@@ -128,6 +130,7 @@ private:
     //-----------------------------------------------------------------------------
     {
         miPopUpFitToScreen = 1,
+        miPopUpOneToOneDisplay,
         miPopUpFullScreen,
         miPopUpScalerMode_NearestNeighbour,
         miPopUpScalerMode_Linear,
@@ -159,6 +162,7 @@ private:
     const mvIMPACT::acquire::ImageBuffer*   m_pIB;
     double                                  m_currentZoomFactor;
     double                                  m_zoomFactor_Max;
+    static const double                     s_zoomFactor_Min;
     wxPoint                                 m_lastLeftMouseDownPos;
     wxPoint                                 m_lastViewStart;
     wxPoint                                 m_lastRightMouseDownPos;
@@ -207,6 +211,7 @@ private:
     void                                    OnPopUp_ScalingMode_Changed( wxCommandEvent& e );
     void                                    OnPopUpFitToScreen( wxCommandEvent& e );
     void                                    OnPopUpFullScreen( wxCommandEvent& e );
+    void                                    OnPopUpOneToOneDisplay( wxCommandEvent& e );
     void                                    OnPopUpSetShiftValue( wxCommandEvent& e );
     void                                    OnPopUpShowImageModificationsWarning( wxCommandEvent& e );
     void                                    OnPopUpShowPerformanceWarnings( wxCommandEvent& e );

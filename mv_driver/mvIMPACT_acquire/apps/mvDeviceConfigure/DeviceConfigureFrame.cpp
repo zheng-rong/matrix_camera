@@ -114,7 +114,7 @@ END_EVENT_TABLE()
 
 // Create a new application object: this macro will allow wxWidgets to create
 // the application object during program execution (it's better than using a
-// static object for many reasons) and also declares the accessor function
+// static object for many reasons) and also declares the access function
 // wxGetApp() which will return the reference of the right type (i.e. MyApp and
 // not wxApp)
 IMPLEMENT_APP( MyApp )
@@ -154,7 +154,7 @@ int DeviceConfigureFrame::m_updateResult = 0;
 DeviceConfigureFrame::DeviceConfigureFrame( const wxString& title, const wxPoint& pos, const wxSize& size, int argc, wxChar** argv )
     : wxFrame( ( wxFrame* )NULL, wxID_ANY, title, pos, size ),
       m_pDevListCtrl( 0 ), m_pLogWindow( 0 ), m_logFileName(), m_lastDevMgrChangedCount( numeric_limits<unsigned int>::max() ),
-      m_customFirmwarePath(), m_customGenICamFile(), m_IPv4Masks(), m_boPendingQuit( false )
+      m_customFirmwareFile(), m_customFirmwarePath(), m_customGenICamFile(), m_IPv4Masks(), m_boPendingQuit( false )
 #ifdef BUILD_WITH_PROCESSOR_POWER_STATE_CONFIGURATION_SUPPORT
       , m_boChangeProcessorIdleStates( false ), m_boEnableIdleStates( false )
 #endif // #ifdef BUILD_WITH_PROCESSOR_POWER_STATE_CONFIGURATION_SUPPORT
@@ -269,10 +269,9 @@ DeviceConfigureFrame::DeviceConfigureFrame( const wxString& title, const wxPoint
     std::vector<wxString> commandLineErrors;
     for( int i = 1; i < argc; i++ )
     {
-        wxString key, value;
-        wxString param( argv[i] );
-        key = param.BeforeFirst( wxT( '=' ) );
-        value = param.AfterFirst( wxT( '=' ) );
+        const wxString param( argv[i] );
+        const wxString key = param.BeforeFirst( wxT( '=' ) );
+        const wxString value = param.AfterFirst( wxT( '=' ) );
         if( key.IsEmpty() )
         {
             commandLineErrors.push_back( wxString::Format( wxT( "%s: Invalid command line parameter: '%s'.\n" ), ConvertedString( __FUNCTION__ ).c_str(), param.c_str() ) );
@@ -294,6 +293,10 @@ DeviceConfigureFrame::DeviceConfigureFrame( const wxString& title, const wxPoint
             else if( key == wxT( "fw_path" ) )
             {
                 m_customFirmwarePath = value;
+            }
+            else if( key == wxT( "fw_file" ) )
+            {
+                m_customFirmwareFile = value;
             }
             else if( ( key == wxT( "update_kd" ) ) || ( key == wxT( "ukd" ) ) )
             {
@@ -386,6 +389,7 @@ DeviceConfigureFrame::DeviceConfigureFrame( const wxString& title, const wxPoint
     WriteLogMessage( wxT( "'custom_genicam_file'       or 'cgf'  to specify a custom GenICam file to be used to open devices for firmware updates. This can be useful when the actual XML on the device is damaged/invalid.\n" ) );
     WriteLogMessage( wxT( "'update_kd'                 or 'ukd'  to update the kernel driver of one or many devices.\n" ) );
     WriteLogMessage( wxT( "'ipv4_mask'                           to specify an IPv4 address mask to use as a filter for the selected update operations. Multiple masks can be passed here separated by semicolons.\n" ) );
+    WriteLogMessage( wxT( "'fw_file'                             to specify a custom name for the firmware file to use.\n" ) );
     WriteLogMessage( wxT( "'fw_path'                             to specify a custom path for the firmware files.\n" ) );
     WriteLogMessage( wxT( "'log_file'                  or 'lf'   to specify a log file storing the content of this text control upon application shutdown.\n" ) );
     WriteLogMessage( wxT( "'quit'                      or 'q'    to end the application automatically after all updates have been applied.\n" ) );
@@ -630,7 +634,7 @@ void DeviceConfigureFrame::BuildList( void )
         if( boUpdateAvailable )
         {
             wxTextAttr blueStyle( wxColour( 0, 128, 255 ) );
-            WriteLogMessage( wxString::Format( wxT( "NOTE: The device in row %ld(%s) uses an outdated firmware version.\n" ), index, ConvertedString( pDev->serial.read() ).c_str() ), blueStyle );
+            WriteLogMessage( wxString::Format( wxT( "NOTE: The device in row %ld(%s, %s) uses an outdated firmware version.\n" ), index, ConvertedString( pDev->serial.read() ).c_str(), ConvertedString( pDev->product.read() ).c_str() ), blueStyle );
             m_pDevListCtrl->SetItemBackgroundColour( index, wxColour( 0, 128, 255 ) );
         }
 
@@ -664,7 +668,7 @@ void DeviceConfigureFrame::BuildList( void )
         {
             wxColour col( 150, 75, 150 );
             wxTextAttr oldKernelDriverStyle( col );
-            WriteLogMessage( wxString::Format( wxT( "WARNING: The device in row %ld(%s) is not running with the latest kernel driver. To update the kernel driver for each device of that family currently present right click on the device.\n" ), index, ConvertedString( pDev->serial.read() ).c_str() ), oldKernelDriverStyle );
+            WriteLogMessage( wxString::Format( wxT( "WARNING: The device in row %ld(%s, %s) is not running with the latest kernel driver. To update the kernel driver for each device of that family currently present right click on the device.\n" ), index, ConvertedString( pDev->serial.read() ).c_str(), ConvertedString( pDev->product.read() ).c_str() ), oldKernelDriverStyle );
             m_pDevListCtrl->SetItemBackgroundColour( index, col );
         }
         m_pDevListCtrl->SetItem( index, lcDeviceID, ConvertedString( pDev->deviceID.readS() ) );
@@ -699,26 +703,39 @@ void DeviceConfigureFrame::GetConfigurationEntriesFromFile( const wxString& file
     {
         std::string l;
         getline( file, l );
-        wxString line = ConvertedString( l );
-        // remove all whitespaces, TABs and newlines and also just consider everything until the first ',' as the file
-        // format allows to specify additional parameters after a ',' (e.g. 'mvBlueCOUGAR-XD126aC, serial=GX200376, linkspeed=1000000000')
-        line = line.BeforeFirst( wxT( ',' ) ).Strip( wxString::both );
-        if( line.IsEmpty() == false )
+        // remove all white-spaces, TABs and newlines and also just consider everything until the first ',' to get the product name as the file
+        // format allows to specify additional parameters after a ',' (e.g. 'mvBlueCOUGAR-XD126aC, serial=GX200376, linkspeed=1000000000, firmwareFile=mvBlueCOUGAR-X.mvu')
+        const wxString line = ConvertedString( l ).Strip( wxString::both );
+        const wxString product = line.BeforeFirst( wxT( ',' ) );
+        if( product.IsEmpty() == false )
         {
-            if( line.Contains( wxT( "mvBlueCOUGAR-S" ) ) == false )
+            if( product.Contains( wxT( "mvBlueCOUGAR-S" ) ) == false )
             {
-                GetConfigurationEntry( line )->second.boUpdateFW_ = true;
+                std::map<wxString, DeviceConfigurationData>::iterator it = GetConfigurationEntry( product );
+                it->second.boUpdateFW_ = true;
+                wxStringTokenizer tokenizer( line.AfterFirst( wxT( ',' ) ), wxString( wxT( "," ) ), wxTOKEN_STRTOK );
+                while( tokenizer.HasMoreTokens() )
+                {
+                    const wxString token( tokenizer.GetNextToken().Strip( wxString::both ) );
+                    const wxString key = token.BeforeFirst( wxT( '=' ) ).MakeLower();
+                    const wxString value = token.AfterFirst( wxT( '=' ) );
+                    if( key == wxT( "firmwarefile" ) )
+                    {
+                        it->second.customFirmwareFileName_ = value;
+                        break;
+                    }
+                }
             }
-            else if( line.StartsWith( wxT( "mvBlueCOUGAR-S" ) ) == true )
+            else if( product.StartsWith( wxT( "mvBlueCOUGAR-S" ) ) == true )
             {
-                WriteErrorMessage( wxString::Format( wxT( "Devices of type '%s' do not support this update mechanism as there is no way to check if the firmware on the device is the same as the one in the update archive and this could result in a lot of redundant update cycles in an automatic environment.\n" ), line.c_str() ) );
+                WriteErrorMessage( wxString::Format( wxT( "Devices of type '%s' do not support this update mechanism as there is no way to check if the firmware on the device is the same as the one in the update archive and this could result in a lot of redundant update cycles in an automatic environment.\n" ), product.c_str() ) );
             }
         }
     }
 }
 
 //-----------------------------------------------------------------------------
-std::map<wxString, DeviceConfigureFrame::DeviceConfigurationData>::iterator DeviceConfigureFrame::GetConfigurationEntry( wxString& value )
+std::map<wxString, DeviceConfigureFrame::DeviceConfigurationData>::iterator DeviceConfigureFrame::GetConfigurationEntry( const wxString& value )
 //-----------------------------------------------------------------------------
 {
     std::map<wxString, DeviceConfigurationData>::iterator it = m_devicesToConfigure.find( value );
@@ -829,7 +846,7 @@ void DeviceConfigureFrame::OnTimer( wxTimerEvent& e )
                                 }
                                 if( boIgnore == true )
                                 {
-                                    WriteLogMessage( wxString::Format( wxT( "Device '%s' will not be configured as it IPv4 address(%s) does not match any of the specified masks.\n" ), ConvertedString( pDev->serial.read() ).c_str(), ConvertedString( IPAddress ).c_str() ) );
+                                    WriteLogMessage( wxString::Format( wxT( "Device '%s'(%s) will not be configured as it IPv4 address(%s) does not match any of the specified masks.\n" ), ConvertedString( pDev->serial.read() ).c_str(), ConvertedString( pDev->product.read() ).c_str(), ConvertedString( IPAddress ).c_str() ) );
                                     ++i;
                                     continue;
                                 }
@@ -846,7 +863,7 @@ void DeviceConfigureFrame::OnTimer( wxTimerEvent& e )
                     }
                     if( it->second.boUpdateFW_ )
                     {
-                        RefreshApplicationExitCode( UpdateFirmware( pDev, true, m_pMISettings_KeepUserSetSettingsAfterFirmwareUpdate->IsChecked() ) );
+                        RefreshApplicationExitCode( UpdateFirmware( pDev, true, m_pMISettings_KeepUserSetSettingsAfterFirmwareUpdate->IsChecked(), it->second.customFirmwareFileName_ ) );
                     }
                     ++i;
                 }
@@ -924,19 +941,18 @@ int DeviceConfigureFrame::SetID( Device* pDev, int newID )
 
     if( result == 0 )
     {
-        WriteLogMessage( wxString::Format( wxT( "Trying to assign ID %d to %s.\n" ), newID, ConvertedString( pDev->serial.read() ).c_str() ) );
-        int result = pDev->setID( newID );
-        if( result == DMR_FEATURE_NOT_AVAILABLE )
+        WriteLogMessage( wxString::Format( wxT( "Trying to assign ID %d to %s(%s).\n" ), newID, ConvertedString( pDev->serial.read() ).c_str(), ConvertedString( pDev->product.read() ).c_str() ) );
+        switch( pDev->setID( newID ) )
         {
-            WriteErrorMessage( wxString::Format( wxT( "Device %s doesn't support setting the device ID.\n" ), ConvertedString( pDev->serial.read() ).c_str() ) );
-        }
-        else if( result != DMR_NO_ERROR )
-        {
-            WriteErrorMessage( wxString::Format( wxT( "An error occurred while setting the device ID for device %s: %s(please refer to the manual for this error code).\n" ), ConvertedString( pDev->serial.read() ).c_str(), ConvertedString( ImpactAcquireException::getErrorCodeAsString( result ) ).c_str() ) );
-        }
-        else
-        {
+        case DMR_FEATURE_NOT_AVAILABLE:
+            WriteErrorMessage( wxString::Format( wxT( "Device %s(%s) doesn't support setting the device ID.\n" ), ConvertedString( pDev->serial.read() ).c_str(), ConvertedString( pDev->product.read() ).c_str() ) );
+            break;
+        case DMR_NO_ERROR:
             WriteLogMessage( wxString::Format( wxT( "%s.\n" ), ConvertedString( pDev->HWUpdateResult.readS() ).c_str() ) );
+            break;
+        default:
+            WriteErrorMessage( wxString::Format( wxT( "An error occurred while setting the device ID for device %s(%s): %s(please refer to the manual for this error code).\n" ), ConvertedString( pDev->serial.read() ).c_str(), ConvertedString( pDev->product.read() ).c_str(), ConvertedString( ImpactAcquireException::getErrorCodeAsString( result ) ).c_str() ) );
+            break;
         }
     }
     return result;
@@ -998,7 +1014,7 @@ void DeviceConfigureFrame::UpdateDeviceList( void )
 }
 
 //-----------------------------------------------------------------------------
-int DeviceConfigureFrame::UpdateFirmware( Device* pDev, bool boSilentMode, bool boPersistentUserSets )
+int DeviceConfigureFrame::UpdateFirmware( Device* pDev, bool boSilentMode, bool boPersistentUserSets, const wxString& customFirmwareFileName /* = wxEmptyString */ )
 //-----------------------------------------------------------------------------
 {
     int result = 0;
@@ -1007,6 +1023,15 @@ int DeviceConfigureFrame::UpdateFirmware( Device* pDev, bool boSilentMode, bool 
     {
         wxBusyCursor busyCursorScope;
         pHandler->AttachParent( this );
+        // Prefer using the more specific custom firmware file name
+        if( !customFirmwareFileName.IsEmpty() )
+        {
+            pHandler->SetCustomFirmwareFile( customFirmwareFileName );
+        }
+        else
+        {
+            pHandler->SetCustomFirmwareFile( m_customFirmwareFile );
+        }
         pHandler->SetCustomFirmwarePath( m_customFirmwarePath );
         pHandler->SetCustomGenICamFile( m_customGenICamFile );
         result = pHandler->UpdateFirmware( boSilentMode, boPersistentUserSets );
@@ -1185,7 +1210,7 @@ int DeviceConfigureFrame::SetDSFriendlyName( int deviceIndex )
 
             string devSerial = pDev->serial.read();
             string devProduct = pDev->product.read();
-            WriteLogMessage( wxString::Format( wxT( "Trying to set new DirectShow friendly name for %s. Current friendly name: %s\n" ), ConvertedString( devSerial ).c_str(), info.m_text.c_str() ) );
+            WriteLogMessage( wxString::Format( wxT( "Trying to set new DirectShow friendly name for %s(%s). Current friendly name: %s\n" ), ConvertedString( devSerial ).c_str(), ConvertedString( devProduct ).c_str(), info.m_text.c_str() ) );
             wxString newFriendlyName = wxGetTextFromUser(   wxString::Format( wxT( "Enter the new DirectShow friendly name for device %s.\nMake sure that no other device is using this name already.\n" ), ConvertedString( devSerial ).c_str() ),
                                        wxT( "New friendly name:" ),
                                        wxString::Format( wxT( "%s_%s" ), ConvertedString( devProduct ).c_str(), ConvertedString( devSerial ).c_str() ),

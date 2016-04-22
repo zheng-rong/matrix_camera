@@ -21,17 +21,17 @@ class wxPGCustomSpinCtrlEditor : public wxPGTextCtrlEditor
     static wxPGCustomSpinCtrlEditor* m_pInstance;
     bool m_boCreateSlider;
 public:
-    // See below for short explanations of what these are suppposed to do.
+    // See below for short explanations of what these are supposed to do.
 #ifndef __WXPYTHON__
     virtual wxWindow*                   CreateControls( wxPropertyGrid* pPropGrid, wxPGProperty* pProperty, const wxPoint& pos, const wxSize& sz, wxWindow** ppSecondary ) const;
 #else
 #   if wxPROPGRID_MINOR > 2
-    virtual wxPGWindowList          CreateControls( wxPropertyGrid* pPropGrid, wxPGProperty* pProperty, const wxPoint& pos, const wxSize& sz ) const;
+    virtual wxPGWindowList              CreateControls( wxPropertyGrid* pPropGrid, wxPGProperty* pProperty, const wxPoint& pos, const wxSize& sz ) const;
 #   else
-    virtual wxPGWindowPair          CreateControls( wxPropertyGrid* pPropGrid, wxPGProperty* pProperty, const wxPoint& pos, const wxSize& sz ) const;
+    virtual wxPGWindowPair              CreateControls( wxPropertyGrid* pPropGrid, wxPGProperty* pProperty, const wxPoint& pos, const wxSize& sz ) const;
 #   endif
 #endif
-    void                        ConfigureControlsCreation( bool boCreateSlider )
+    void                                ConfigureControlsCreation( bool boCreateSlider )
     {
         m_boCreateSlider = boCreateSlider;
     }

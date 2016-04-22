@@ -10,10 +10,10 @@
 #endif // #if !defined(mvDriverBaseEnumsH) && !defined(SWIG)
 
 #define MVIMPACT_ACQUIRE_MAJOR_VERSION   2
-#define MVIMPACT_ACQUIRE_MINOR_VERSION   13
-#define MVIMPACT_ACQUIRE_RELEASE_VERSION 3
-#define MVIMPACT_ACQUIRE_BUILD_VERSION   1691
-#define MVIMPACT_ACQUIRE_VERSION_STRING  "2.13.3.1691"
+#define MVIMPACT_ACQUIRE_MINOR_VERSION   15
+#define MVIMPACT_ACQUIRE_RELEASE_VERSION 2
+#define MVIMPACT_ACQUIRE_BUILD_VERSION   1891
+#define MVIMPACT_ACQUIRE_VERSION_STRING  "2.15.2.1891"
 
 /// \brief This is a macro which evaluates to true if the current mvIMPACT Acquire version is at least major.minor.release.
 ///

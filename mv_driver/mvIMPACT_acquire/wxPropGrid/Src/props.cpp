@@ -1122,8 +1122,8 @@ void wxFlagsPropertyClass::Init()
                 else if ( selected == this )
                     oldSel = -2;
             }
+            state->ClearSelection();
         }
-        state->ClearSelection();
     }
 
     // Delete old children
@@ -1677,9 +1677,6 @@ bool wxFilePropertyClass::OnEvent( wxPropertyGrid* propGrid,
         // If text in control is changed, then update it to value.
         PrepareValueForDialogEditing(propGrid);
 
-        wxString path;
-        path = m_filename.GetPath();
-
         wxFileDialog dlg( propGrid,
                           m_dlgTitle.length() ? m_dlgTitle : wxString(_("Choose a file")),
                           !m_initialPath.empty() ? m_initialPath : m_filename.GetPath(),
@@ -1694,8 +1691,7 @@ bool wxFilePropertyClass::OnEvent( wxPropertyGrid* propGrid,
         if ( dlg.ShowModal() == wxID_OK )
         {
             m_indFilter = dlg.GetFilterIndex();
-            wxString path = dlg.GetPath();
-            SetValueFromString( path, wxPG_FULL_VALUE );
+            SetValueFromString( dlg.GetPath(), wxPG_FULL_VALUE );
             if ( primary )
                 GetEditorClass()->SetControlStringValue( primary, GetValueAsString(0) );
             return true;
@@ -2629,14 +2625,14 @@ wxSize wxCustomPropertyClass::GetImageSize() const
     return wxPGPropertyWithChildren::GetImageSize();
 }
 
-void wxCustomPropertyClass::OnCustomPaint( wxDC& dc,
+void wxCustomPropertyClass::OnCustomPaint( wxDC* pDC,
                                            const wxRect& rect,
                                            wxPGPaintData& paintData )
 {
     if ( m_paintCallback )
-        m_paintCallback(this,dc,rect,paintData);
+        m_paintCallback(this,pDC,rect,paintData);
     else
-        wxPGPropertyWithChildren::OnCustomPaint(dc,rect,paintData);
+        wxPGPropertyWithChildren::OnCustomPaint(pDC,rect,paintData);
 }
 
 bool wxCustomPropertyClass::SetValueFromInt ( long value, int )

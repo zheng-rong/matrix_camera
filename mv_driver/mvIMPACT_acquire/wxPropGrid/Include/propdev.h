@@ -731,7 +731,7 @@ wxPG_BEGIN_PROPERTY_CLASS_BODY2(wxPG_PROPCLASS(NAME),UPCLASS,T,T,T_AS_ARG,class 
 
 #define WX_PG_DECLARE_CUSTOM_PAINT_METHODS() \
     virtual wxSize GetImageSize() const; \
-    virtual void OnCustomPaint( wxDC& dc, const wxRect& rect, wxPGPaintData& paintdata );
+    virtual void OnCustomPaint( wxDC* pDC, const wxRect& rect, wxPGPaintData& paintdata );
 
 #define WX_PG_DECLARE_ATTRIBUTE_METHODS() \
     virtual void SetAttribute( int id, wxVariant& value );
@@ -1280,7 +1280,7 @@ public:
     WX_PG_DECLARE_EVENT_METHODS()
 
     //  Shows string editor dialog. Value to be edited should be read from value, and
-    //  if dialog is not cancelled, it should be stored back and true should be returned
+    //  if dialog is not canceled, it should be stored back and true should be returned
     //  if that was the case.
     virtual bool OnButtonClick( wxPropertyGrid* propgrid, wxString& value );
 

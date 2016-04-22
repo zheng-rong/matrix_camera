@@ -103,14 +103,14 @@ unsigned int LIVE_LOOP_CALL liveLoop( void* pData )
             {
                 // display statistical information every 100th image
                 frameCount = frameCount + 1;
-                if( ( frameCount % 100 ) == 0 )
-                {
-                    OBJ_GetF( hPropFPS, &fps, 0 );
-                    OBJ_GetI( hErrorCount, &errorCount, 0 );
-                    printf( "Frames per second: %.5f, Width: %d, Height: %d, Error count: %d.\n", fps, pIB->iWidth, pIB->iHeight, errorCount );
-                }
                 if( ( result = DMR_GetImageRequestBuffer( hDrv, requestNr, &pIB ) ) == DMR_NO_ERROR )
                 {
+                    if( ( frameCount % 100 ) == 0 )
+                    {
+                        OBJ_GetF( hPropFPS, &fps, 0 );
+                        OBJ_GetI( hErrorCount, &errorCount, 0 );
+                        printf( "Frames per second: %.5f, Width: %d, Height: %d, Error count: %d.\n", fps, pIB->iWidth, pIB->iHeight, errorCount );
+                    }
 #ifdef USE_MV_DISPLAY_LIB
                     // display the captured image
                     mvDispSetImageFromImageBuffer( pDisp, pIB );

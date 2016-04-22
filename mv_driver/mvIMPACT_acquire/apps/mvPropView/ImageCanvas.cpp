@@ -578,7 +578,7 @@ void ImageCanvas::OnPaint( wxPaintEvent& )
             }
 
             dc.SetUserScale( scaleFactor, scaleFactor );
-            // produces false colors when scaled and is not faster then the blit method!
+            // produces false colors when scaled and is not faster than the draw method!
             // dc.DrawBitmap( m_pImpl->currentImage, scaleCorrectedBlitXOffsetInClient, scaleCorrectedBlitYOffsetInClient, false );
             dc.Blit( scaleCorrectedBlitXOffsetInClient, scaleCorrectedBlitYOffsetInClient, imageWidth, imageHeight, &memDC, 0, 0 );
             BlitAOIs( dc, 1.0, static_cast<int>( blitXOffsetInClient / scaleFactor ), static_cast<int>( blitYOffsetInClient / scaleFactor ), imageWidth, imageHeight );

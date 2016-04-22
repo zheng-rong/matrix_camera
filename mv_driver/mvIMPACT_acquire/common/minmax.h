@@ -14,12 +14,11 @@ template<typename _Ty>
 _Ty bitMask( _Ty bitCount )
 //-----------------------------------------------------------------------------
 {
-    if( bitCount <= static_cast<_Ty>( 1 ) )
+    if( bitCount >= static_cast<_Ty>( sizeof( _Ty ) * 8 ) )
     {
-        return static_cast<_Ty>( 1 );
+        return _Ty( -1 );
     }
-    const _Ty nextBitCount = bitCount - static_cast<_Ty>( 1 );
-    return ( static_cast<_Ty>( 1 ) << nextBitCount ) | bitMask( nextBitCount );
+    return ( _Ty( 1 ) << bitCount ) - _Ty( 1 );
 }
 
 //-----------------------------------------------------------------------------

@@ -45,12 +45,13 @@ bool DeviceHandler::MessageToUser( const wxString& caption, const wxString& msg,
 bool DeviceHandler::GetIDFromUser( long& newID, const long minValue, const long maxValue )
 //-----------------------------------------------------------------------------
 {
-    string devSerial = pDev_->serial.read();
+    const string devSerial( pDev_->serial.read() );
+    const string devProduct( pDev_->product.read() );
     if( pParent_ )
     {
-        pParent_->WriteLogMessage( wxString::Format( wxT( "Trying to set new ID for %s. Current ID: %d\n" ), ConvertedString( devSerial ).c_str(), pDev_->deviceID.read() ) );
+        pParent_->WriteLogMessage( wxString::Format( wxT( "Trying to set new ID for %s(%s). Current ID: %d\n" ), ConvertedString( devSerial ).c_str(), ConvertedString( devProduct ).c_str(), pDev_->deviceID.read() ) );
     }
-    newID = wxGetNumberFromUser(    wxString::Format( wxT( "Enter the new ID for device %s.\nMake sure that no other device of the same family already owns this new ID.\n" ), ConvertedString( devSerial ).c_str() ),
+    newID = wxGetNumberFromUser(    wxString::Format( wxT( "Enter the new ID for device %s(%s).\nMake sure that no other device of the same family already owns this new ID.\n" ), ConvertedString( devSerial ).c_str(), ConvertedString( devProduct ).c_str() ),
                                     wxT( "New ID:" ),
                                     wxString::Format( wxT( "Set new ID for %s(%s)" ), ConvertedString( devSerial ).c_str(), ConvertedString( pDev_->family.read() ).c_str() ),
                                     0,          // start

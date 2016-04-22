@@ -17,7 +17,7 @@ BEGIN_EVENT_TABLE( WizardLensControl, OkAndCancelDlg )
     EVT_SPIN_DOWN( widSBIris, WizardLensControl::OnSpinDown )
     EVT_TEXT( widCBIrisMode, WizardLensControl::OnIrisModeComboTextChanged )
     EVT_SPINCTRL( widSCDriveLevel, WizardLensControl::OnSCDriveLevelChanged )
-#ifdef BUILD_WITH_TEXT_EVENTS_FOR_SPINCTRL // BAT: Unfortunately on linux wxWidgets 2.6.x - ??? handling these messages will cause problems, while on Windows not doing so will not always update the GUI as desired :-(
+#ifdef BUILD_WITH_TEXT_EVENTS_FOR_SPINCTRL // Unfortunately on Linux wxWidgets 2.6.x - ??? handling these messages will cause problems, while on Windows not doing so will not always update the GUI as desired :-(
     EVT_TEXT( widSCDriveLevel, WizardLensControl::OnSCDriveLevelTextChanged )
 #endif // #ifdef BUILD_WITH_TEXT_EVENTS_FOR_SPINCTRL
     EVT_CLOSE( WizardLensControl::OnClose )

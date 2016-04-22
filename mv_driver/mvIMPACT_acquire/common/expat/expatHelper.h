@@ -36,20 +36,4 @@ bool ParseXMLFromFile( CExpatImpl<_Ty>& parser, FILE* fp )
     return parser.ParseBuffer( static_cast<int>( bytesRead ), true );
 }
 
-//-----------------------------------------------------------------------------
-template<class _Ty>
-bool ParseXMLFromBuffer( CExpatImpl<_Ty>& parser, const char* pBuf, const size_t bufSize )
-//-----------------------------------------------------------------------------
-{
-    char* pszBuffer = reinterpret_cast<char*>( parser.GetBuffer( static_cast<int>( bufSize ) + 1 ) );
-    if( !pszBuffer )
-    {
-        return false;
-    }
-
-    memcpy( pszBuffer, pBuf, bufSize );
-    pszBuffer[bufSize] = '\0'; // make this a well terminated string!
-    return parser.ParseBuffer( static_cast<int>( bufSize ), true );
-}
-
 #endif // expatHelperH

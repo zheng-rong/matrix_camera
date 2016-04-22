@@ -6,13 +6,14 @@ PACKAGE_DIR=$(rospack find mv_driver)
 echo "### downloading and unpacking drivers to" $PACKAGE_DIR "###"
 
 #BLUEFOX_URL="http://www.matrix-vision.com/latest-drivers.html?file=tl_files/mv11/support/mvIMPACT_Acquire/01/mvBlueFOX-x86_64_ABI2-2.13.4.tgz"
-BLUEFOX_URL="http://static.matrix-vision.com/mvIMPACT_Acquire/2.13.3/mvBlueFOX-x86_64_ABI2-2.13.3.tgz"
+#BLUEFOX_URL="http://static.matrix-vision.com/mvIMPACT_Acquire/2.13.3/mvBlueFOX-x86_64_ABI2-2.13.3.tgz"
+BLUEFOX_URL="http://static.matrix-vision.com/mvIMPACT_Acquire/2.15.2/mvBlueFOX-x86_64_ABI2-2.15.2.tgz"
 
 #BLUEFOX_FILE=""
 
 API=mvIMPACT_acquire
 
-BLUEFOX_VERSION=2.13.3
+BLUEFOX_VERSION=2.15.2
 ABI=ABI2
 
 LINKER_PATHS=$PACKAGE_DIR/linker_paths

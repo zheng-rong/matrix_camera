@@ -748,6 +748,11 @@ void WizardLUTControl::SynchronizeLUT( const bool boCacheToDevice, const wxStrin
     else
     {
         ReadLUTFromDevice( LUTSelectorValue, lut );
+        const LUTMap::const_iterator it = lutMap_.find( pCBLUTSelection_->GetValue() );
+        if( it != lutMap_.end() )
+        {
+            activeLUT_ = it->second.lut_;
+        }
     }
 }
 
@@ -865,7 +870,7 @@ BEGIN_EVENT_TABLE( WizardLUTGammaDlg, OkAndCancelDlg )
     EVT_TEXT( widCBGammaMode, WizardLUTGammaDlg::OnCBGammaModeChanged )
     EVT_SPINCTRL( widSCGammaStartThreshold, WizardLUTGammaDlg::OnGammaStartThresholdChanged )
 
-#ifdef BUILD_WITH_TEXT_EVENTS_FOR_SPINCTRL // BAT: Unfortunately on linux wxWidgets 2.6.x - ??? handling these messages will cause problems, while on Windows not doing so will not always update the GUI as desired :-(
+#ifdef BUILD_WITH_TEXT_EVENTS_FOR_SPINCTRL // Unfortunately on Linux wxWidgets 2.6.x - ??? handling these messages will cause problems, while on Windows not doing so will not always update the GUI as desired :-(
     EVT_TEXT( widSCGamma, WizardLUTGammaDlg::OnGammaTextChanged )
     EVT_TEXT( widSCGammaAlpha, WizardLUTGammaDlg::OnGammaAlphaTextChanged )
     EVT_TEXT( widSCGammaStartThreshold, WizardLUTGammaDlg::OnGammaStartThresholdTextChanged )

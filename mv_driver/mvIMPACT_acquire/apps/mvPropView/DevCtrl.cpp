@@ -1,6 +1,7 @@
 //-----------------------------------------------------------------------------
 #include <apps/Common/wxAbstraction.h>
 #include "CaptureThread.h"
+#include <common/STLHelper.h>
 #include "DataConversion.h"
 #include "DevCtrl.h"
 #include <mvIMPACT_CPP/mvIMPACT_acquire_GenICam.h>
@@ -11,6 +12,9 @@
 using namespace std;
 using namespace mvIMPACT::acquire;
 
+//=============================================================================
+//================= Implementation PropGridFrozenScope ========================
+//=============================================================================
 //-----------------------------------------------------------------------------
 class PropGridFrozenScope
 //-----------------------------------------------------------------------------
@@ -27,6 +31,9 @@ public:
     }
 };
 
+//=============================================================================
+//================= Implementation DevicePropertyHandler ======================
+//=============================================================================
 //-----------------------------------------------------------------------------
 DevicePropertyHandler::DevicePropertyHandler( wxPropertyGrid* pPGDriver, wxPropertyGrid* pPGDevice, bool boDisplayDebugInfo, bool boDisplayFullTree, bool boDisplayInvisibleComponents ) :
     m_actDevListChangedCounter( 0 ), m_actDrvListChangedCounter( 0 ), m_boDisplayDebugInfo( boDisplayDebugInfo ), m_boDisplayInvisibleComponents( boDisplayInvisibleComponents ),
@@ -55,8 +62,7 @@ DevicePropertyHandler::~DevicePropertyHandler()
         if( itStart->second->pCaptureThread )
         {
             itStart->second->pCaptureThread->Delete();
-            delete itStart->second->pCaptureThread;
-            itStart->second->pCaptureThread = 0;
+            DeleteElement( itStart->second->pCaptureThread );
         }
         DeleteDriverTrees( itStart );
         delete itStart->second->pDriverTree;
@@ -215,6 +221,11 @@ void DevicePropertyHandler::CheckForWizards( mvIMPACT::acquire::Device* pDev, De
             if( ctc.colorTransformationEnable.isValid() && ctc.colorTransformationValue.isValid() &&
                 ctc.colorTransformationValueSelector.isValid() )
             {
+                if( ctc.colorTransformationSelector.isValid() )
+                {
+                    s.insert( ctc.colorTransformationSelector.hObj() );
+                }
+                s.insert( ctc.colorTransformationEnable.parent().hObj() );
                 s.insert( ctc.colorTransformationEnable.hObj() );
                 s.insert( ctc.colorTransformationValue.hObj() );
                 s.insert( ctc.colorTransformationValueSelector.hObj() );
@@ -241,8 +252,7 @@ void DevicePropertyHandler::CloseDriver( const wxString& name )
             if( it->second->pCaptureThread )
             {
                 it->second->pCaptureThread->Delete();
-                delete it->second->pCaptureThread;
-                it->second->pCaptureThread = 0;
+                DeleteElement( it->second->pCaptureThread );
             }
             it->second->boWasLive = false;
             {
@@ -250,8 +260,7 @@ void DevicePropertyHandler::CloseDriver( const wxString& name )
                 PropGridFrozenScope PGDeviceFrozenScope( m_pPGDevice );
                 if( m_pFullTree )
                 {
-                    delete m_pFullTree;
-                    m_pFullTree = 0;
+                    DeleteElement( m_pFullTree );
                     boMustRecreateFullTree = true;
                 }
                 else
@@ -259,16 +268,14 @@ void DevicePropertyHandler::CloseDriver( const wxString& name )
                     DeleteDriverTrees( it );
                 }
             }
-            delete it->second->pFuncInterface;
-            it->second->pFuncInterface = 0;
-            delete it->second->pStatistics;
-            it->second->pStatistics = 0;
-            delete it->second->pInfo;
-            it->second->pInfo = 0;
-            // we do not have an asignment operator
+            DeleteElement( it->second->pFuncInterface );
+            DeleteElement( it->second->pStatistics );
+            DeleteElement( it->second->pInfo );
+            // we do not have an assignment operator
             ComponentLocator locator( pDev->hDev() );
             locator.bindComponent( it->second->acquisitionMode, "DUMMY_NON_FEATURE", 0, 1 );
             locator.bindComponent( it->second->acquisitionFrameCount, "DUMMY_NON_FEATURE", 0, 1 );
+            locator.bindComponent( it->second->mvAcquisitionMemoryFrameCount, "DUMMY_NON_FEATURE", 0, 1 );
             it->second->supportedWizards.clear();
         }
         pDev->close();
@@ -447,6 +454,14 @@ mvIMPACT::acquire::PropertyI64 DevicePropertyHandler::GetActiveDeviceAcquisition
 }
 
 //-----------------------------------------------------------------------------
+mvIMPACT::acquire::PropertyI64 DevicePropertyHandler::GetActiveDeviceAcquisitionMemoryFrameCount( void ) const
+//-----------------------------------------------------------------------------
+{
+    wxCriticalSectionLocker locker( m_critSect );
+    return m_pActiveDevData ? m_pActiveDevData->mvAcquisitionMemoryFrameCount : PropertyI64();
+}
+
+//-----------------------------------------------------------------------------
 const WizardFeatureMap DevicePropertyHandler::GetActiveDeviceSupportedWizards( void ) const
 //-----------------------------------------------------------------------------
 {
@@ -503,15 +518,18 @@ void DevicePropertyHandler::OpenDriver( const wxString& name, wxWindow* pParentW
                 {
                     it->second->pInfo = new Info( pDev );
                 }
+                ComponentLocator locator( pDev->hDrv() );
                 if( !it->second->acquisitionMode.isValid() )
                 {
-                    ComponentLocator locator( pDev->hDrv() );
                     locator.bindComponent( it->second->acquisitionMode, "AcquisitionMode" );
                 }
                 if( !it->second->acquisitionFrameCount.isValid() )
                 {
-                    ComponentLocator locator( pDev->hDrv() );
                     locator.bindComponent( it->second->acquisitionFrameCount, "AcquisitionFrameCount" );
+                }
+                if( !it->second->mvAcquisitionMemoryFrameCount.isValid() )
+                {
+                    locator.bindComponent( it->second->mvAcquisitionMemoryFrameCount, "mvAcquisitionMemoryFrameCount" );
                 }
                 CheckForWizards( pDev, it->second );
                 if( !m_pFullTree &&

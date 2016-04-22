@@ -39,7 +39,8 @@ public:
         _ctrlMultiChoiceSelector,
         _ctrlFileSelector,
         _ctrlDirSelector,
-        _ctrlBinaryDataEditor
+        _ctrlBinaryDataEditor,
+        _ctrlBoolean
     };
     WXDLLIMPEXP_PG explicit                     PropData( mvIMPACT::acquire::HOBJ hObj );
     WXDLLIMPEXP_PG virtual                     ~PropData( void ) {}
