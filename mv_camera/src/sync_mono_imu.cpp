@@ -140,7 +140,9 @@ int main(int argc, char **argv)
                     prev_time = curr_time;
                     curr_time = ros::Time::now();
                     pub_rate = 20/(curr_time.toSec()-prev_time.toSec());
-                    cout << "Sync rate: " << pub_rate << endl;
+                    printf("\rSync count: %d Rate: %.3f ", pub_count, pub_rate);
+                    fflush(stdout);
+                    // cout << "Sync rate: " << pub_rate << endl;
                 }
                 
             }
