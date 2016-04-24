@@ -10,7 +10,7 @@
 			type="sync_mono_imu"
 			output="screen">
 	<param name="image_rect_topic" value="/mono/image_rect"/>
-	<param name="gpio_time_topic" value="/icc/gpio_time"/>
+	<param name="gpio_time_topic" value="/itc/gpio_time"/>
 	</node>
 
 	<!-- </group> -->

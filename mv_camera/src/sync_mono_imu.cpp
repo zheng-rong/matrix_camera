@@ -29,7 +29,6 @@ std::vector<double>::iterator min_iter;
 
 double time_error = 0;
 
-
 void gpio_time_callback(const quadrotor_msgs::GPIOTime::ConstPtr& time)
 {
     time_error = fabs(time->ref1.stamp.toSec() - time->ref2.stamp.toSec());
@@ -97,6 +96,10 @@ int main(int argc, char **argv)
     // ros::Publisher pub_imu = nh.advertise<sensor_msgs::Imu>(pub_imu_topic_name, 5);
 
     ros::Rate rate(1000); 
+    ros::Time prev_time = ros::Time::now();
+    ros::Time curr_time = ros::Time::now();
+    float pub_rate = 0;
+    unsigned int pub_count = 0;
 
     while(ros::ok())
     {
@@ -130,6 +133,16 @@ int main(int argc, char **argv)
                 time_buff.erase(time_buff.begin());
                 mono_image_buff.erase(mono_image_buff.begin());
                 // mono_info_buff.erase(mono_info_buff.begin());
+
+                pub_count++;
+                if(pub_count % 20 == 0)
+                {
+                    prev_time = curr_time;
+                    curr_time = ros::Time::now();
+                    pub_rate = 20/(curr_time.toSec()-prev_time.toSec());
+                    cout << "Sync rate: " << pub_rate << endl;
+                }
+                
             }
             // there are at least one stamp-time that is too old 
             // which may be caused by frame/message lost
