@@ -1,7 +1,7 @@
 <launch>
 
 <arg name="vehicle" default="hummer"/>
-<arg name="filename" default="realbag"/>
+<arg name="filename" default="realbag_999"/>
 
 <group ns="$(arg vehicle)">
 
@@ -9,10 +9,10 @@
 			type="record"
 			name="record"
 			output="screen"
-			args="-O /home/arkin/dataset_real/hummer-high/$(arg filename)
+			args="-O /home/arkin/dataset/mvo_realbag/$(arg filename)
 			/sync/image_rect
 			/sync/gpio_time
-			/icc/imu"
+			/itc/imu"
 			/>
 			
 </group>
