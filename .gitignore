@@ -5,6 +5,7 @@
 /mv_driver/mvBlueFOX_scripts/
 /mv_driver/*.dox
 
+/mv_camera/cfg/
 /mv_camera/bin
 /mv_camera/build/
 /mv_camera/srv_gen/
