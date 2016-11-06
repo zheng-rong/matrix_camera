@@ -13,9 +13,9 @@
     <param name="binning_x" value="0" />
     <param name="binning_y" value="0" />
     <param name="hdr_mode" value="off" />
-    <param name="gain_auto" value="false" />
+    <param name="gain_auto" value="true" />
     <param name="shutter_auto" value="false" />
-    <param name="shutter" value="0.010" />
+    <param name="shutter" value="0.004" />
     <param name="frame_rate" value="20" />
     <remap from="camera" to="$(arg vehicle)" />
     </node>
